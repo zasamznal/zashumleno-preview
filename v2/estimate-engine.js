@@ -151,8 +151,11 @@
           const description = kind === 'door-option'
             ? notes.find(note => key(note).includes(key(rowName).split(' ')[0])) || ''
             : notes[0] || '';
+          // Tyre kits, tyre fitting and per-door options cost the same for any car; the cabinet can override it.
+          const scalable = typeof rate.carDependent === 'boolean' ? rate.carDependent
+            : !['tyre-material', 'tyre-fitting', 'tyre-work', 'door-option'].includes(kind);
           const choice = {
-            id, zoneId: zone.id, groupId, title, rowTitle: rowName, priceText, unit, description, facts,
+            id, zoneId: zone.id, groupId, title, rowTitle: rowName, priceText, unit, description, facts, scalable,
             notes: kind === 'door-option' ? [description].filter(Boolean) : notes,
             sheet: compact(rate.sheet), source: compact(rate.source), kind,
             fullTitle: join([zone.title, kind === 'package' ? '' : groupTitle, title]),
@@ -168,27 +171,46 @@
     return { zones: zones.filter(zone => zone.groups.length), choices };
   }
 
-  function create(prices, zones) {
+  function create(prices, zones, vehicles) {
     const data = catalog(prices, zones);
     const selection = new Map();
     const chosen = () => Array.from(selection.values(), id => data.choices.get(id)).filter(Boolean);
+    const pricing = globalThis.StudioVehicles;
+    const config = pricing && vehicles ? pricing.normalize(vehicles) : null;
+    let vehicle = { body: '', brand: '', model: '' };
+
+    function multiplier(choice) {
+      return config && choice.scalable ? pricing.factor(config, vehicle, choice.zoneId) : 1;
+    }
+
+    // The price of a choice for the selected car. Without a car the price list values stay untouched.
+    function priced(choice) {
+      const factor = multiplier(choice);
+      if (Math.abs(factor - 1) < 1e-9 || choice.min == null) {
+        return { min: choice.min, max: choice.max, priceText: choice.priceText, adjusted: false, factor: 1 };
+      }
+      const min = pricing.adjust(choice.min, factor, config.rounding);
+      const max = choice.max == null ? null : pricing.adjust(choice.max, factor, config.rounding);
+      return { min, max, priceText: money(min, max), adjusted: true, factor };
+    }
 
     function evaluate(id) {
       const choice = data.choices.get(id);
       if (!choice) return null;
+      const price = priced(choice);
       const selected = chosen();
       const hasMetal = selected.some(row => row.zoneId === choice.zoneId && row.kind === 'metal');
       let condition = '';
       if (choice.required === 'roof-complex') {
-        condition = 'Цена ' + choice.priceText + ' действует в составе комплекса. Отдельную обработку и состав комплекса согласует студия.';
+        condition = 'Цена ' + price.priceText + ' действует в составе комплекса. Отдельную обработку и состав комплекса согласует студия.';
       } else if (choice.required === 'metal' && !hasMetal) {
-        condition = 'Цена ' + choice.priceText + ' действует вместе с обработкой металла наружных арок.';
+        condition = 'Цена ' + price.priceText + ' действует вместе с обработкой металла наружных арок.';
       } else if (choice.required === 'no-metal' && hasMetal) {
         condition = 'Для совместной обработки выберите тариф подкрылков вместе с металлом арок.';
       } else if (choice.required === 'verify') {
-        condition = 'Условия тарифа ' + choice.priceText + ' нужно согласовать со студией.';
+        condition = 'Условия тарифа ' + price.priceText + ' нужно согласовать со студией.';
       }
-      if (condition) return { min: null, max: null, priceText: 'Уточнить', condition };
+      if (condition) return { min: null, max: null, priceText: 'Уточнить', condition, adjusted: price.adjusted };
       if (choice.min == null) {
         condition = choice.kind === 'tyre-fitting' ? 'Стоимость зависит от диаметра колёс.' : 'Стоимость уточнит студия.';
       } else if (choice.kind === 'tyre-work' && !selected.some(row => row.kind === 'tyre-material')) {
@@ -196,7 +218,7 @@
       } else if (choice.kind === 'tyre-material' && !selected.some(row => row.kind === 'tyre-work')) {
         condition = 'Указана стоимость материалов. Установка оплачивается отдельно.';
       }
-      return { min: choice.min, max: choice.max, priceText: choice.priceText, condition };
+      return { min: price.min, max: price.max, priceText: price.priceText, condition, adjusted: price.adjusted };
     }
 
     function summarize() {
@@ -214,16 +236,35 @@
       const max = min == null || known.some(line => line.max == null) ? null : sum('max');
       const totalText = money(min, max);
       const partial = pendingCount > 0 && known.length > 0;
+      const car = describeVehicle();
       const quote = {
         service: 'Расчёт шумоизоляции',
         price: totalText + (partial ? ' по рассчитанным позициям. Остальные работы — по запросу.' : ''),
-        estimate: lines.map(line => line.title + ' — ' + line.priceText + (line.condition ? '. ' + line.condition : '')).join('\n')
+        estimate: [car ? 'Автомобиль — ' + car + '.' : '',
+          ...lines.map(line => line.title + ' — ' + line.priceText + (line.condition ? '. ' + line.condition : ''))].filter(Boolean).join('\n'),
+        vehicle: car,
+        model: [vehicle.brand && (pricing?.findBrand(config || { classes: [] }, vehicle.brand)?.name || vehicle.brand), vehicle.model].filter(Boolean).join(' ')
       };
-      return { lines, min, max, partial, pendingCount, totalText, quote };
+      return { lines, min, max, partial, pendingCount, totalText, quote, vehicle: car };
+    }
+
+    function describeVehicle() {
+      return config ? pricing.describe(config, vehicle) : '';
     }
 
     return {
-      zones: data.zones, selection, evaluate, summarize, money,
+      zones: data.zones, selection, evaluate, summarize, money, vehicles: config,
+      get vehicle() { return { ...vehicle }; },
+      setVehicle(next = {}) {
+        const text = value => typeof value === 'string' ? value.trim().slice(0, 60) : '';
+        const body = config?.bodies.some(item => item.id === next.body) ? next.body : '';
+        vehicle = { body, brand: text(next.brand), model: text(next.model) };
+      },
+      describeVehicle,
+      price(id) {
+        const choice = data.choices.get(id);
+        return choice ? priced(choice) : null;
+      },
       add(id) {
         const choice = data.choices.get(id);
         if (choice) selection.set(choice.groupId, id);

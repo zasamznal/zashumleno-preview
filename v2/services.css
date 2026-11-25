@@ -8,7 +8,7 @@
 .v2-service {
   min-width: 0;
   margin: 0;
-  border-bottom: 1px solid #3d4c49;
+  border-bottom: 1px solid var(--line-dark);
 }
 .v2-service__surface {
   display: flex;
@@ -26,7 +26,7 @@
   aspect-ratio: 4 / 3;
   position: relative;
   overflow: hidden;
-  background: #26312e;
+  background: var(--night-3);
 }
 .v2-service__photo img {
   position: absolute;
@@ -38,11 +38,6 @@
   transform: scale(1.015);
   transition: transform 600ms cubic-bezier(.22,.67,.26,1);
 }
-.v2-service__photo img:is(
-  [src="v2/media/service-audio.webp"], [src="/v2/media/service-audio.webp"],
-  [src="v2/media/service-interior.webp"], [src="/v2/media/service-interior.webp"],
-  [src="v2/media/service-film.webp"], [src="/v2/media/service-film.webp"]
-) { filter: hue-rotate(174deg) saturate(.75); }
 .v2-service__info {
   display: flex;
   flex: 1;
@@ -87,7 +82,7 @@
   transition: width 220ms ease;
 }
 .v2-service--text .v2-service__surface { justify-content: flex-end; }
-.v2-service--text .v2-service__info { border-top: 1px solid #3d4c49; }
+.v2-service--text .v2-service__info { border-top: 1px solid var(--line-dark); }
 @media (hover: hover) {
   a.v2-service__surface:hover .v2-service__photo img { transform: scale(1.06); }
   a.v2-service__surface:hover .v2-service__action::before { width: 1.7rem; }

@@ -40,6 +40,10 @@
     document.getElementById("legal-brand").textContent = brand;
     document.title = "Информация для клиентов — " + brand;
     if (window.StudioPage) {
+      const colors = { accent: "--accent", darkAccent: "--accent-dark", altAccent: "--accent-alt", nightColor: "--night", paperColor: "--paper" };
+      for (const [key, variable] of Object.entries(colors)) {
+        if (/^#[0-9a-f]{6}$/i.test(page.brand[key] || "")) document.documentElement.style.setProperty(variable, page.brand[key]);
+      }
       const logo = window.StudioPage.mediaUrl(page.brand.logo);
       const image = document.querySelector(".custom-brand-mark");
       const custom = Boolean(logo && !/(?:^|\/)(?:v2\/brand|assets\/mark)\.svg$/i.test(logo));

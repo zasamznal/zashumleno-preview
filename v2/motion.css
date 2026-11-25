@@ -9,7 +9,7 @@
   transform: scaleX(var(--reading-fraction, 0));
   transform-origin: left center;
   pointer-events: none;
-  background: var(--accent, #70e3dd);
+  background: linear-gradient(90deg, var(--accent-alt), var(--accent) 60%, var(--spark));
 }
 
 @media (prefers-reduced-motion: no-preference) {

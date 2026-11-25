@@ -21,7 +21,7 @@
   min-width: 0;
   aspect-ratio: 1.6;
   overflow: hidden;
-  background: #192925;
+  background: var(--night-3);
 }
 .est-zone-photo {
   position: absolute;
@@ -34,7 +34,7 @@
 }
 .est-zone-picture > svg {
   width: 2.85rem;
-  color: #93aaa4;
+  color: var(--muted-on-dark);
 }
 .est-zones .est-zone-label {
   display: flex;
@@ -49,14 +49,14 @@
 }
 .est-zone[aria-pressed="true"] .est-zone-label {
   background: var(--accent);
-  color: #102423;
+  color: var(--on-accent);
 }
 .est-zones .est-zone-mark {
   right: .47rem;
   top: .47rem;
   width: 1.35rem;
   height: 1.35rem;
-  box-shadow: 0 1px 6px #09141180;
+  box-shadow: 0 1px 6px color-mix(in srgb, var(--night-deep) 50%, transparent);
 }
 .est-zone-mark > svg { width: .85rem; height: .85rem; }
 @container estimate-builder (max-width: 30rem) {

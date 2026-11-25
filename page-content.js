@@ -2,20 +2,23 @@
   'use strict';
 
   const defaults = {
-    designVersion: 3,
+    designVersion: 4,
     brand: {
       name: 'ЗАШУМЛЕНО', logo: 'assets/mark.svg', siteTitle: 'Зашумлено — шумоизоляция и автозвук в Москве',
       description: 'Московская автостудия «Зашумлено». Подробный прайс шумоизоляции по зонам, примеры работ с автомобилями и консультация Никиты.',
-      telegramLabel: 'Написать в Telegram', accent: '#70e3dd', darkAccent: '#006c67'
+      telegramLabel: 'Написать в Telegram', tagline: 'Создай свою атмосферу',
+      // The studio palette is taken from its logo: lilac, logo blue, neon pink and a deep night tone.
+      accent: '#bcb9d9', darkAccent: '#5246a6', altAccent: '#0a97c7', sparkColor: '#d81b7a',
+      nightColor: '#13111c', paperColor: '#f1eff8'
     },
     hero: {
       kicker: 'Автомобильная студия', city: 'Москва', title: 'Тишина\nв движении.',
       description: 'Шумоизоляция, автозвук и дооснащение. Подберите работы для своей машины и узнайте стоимость по прайсу студии.',
-      image: 'v2/media/hero-coupe-teal.webp', primaryLabel: 'Рассчитать стоимость', secondaryLabel: 'Смотреть работы'
+      image: 'v2/media/hero-coupe-lilac.webp', primaryLabel: 'Рассчитать стоимость', secondaryLabel: 'Смотреть работы'
     },
     sections: [
-      { id: 'calculator', enabled: true, kicker: 'Калькулятор', title: 'Рассчитайте шумоизоляцию', description: 'Выберите зону и комплект. Стоимость выбранных работ появится в смете.', navLabel: 'Калькулятор' },
-      { id: 'layers', enabled: true, kicker: 'Материалы', title: 'Что внутри двери', description: 'Посмотрите, какую задачу решает каждый слой между металлом кузова и обшивкой.', navLabel: '' },
+      { id: 'calculator', enabled: true, kicker: 'Калькулятор', title: 'Рассчитайте шумоизоляцию', description: 'Укажите кузов и марку, выберите зоны и комплекты — смета сразу покажет стоимость для вашей машины.', navLabel: 'Калькулятор' },
+      { id: 'layers', enabled: true, kicker: 'Материалы студии', title: 'Что внутри', description: 'Выберите зону и комплект: анимация покажет, какие материалы мы укладываем между металлом кузова и обшивкой.', navLabel: 'Материалы' },
       { id: 'works', enabled: true, kicker: 'Проекты студии', title: 'Машины в работе', description: '', navLabel: 'Работы' },
       { id: 'prices', enabled: true, kicker: 'Стоимость работ', title: 'Прайс по зонам', description: 'Сравните комплекты по цене, материалам и весу. Все условия и оригинальные листы студии собраны здесь.', navLabel: 'Прайс' },
       { id: 'services', enabled: true, kicker: 'Услуги студии', title: 'Звук, салон и кузов', description: 'Стоимость зависит от модели автомобиля и комплектации.', navLabel: '' },
@@ -29,11 +32,18 @@
     ],
     contacts: {
       phone: '+7 910 005-77-05', telegram: 'https://t.me/Zashumleno', telegramChannel: 'https://t.me/ZaShumlenoAvto',
-      vk: 'https://vk.com/arkanin', map: 'https://yandex.ru/maps/-/CPvAZGoj',
+      vk: 'https://vk.com/arkanin', map: 'https://yandex.ru/maps/-/CPvAZGoj', mapEmbed: '',
       address: 'Москва, Варшавское шоссе, 152А', entrance: 'Подземный паркинг, этаж −1.', shortAddress: 'Варшавское шоссе, 152А',
+      metro: 'Рядом метро «Улица Академика Янгеля»',
       person: 'Никита', role: 'руководитель студии', routeVideo: 'assets/studio-film.mp4', routePoster: 'assets/studio-film.webp',
       routeCaption: 'Видео проезда'
     },
+    // Steps of the arrival scheme. The drawing has three stages, the owner edits their text, photo and video moment.
+    route: [
+      { title: 'Въезд', text: 'Навигатор приведёт к ТЦ «Сомбреро». Под вывеской «Автомойка · Детейлинг» горит зелёный знак «Въезд» — спускайтесь по нему на этаж −1.', image: 'v2/media/route/entrance.webp', time: 9 },
+      { title: 'Шлагбаум', text: 'Проезжайте прямо через двери. У шлагбаума остановитесь и позвоните в студию, чтобы вам открыли.', image: 'v2/media/route/barrier.webp', time: 19 },
+      { title: 'Бокс', text: 'За шлагбаумом езжайте прямо до поворота. Крайний бокс слева — студия.', image: 'v2/media/route/box.webp', time: 36 }
+    ],
     priceArchive: '', hidePriceArchive: false,
     legal: {
       name: 'ИП Шабалин Никита Ильич', roleLabel: 'Предприниматель — руководитель студии', inn: '773715440908',
@@ -46,6 +56,17 @@
   };
   const keys = defaults.sections.map(section => section.id);
   const serviceTemplate = { title: '', description: '', image: '', alt: '', action: '' };
+  const routeTemplate = { title: '', text: '', image: '', time: 0 };
+  const colorKeys = ['accent', 'darkAccent', 'altAccent', 'sparkColor', 'nightColor', 'paperColor'];
+  const colorVariables = { accent: '--accent', darkAccent: '--accent-dark', altAccent: '--accent-alt',
+    sparkColor: '--spark', nightColor: '--night', paperColor: '--paper' };
+  // Ready-made palettes for the cabinet. The first one follows the studio logo.
+  const palettes = [
+    { id: 'studio', title: 'Цвета логотипа', colors: { accent: '#bcb9d9', darkAccent: '#5246a6', altAccent: '#0a97c7', sparkColor: '#d81b7a', nightColor: '#13111c', paperColor: '#f1eff8' } },
+    { id: 'violet', title: 'Яркий сиреневый', colors: { accent: '#c3b2ff', darkAccent: '#5a3fc0', altAccent: '#22a6d8', sparkColor: '#e0368f', nightColor: '#120f1d', paperColor: '#f3f0fb' } },
+    { id: 'graphite', title: 'Графит и голубой', colors: { accent: '#9fd3ec', darkAccent: '#006f99', altAccent: '#bcb9d9', sparkColor: '#d81b7a', nightColor: '#111417', paperColor: '#f1f3f5' } },
+    { id: 'teal', title: 'Бирюзовый (первое демо)', colors: { accent: '#70e3dd', darkAccent: '#006c67', altAccent: '#2fb7c9', sparkColor: '#e0368f', nightColor: '#111515', paperColor: '#f4f3ef' } }
+  ];
 
   function fields(value, template) {
     const record = {};
@@ -82,6 +103,29 @@
         ['yandex.ru', 'yandex.com', 'maps.yandex.ru', 'yandex.by', 'yandex.kz', '2gis.ru', 'go.2gis.com', 'yandex.eu'];
       return hosts.includes(url.hostname) ? url.href : '';
     } catch { return ''; }
+  }
+
+  // A Yandex Maps share link (yandex.ru/maps/-/CODE) or widget code becomes the address of an embeddable map.
+  function mapWidget(contacts) {
+    const raw = String(contacts?.mapEmbed || '').trim();
+    const source = raw.match(/src=["']([^"']+)["']/i)?.[1] || raw;
+    const parse = value => { try { return new URL(value); } catch { return null; } };
+    const embed = parse(source.replace(/&amp;/g, '&'));
+    if (raw) {
+      if (!embed || embed.protocol !== 'https:' || embed.username || embed.password || embed.port) return '';
+      const yandex = ['yandex.ru', 'yandex.com'].includes(embed.hostname) && embed.pathname.startsWith('/map-widget/');
+      const frame = embed.hostname === 'api-maps.yandex.ru' && embed.pathname.startsWith('/frame/');
+      return yandex || frame ? embed.href : '';
+    }
+    const share = parse(String(contacts?.map || '').trim());
+    if (!share || share.protocol !== 'https:') return '';
+    if (/^(?:www\.)?yandex\.(?:ru|com)$/.test(share.hostname)) {
+      const code = share.pathname.match(/^\/maps\/-\/([\w~-]{4,40})\/?$/)?.[1];
+      if (code) return 'https://yandex.ru/map-widget/v1/-/' + code;
+      const org = share.pathname.match(/^\/maps\/org\/[\w-]+\/(\d{5,20})\/?$/)?.[1];
+      if (org) return 'https://yandex.ru/map-widget/v1/?ol=biz&oid=' + org + '&z=17';
+    }
+    return '';
   }
 
   function phoneHref(value) {
@@ -153,6 +197,22 @@
 
   function readPage(value) {
     if (!value || value.designVersion >= defaults.designVersion) return value || {};
+    if (value.designVersion === 3) {
+      // The teal palette and teal cover were defaults of the previous demo, not choices of the owner.
+      return {
+        ...value,
+        brand: migrateRecord(value.brand, { accent: '#70e3dd', darkAccent: '#006c67' }, defaults.brand),
+        hero: migrateRecord(value.hero, { image: 'v2/media/hero-coupe-teal.webp' }, defaults.hero),
+        sections: Array.isArray(value.sections) ? value.sections.map(section => {
+          const base = defaults.sections.find(item => item.id === section?.id);
+          if (section?.id === 'layers') return migrateRecord(section, { kicker: 'Материалы', title: 'Что внутри двери',
+            description: 'Посмотрите, какую задачу решает каждый слой между металлом кузова и обшивкой.', navLabel: '' }, base);
+          if (section?.id === 'calculator') return migrateRecord(section,
+            { description: 'Выберите зону и комплект. Стоимость выбранных работ появится в смете.' }, base);
+          return section;
+        }) : value.sections
+      };
+    }
     if (value.designVersion === 2) {
       return {
         ...value,
@@ -202,22 +262,33 @@
     result.services = (Array.isArray(value?.services) ? value.services : defaults.services)
       .filter(service => service && typeof service === 'object')
       .map(service => fields(service, serviceTemplate));
+    const route = Array.isArray(value?.route) ? value.route : [];
+    result.route = defaults.route.map((step, index) => {
+      const item = fields(route[index], routeTemplate);
+      for (const key of ['title', 'text']) if (!item[key].trim()) item[key] = step[key];
+      if (!route[index] || typeof route[index].image !== 'string') item.image = step.image;
+      if (!route[index] || !Number.isFinite(route[index].time) || route[index].time < 0) item.time = step.time;
+      item.time = Math.min(3600, Math.round(item.time * 10) / 10);
+      return item;
+    });
     return result;
   }
 
   function validate(value) {
     const page = normalize(value);
     if (!page.brand.name.trim() || !page.hero.title.trim()) return 'Укажите название студии и заголовок обложки.';
-    for (const color of [page.brand.accent, page.brand.darkAccent]) {
-      if (!/^#[0-9a-f]{6}$/i.test(color)) return 'Выберите оба фирменных цвета.';
+    for (const key of colorKeys) {
+      if (!/^#[0-9a-f]{6}$/i.test(page.brand[key])) return 'Укажите каждый фирменный цвет в формате #RRGGBB.';
     }
+    if (page.contacts.mapEmbed && !mapWidget(page.contacts)) return 'Проверьте ссылку на виджет Яндекс Карт.';
     for (const [key, label] of [['telegram', 'Telegram для заявок'], ['telegramChannel', 'канал Telegram'], ['vk', 'ВКонтакте'], ['map', 'карты']]) {
       if ((page.contacts[key] || key === 'telegram') && !contactUrl(key, page.contacts[key])) return 'Проверьте ссылку в поле «' + label + '».';
     }
     if (page.contacts.phone && !phoneHref(page.contacts.phone)) return 'Проверьте номер телефона.';
     if (page.sections.some(section => section.enabled && !section.title.trim())) return 'У каждого видимого раздела должен быть заголовок.';
     if (page.services.some(service => !service.title.trim())) return 'Укажите название каждой услуги.';
-    const media = [page.brand.logo, page.hero.image, page.contacts.routeVideo, page.contacts.routePoster, page.priceArchive, ...page.services.map(service => service.image)];
+    const media = [page.brand.logo, page.hero.image, page.contacts.routeVideo, page.contacts.routePoster, page.priceArchive,
+      ...page.services.map(service => service.image), ...page.route.map(step => step.image)];
     if (media.some(url => url && !mediaUrl(url))) return 'Проверьте адрес файла в настройках изображения или видео.';
     for (const field of ['email', 'siteOwnerEmail', 'registryEmail']) {
       if (page.legal[field] && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(page.legal[field])) return 'Проверьте электронную почту в реквизитах.';
@@ -252,10 +323,12 @@
 
     if (brand.siteTitle.trim()) doc.title = brand.siteTitle;
     doc.querySelector('meta[name="description"]')?.setAttribute('content', brand.description);
-    for (const [setting, css] of [['accent', '--accent'], ['darkAccent', '--accent-dark']]) {
+    for (const [setting, css] of Object.entries(colorVariables)) {
       const color = brand[setting];
       if (/^#[a-f0-9]{6}$/i.test(color)) doc.documentElement.style.setProperty(css, color);
     }
+    doc.querySelector('meta[name="theme-color"]')?.setAttribute('content', brand.nightColor);
+    copy('[data-brand-tagline]', brand.tagline);
     copy('[data-brand-name]', brand.name);
     const logo = mediaUrl(brand.logo);
     const customLogo = logo && logo !== defaults.brand.logo;
@@ -296,7 +369,8 @@
       else img.removeAttribute('src');
     });
     each('[data-mobile-hero]', el => {
-      const mobile = picture === defaults.hero.image ? 'v2/media/hero-mobile-teal.webp' : picture;
+      const mobile = picture === defaults.hero.image ? 'v2/media/hero-mobile-lilac.webp' :
+        picture === 'v2/media/hero-coupe-teal.webp' ? 'v2/media/hero-mobile-teal.webp' : picture;
       if (mobile) el.setAttribute('srcset', mobile);
       else el.removeAttribute('srcset');
     });
@@ -350,6 +424,7 @@
     copy('[data-address]', contacts.address);
     copy('[data-short-address]', contacts.shortAddress);
     copy('[data-entrance]', contacts.entrance);
+    copy('[data-metro]', contacts.metro);
     copy('[data-hours]', legal.hours);
     copy('[data-person]', contacts.person);
     copy('[data-role]', contacts.role);
@@ -370,7 +445,7 @@
     return page;
   }
 
-  const api = { normalize, validate, mediaUrl, contactUrl, apply, current: normalize(defaults) };
+  const api = { normalize, validate, mediaUrl, contactUrl, mapWidget, apply, palettes, colorKeys, current: normalize(defaults) };
   window.STUDIO_PAGE_DEFAULTS = defaults;
   window.StudioPage = api;
 })();

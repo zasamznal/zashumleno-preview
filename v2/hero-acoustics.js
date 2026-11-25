@@ -5,8 +5,11 @@
   const photo = hero?.querySelector('[data-hero-image]');
   if (!photo || hero.querySelector('.acoustics-demo')) return;
   const still = matchMedia('(prefers-reduced-motion: reduce)');
-  const desktop = new URL('v2/media/hero-coupe-teal.webp', document.baseURI).href;
-  const mobile = new URL('v2/media/hero-mobile-teal.webp', document.baseURI).href;
+  // The overlay is drawn for the composition of the studio cover (both colour versions share it).
+  const covers = ['lilac', 'teal'].map(tone => [
+    new URL('v2/media/hero-coupe-' + tone + '.webp', document.baseURI).href,
+    new URL('v2/media/hero-mobile-' + tone + '.webp', document.baseURI).href
+  ]);
   const scene = document.createElement('div');
   scene.className = 'acoustics-demo';
   scene.setAttribute('aria-hidden', 'true');
@@ -15,16 +18,16 @@
   scene.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="zs-cut-metal" x1="0" y1="0" x2=".96" y2=".33" gradientUnits="objectBoundingBox">
-        <stop stop-color="#3c655f"/><stop offset=".32" stop-color="#9ac0b5"/><stop offset=".6" stop-color="#43756a"/><stop offset="1" stop-color="#2f514c"/>
+        <stop style="stop-color:color-mix(in srgb,var(--accent) 34%,#24222f)"/><stop offset=".32" style="stop-color:color-mix(in srgb,var(--accent) 78%,#fff)"/><stop offset=".6" style="stop-color:color-mix(in srgb,var(--accent) 45%,#2b2839)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--accent) 28%,#1d1b27)"/>
       </linearGradient>
       <pattern id="zs-cut-foil" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(21)">
-        <path d="M0 0H7M0 3.5H7" stroke="#dbfff6" stroke-opacity=".65" stroke-width=".9"/>
-        <path d="M0 0V7" stroke="#1b3a35" stroke-width="1.35"/>
+        <path d="M0 0H7M0 3.5H7" style="stroke:color-mix(in srgb,var(--accent) 30%,#fff)" stroke-opacity=".65" stroke-width=".9"/>
+        <path d="M0 0V7" style="stroke:color-mix(in srgb,var(--accent) 22%,#16141e)" stroke-width="1.35"/>
       </pattern>
       <linearGradient id="zs-road-light" gradientUnits="userSpaceOnUse" x1="-503" y1="0" x2="-8" y2="0">
-        <stop stop-color="#60cdbd" stop-opacity="0"/><stop offset=".17" stop-color="#60cdbd" stop-opacity=".6"/><stop offset=".76" stop-color="#8bf3e2"/><stop offset="1" stop-color="#c5fff2" stop-opacity=".75"/>
+        <stop style="stop-color:var(--spark)" stop-opacity="0"/><stop offset=".17" style="stop-color:var(--spark)" stop-opacity=".66"/><stop offset=".76" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--accent) 45%,#fff)" stop-opacity=".8"/>
       </linearGradient>
-      <radialGradient id="zs-road-glow"><stop stop-color="#a4fff2" stop-opacity=".68"/><stop offset=".36" stop-color="#60e4cd" stop-opacity=".27"/><stop offset="1" stop-color="#50c9b2" stop-opacity="0"/></radialGradient>
+      <radialGradient id="zs-road-glow"><stop style="stop-color:color-mix(in srgb,var(--accent) 60%,#fff)" stop-opacity=".68"/><stop offset=".36" style="stop-color:var(--accent)" stop-opacity=".3"/><stop offset="1" style="stop-color:var(--accent-dark)" stop-opacity="0"/></radialGradient>
     </defs>
     <g data-mounted>
       <g data-road></g>
@@ -32,18 +35,18 @@
       <g data-fronts></g>
       <g data-section>
         <g data-foil>
-          <path d="${section}" fill="url(#zs-cut-metal)" stroke="#20453e" stroke-width="2.4"/>
+          <path d="${section}" fill="url(#zs-cut-metal)" style="stroke:color-mix(in srgb,var(--accent) 25%,#15131d)" stroke-width="2.4"/>
           <path d="${section}" fill="url(#zs-cut-foil)" opacity=".78"/>
           <path d="M-107 62C-99-23-83-116-49-163C-24-198 2-207 30-190C64-164 81-104 88-58" class="acoustics-seam"/>
         </g>
         <g data-damper>
-          <path d="${arch}" fill="none" stroke="#183c33" stroke-width="10"/>
-          <path d="${arch}" fill="none" stroke="#68ab97" stroke-width="4.8" stroke-dasharray="1 3" opacity=".8"/>
+          <path d="${arch}" fill="none" style="stroke:color-mix(in srgb,var(--accent) 22%,#14121c)" stroke-width="10"/>
+          <path d="${arch}" fill="none" style="stroke:color-mix(in srgb,var(--accent) 70%,#3d3a52)" stroke-width="4.8" stroke-dasharray="1 3" opacity=".8"/>
         </g>
-        <path d="${arch}" fill="none" stroke="#90efdd" stroke-width="2.7"/>
+        <path d="${arch}" fill="none" style="stroke:var(--accent)" stroke-width="2.7"/>
       </g>
-      <g data-cabin fill="none" stroke="#aaffeb" stroke-linecap="round"><path d="M-18-228q14-9 25-5" stroke-width="2.6"/><path d="M-22-244q10-7 17-3" stroke-width="1.7"/><path d="M-27-258q5-3 9-2" stroke-width="1.2"/></g>
-      <path data-energy d="${arch}" pathLength="1" fill="none" stroke="#e0fff9" stroke-width="5" stroke-linecap="round"/>
+      <g data-cabin fill="none" style="stroke:color-mix(in srgb,var(--accent) 55%,#fff)" stroke-linecap="round"><path d="M-18-228q14-9 25-5" stroke-width="2.6"/><path d="M-22-244q10-7 17-3" stroke-width="1.7"/><path d="M-27-258q5-3 9-2" stroke-width="1.2"/></g>
+      <path data-energy d="${arch}" pathLength="1" fill="none" style="stroke:color-mix(in srgb,var(--spark) 30%,#fff)" stroke-width="5" stroke-linecap="round"/>
     </g>
   </svg>`;
   const caption = document.createElement('div');
@@ -154,10 +157,11 @@
   }
   function layout() {
     const source = photo.currentSrc || photo.src;
-    supported = !photo.hidden && (source === desktop || source === mobile);
+    const pair = covers.find(urls => urls.includes(source));
+    supported = !photo.hidden && Boolean(pair);
     scene.hidden = caption.hidden = !supported;
     if (!supported) { playback(); return; }
-    const portrait = source === mobile;
+    const portrait = source === pair[1];
     const [w, h] = portrait ? [1122, 1402] : [1922, 818];
     const scale = Math.max(hero.clientWidth / w, hero.clientHeight / h);
     const [left, top] = getComputedStyle(photo).objectPosition.split(' ').map(parseFloat);

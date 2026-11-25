@@ -30,7 +30,7 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: #111817;
+  background: var(--night-2);
   touch-action: pan-y;
 }
 .case-project.case-portrait .case-project-media {
@@ -46,7 +46,7 @@
   object-position: 50% 50%;
 }
 .case-photo { object-fit: scale-down; animation: case-develop .36s ease-out both; }
-.case-playing { background: #080c0c; touch-action: auto; }
+.case-playing { background: var(--night-deep); touch-action: auto; }
 @keyframes case-develop {
   from { opacity: .66; }
   to { opacity: 1; }
@@ -59,7 +59,7 @@
   inset: 0;
   padding: clamp(.8rem, 2vw, 1.35rem);
   border: 0;
-  background: linear-gradient(0deg, #07100ee0 0%, #07100e68 13%, transparent 36%);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--night-deep) 88%, transparent) 0%, color-mix(in srgb, var(--night-deep) 41%, transparent) 13%, transparent 36%);
   color: white;
   font: inherit;
   cursor: pointer;
@@ -69,8 +69,8 @@
   align-items: center;
   gap: .7rem;
   padding: .45rem .95rem .45rem .48rem;
-  background: #101918ec;
-  border: 1px solid #aec8c07a;
+  background: color-mix(in srgb, var(--night) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, transparent);
   border-radius: 3rem;
   color: #fff;
   font-size: .94rem;
@@ -83,13 +83,13 @@
   height: 2.15rem;
   border-radius: 50%;
   background: var(--accent);
-  color: #082320;
+  color: var(--on-accent);
 }
 .case-play-icon::before { content: ""; width: .65rem; height: .76rem; margin-left: .14rem; background: currentColor; clip-path: polygon(0 0,100% 50%,0 100%); }
 [data-cases] .case-play:focus-visible { outline: 3px solid var(--accent); outline-offset: -5px; }
-.case-media-error { display: grid; align-content: center; justify-items: center; gap: .7rem; height: 100%; margin: 0; padding: 1rem; color: #e3eae7; text-align: center; }
+.case-media-error { display: grid; align-content: center; justify-items: center; gap: .7rem; height: 100%; margin: 0; padding: 1rem; color: var(--on-dark); text-align: center; }
 .case-media-error a { color: var(--accent); }
-.case-retry { min-height: 2.75rem; padding: .3rem 1rem; border: 1px solid #7b938a; border-radius: .2rem; background: transparent; color: #fff; }
+.case-retry { min-height: 2.75rem; padding: .3rem 1rem; border: 1px solid var(--line-dark-strong); border-radius: .2rem; background: transparent; color: #fff; }
 .case-project-caption {
   position: relative;
   display: grid;
@@ -121,8 +121,8 @@
   text-decoration-thickness: 1px;
   text-underline-offset: .26em;
 }
-.case-project-links .case-source { font-weight: 490; color: #c6d2cd; text-decoration-color: #6d8279; }
-.case-quote { text-decoration: underline; text-decoration-color: #8baba1; }
+.case-project-links .case-source { font-weight: 490; color: var(--muted-on-dark); text-decoration-color: var(--line-dark-strong); }
+.case-quote { text-decoration: underline; text-decoration-color: var(--accent); }
 .case-catalogue {
   grid-area: catalogue;
   min-width: 0;
@@ -166,7 +166,7 @@
 .case-tab[aria-selected="true"] .case-tab-title strong { color: var(--case-accent); }
 .case-mobile { display: none; }
 @media (hover: hover) {
-  .case-play:hover .case-play-label { border-color: var(--accent); background: #152722; }
+  .case-play:hover .case-play-label { border-color: var(--accent); background: var(--night-3); }
   .case-quote:hover { text-decoration-color: white; }
   .case-tab:hover { background: color-mix(in srgb, var(--accent) 9%, var(--paper)); }
 }
@@ -193,7 +193,7 @@
   }
   .case-select {
     min-height: 2.9rem; width: 100%; padding: .5rem 2.15rem .5rem .75rem;
-    border: 1px solid #87988f; border-radius: .2rem; color: var(--case-ink); background: transparent;
+    border: 1px solid color-mix(in srgb, var(--accent-dark) 40%, var(--paper)); border-radius: .2rem; color: var(--case-ink); background: transparent;
     font: inherit; font-size: 1rem; text-overflow: ellipsis; appearance: none; cursor: pointer;
   }
   .case-paging { display: flex; min-width: 0; align-items: center; gap: .25rem; }
@@ -207,7 +207,7 @@
   .case-mobile { display: grid; grid-template-columns: 1fr; gap: .05rem; }
   .case-paging { justify-content: space-between; }
   .case-project-caption { padding: 1.15rem; }
-  .case-portrait .case-play { align-items: start; background: linear-gradient(180deg, #07100e78, transparent 24%); }
+  .case-portrait .case-play { align-items: start; background: linear-gradient(180deg, color-mix(in srgb, var(--night-deep) 47%, transparent), transparent 24%); }
 }
 @media (prefers-reduced-motion: reduce) {
   .case-photo { animation: none; }

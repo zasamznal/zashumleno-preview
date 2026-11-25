@@ -79,7 +79,7 @@
     if (!host || !(await (window.STUDIO_READY ?? true))) return;
     const config = window.StudioPage?.current?.sections?.find(section => section.id === "calculator");
     if (config?.enabled === false) return;
-    const engine = window.StudioEstimate?.create(window.STUDIO_PRICES || [], window.STUDIO_ZONES || []);
+    const engine = window.StudioEstimate?.create(window.STUDIO_PRICES || [], window.STUDIO_ZONES || [], window.STUDIO_VEHICLES);
     const zones = engine?.zones.filter(zone => zone.groups.some(group => group.choices.length)) || [];
     host.innerHTML = `
       <header class="est-intro">
@@ -88,6 +88,7 @@
       </header>
       <div class="est-layout">
         <div class="est-builder">
+          <div class="est-block est-car"></div>
           <div class="est-block">
             <h3 class="est-question">Что обработать?</h3>
             <div class="est-zones" aria-label="Зоны обработки" role="group"></div>
@@ -102,6 +103,7 @@
         </div>
         <aside class="est-receipt" aria-labelledby="estimate-cart-title" id="estimate-cart">
           <div class="est-receipt-head"><h3 id="estimate-cart-title">Ваша смета</h3><span class="est-receipt-icon"></span></div>
+          <p class="est-vehicle" hidden></p>
           <p class="est-empty">Выберите зону и нажмите на стоимость комплекта. Здесь появятся выбранные работы.</p>
           <ul class="est-items"></ul>
           <div class="est-total">
@@ -140,6 +142,19 @@
     let previousMin = 0;
     let frame = 0;
     let summary = engine.summarize();
+    const amountFrames = new WeakMap();
+    const carHost = get(".est-car");
+    if (engine.vehicles?.bodies.length && window.StudioCarPicker && window.StudioVehicles) {
+      const picker = window.StudioCarPicker.create({
+        config: engine.vehicles,
+        onChange(vehicle, quiet) {
+          engine.setVehicle(vehicle);
+          refreshPrices(!quiet);
+        }
+      });
+      carHost.append(picker.element);
+      engine.setVehicle(picker.value);
+    } else carHost.remove();
     get(".est-receipt-icon").append(icon("receipt"));
     get(".est-work-select").append(icon("chevron"));
     get(".est-details summary").append(icon("chevron"));
@@ -166,13 +181,50 @@
       frame = requestAnimationFrame(tick);
     }
 
+    // Prices of the cards roll to the new value when the car changes.
+    function setAmount(node, text, animate) {
+      cancelAnimationFrame(amountFrames.get(node) || 0);
+      const before = node.textContent;
+      const pattern = /^(\D*?)(\d[\d\s\u00a0\u202f]*)(\D*)$/u;
+      const from = before.match(pattern);
+      const to = text.match(pattern);
+      if (!animate || reduced.matches || !from || !to || from[1] !== to[1] || from[3] !== to[3]) {
+        node.textContent = text;
+        return;
+      }
+      const start = Number(from[2].replace(/\D/g, ""));
+      const goal = Number(to[2].replace(/\D/g, ""));
+      if (start === goal) { node.textContent = text; return; }
+      const begin = performance.now();
+      const format = new Intl.NumberFormat("ru-RU");
+      const tick = now => {
+        const t = Math.min(1, (now - begin) / 420);
+        const value = Math.round(start + (goal - start) * (1 - (1 - t) ** 3));
+        node.textContent = t < 1 ? to[1] + format.format(value) + to[3] : text;
+        if (t < 1) amountFrames.set(node, requestAnimationFrame(tick));
+      };
+      amountFrames.set(node, requestAnimationFrame(tick));
+    }
+
+    function refreshPrices(announce) {
+      for (const view of choiceButtons.values()) {
+        const price = engine.price(view.choice.id);
+        setAmount(view.value, price.priceText, announce);
+        view.btn.dataset.adjusted = String(price.adjusted);
+      }
+      updateCart();
+      const car = engine.describeVehicle();
+      window.dispatchEvent(new CustomEvent("studio:vehicle", { detail: { vehicle: engine.vehicle, description: car } }));
+      if (announce) get(".est-announcement").textContent = car ? "Цены пересчитаны для: " + car + "." : "Показаны базовые цены прайса.";
+    }
+
     function syncChoices() {
       for (const [choiceId, view] of choiceButtons) {
         const selected = engine.selection.get(view.choice.groupId) === choiceId;
         view.btn.setAttribute("aria-pressed", String(selected));
         view.action.replaceChildren(icon(selected ? "check" : "plus"));
         view.btn.setAttribute("aria-label", (selected ? "Убрать из сметы: " : "Добавить в смету: ")
-          + view.choice.title + ", " + view.choice.priceText);
+          + view.choice.title + ", " + (engine.price(view.choice.id)?.priceText || view.choice.priceText));
       }
       for (const [zoneId, view] of zoneButtons) {
         const hasItems = summary.lines.some(line => line.zoneId === zoneId);
@@ -204,6 +256,9 @@
       });
       cartList.replaceChildren(...rows);
       const empty = !summary.lines.length;
+      const vehicleLine = get(".est-vehicle");
+      vehicleLine.hidden = !summary.vehicle;
+      vehicleLine.replaceChildren("Для: ", element("strong", "", summary.vehicle || ""));
       get(".est-empty").hidden = !empty;
       cartList.hidden = empty;
       const counter = get(".est-count");
@@ -236,7 +291,9 @@
         const layers = [choice.rowTitle, choice.description].filter(Boolean).join(" ")
           .match(/(?:^|[\s,(])((?:\d{1,2}|один|два|три|четыре|пять|шесть)\s+сло(?:й|я|ёв|ев))(?=$|[\s,.)])/iu)?.[1];
         const meta = [layers, weight && weight.label + " " + weight.value].filter(Boolean).join(" · ");
-        const value = element("span", "est-option-amount", choice.priceText);
+        const price = engine.price(choice.id);
+        const value = element("span", "est-option-amount", price.priceText);
+        btn.dataset.adjusted = String(price.adjusted);
         btn.append(top);
         if (meta) btn.append(element("span", "est-option-facts", meta));
         btn.append(value);
@@ -252,7 +309,7 @@
           else engine.add(choice.id);
           updateCart((selected ? "Убрано: " : "Добавлено: ") + choice.title);
         });
-        choiceButtons.set(choice.id, {btn, choice, action});
+        choiceButtons.set(choice.id, {btn, choice, action, value});
         const factSheet = element("div", "est-detail");
         factSheet.append(element("strong", "", choice.title));
         const notes = choice.notes?.length ? choice.notes : [choice.description].filter(Boolean);
@@ -324,6 +381,21 @@
       zoneNav.append(btn);
     }
     groupSelect.addEventListener("change", () => selectGroup(groupSelect.value));
+    // Other sections (materials, price list) can put a package into the estimate.
+    window.addEventListener("studio:estimate-select", event => {
+      const zone = zones.find(item => item.id === event.detail?.zone);
+      if (!zone) return;
+      const wanted = String(event.detail?.title || "").toLocaleLowerCase("ru");
+      const group = zone.groups.find(item => item.choices.some(choice => choice.title.toLocaleLowerCase("ru") === wanted)) || zone.groups[0];
+      const choice = group.choices.find(item => item.title.toLocaleLowerCase("ru") === wanted) || group.choices[0];
+      selectZone(zone);
+      selectGroup(group.id);
+      if (engine.selection.get(choice.groupId) !== choice.id) {
+        engine.add(choice.id);
+        updateCart("Добавлено: " + choice.title);
+      }
+      document.getElementById("calculator")?.scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "start" });
+    });
     get(".est-request").addEventListener("click", () => {
       if (!summary.lines.length) return;
       window.dispatchEvent(new CustomEvent("studio:quote", {detail: summary.quote}));

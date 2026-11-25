@@ -1,78 +1,108 @@
 (() => {
   'use strict';
 
-  // Both levels are schematic. The landmarks and their order come from the studio's arrival video.
-  const floorplan = `
-    <svg class="route-drawing" viewBox="0 0 560 315" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+  // The scheme follows the studio's arrival video: the road with ТЦ «Сомбреро» on the right, the gate under
+  // «Автомойка · Детейлинг» with the green «Въезд» light, the ramp to level −1, the doors, the barrier and the row
+  // of boxes with the studio as the last one on the left. Proportions are schematic, landmarks and their order are real.
+  const diamonds = ['#7b4fd6', '#e0388f', '#d8343b', '#2f7fe0', '#f3f1f7', '#7b4fd6', '#e0388f', '#2f7fe0', '#d8343b', '#f3f1f7',
+    '#7b4fd6', '#e0388f', '#d8343b', '#2f7fe0', '#f3f1f7', '#7b4fd6', '#e0388f', '#2f7fe0', '#d8343b', '#f3f1f7', '#7b4fd6', '#e0388f'];
+  const scheme = `
+    <svg class="route-drawing" viewBox="0 0 600 404" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
       <defs>
-        <pattern id="route-roof" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M0 7 7 0" stroke="#a1b3a3" stroke-width=".7"/></pattern>
-        <pattern id="route-concrete" width="11" height="11" patternUnits="userSpaceOnUse"><circle cx="3" cy="5" r=".65" fill="#57615a"/></pattern>
-        <pattern id="route-parking" width="19" height="9" patternUnits="userSpaceOnUse"><path d="m0 9 9-9" stroke="#5d7167" stroke-width="1"/></pattern>
-        <g id="route-parked"><rect x="-6" y="-13" width="12" height="26" rx="4" fill="#50645d" stroke="#95a59b" stroke-width=".8"/><path d="m-4-7 8 0-1 4h-6zM-4 7h8l-1-3h-6z" fill="#263a35"/></g>
-        <path id="route-above-path" d="M13 94 98 94Q116 94 128 86L159 65Q171 56 183 56H203"/>
-        <path id="route-below-path" d="M37 241H394Q408 241 417 234L431 224"/>
+        <pattern id="rm-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 4H8" class="rm-hatch-line"/></pattern>
+        <pattern id="rm-concrete" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="5" r=".7" class="rm-dot"/><circle cx="9" cy="10" r=".5" class="rm-dot"/></pattern>
+        <pattern id="rm-shutter" width="10" height="5" patternUnits="userSpaceOnUse"><path d="M0 4.5H10" class="rm-shutter-line"/></pattern>
+        <pattern id="rm-checker" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f4f4f6"/><rect width="3" height="3" fill="#18171c"/><rect x="3" y="3" width="3" height="3" fill="#18171c"/></pattern>
+        <linearGradient id="rm-ramp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="rm-ramp-top"/><stop offset="1" class="rm-ramp-bottom"/></linearGradient>
+        <g id="rm-car"><rect x="-7" y="-12" width="14" height="24" rx="4.5" class="rm-parked"/><path d="M-5-6h10l-1 4h-8zM-5 6h10l-1-3h-8z" class="rm-parked-glass"/></g>
+        <path id="route-above-path" d="M612 136H294Q272 136 264 122L250 98Q246 90 238 88"/>
+        <path id="route-below-path" d="M18 206Q70 204 86 232Q98 256 132 260H520Q536 260 536 248V240"/>
       </defs>
-      <rect width="560" height="137" fill="#dce4d8"/>
-      <path d="M0 13h100l-9 30-35 20H0zM466 110h94v27h-113z" fill="#b4cbb4"/>
-      <path d="M0 18h76M0 24h71M0 30h64" stroke="#a2baa3" fill="none"/>
-      <path d="M-15 94H100Q115 94 130 85l33-23q12-7 33-7h63" fill="none" stroke="#b2baad" stroke-width="46"/>
-      <path d="M-15 94H100Q115 94 130 85l33-23q12-7 33-7h63" fill="none" stroke="#f4f2e8" stroke-width="41"/>
-      <path d="M-10 82h92M-10 106h95" stroke="#c9cbbd" stroke-width="1" stroke-dasharray="12 8"/>
-      <path d="M-15 136h126l52-22 56-8 40 3M7 59l92-4 44-39" stroke="#becbbb" stroke-width="1.3" fill="none"/>
-      <path d="m220-5 306 0 34 18v82l-63 11-64-11H279l-45-9-24-20V9z" fill="#aeb9a7"/>
-      <path d="m219-9 307 0 34 18v81l-63 11-64-11H280l-46-9-24-20V4z" fill="#c8d4c2" stroke="#8b9b89" stroke-width="1.4"/>
-      <path d="m230-3 290 0 32 15v72l-54 9-65-11H281l-43-8-21-18V8z" fill="url(#route-roof)" stroke="#a4b09e"/>
-      <rect x="254" y="30" width="195" height="36" rx="4" fill="#d7e1d1"/>
-      <text x="269" y="54" class="route-place">ТЦ «Сомбреро»</text>
-      <g fill="#c0ccb9" stroke="#a1af9a" stroke-width="1.2"><path d="M466 13h54l9 6h-63z"/><rect x="466" y="19" width="63" height="11"/><path d="M472 23h46m-46 3h46"/></g>
-      <path d="M209 42v26l-9-3V45z" fill="#46534b"/><path d="m201 46 8-3v21l-8 2z" fill="#152f2a"/>
-      <g fill="#576e62"><path d="m238 70 5-5 6 7-5 4zm12 4 5-6 6 7-5 4zm12 3 5-6 6 7-5 4z"/></g>
-      <text x="153" y="29" class="route-annotation">Въезд</text>
-      <path d="m189 31 11 9" fill="none" stroke="#5a7060"/>
-      <g class="route-road-label"><rect x="16" y="8" width="67" height="24" rx="3"/><text x="25" y="25">Улица</text></g>
-      <text x="21" y="127" class="route-address">Варшавское ш., 152А</text>
-      <use href="#route-above-path" fill="none" stroke="#559d88" stroke-width="5" stroke-linecap="round"/>
-      <use href="#route-above-path" class="route-trace route-trace-above" pathLength="100" fill="none" stroke="#007461" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="13" cy="94" r="4.5" fill="#007461" stroke="#fbfff8" stroke-width="2"/>
-      <path d="M0 137h560v178H0z" fill="#24352f"/>
-      <path d="M0 137h560v178H0z" fill="url(#route-concrete)"/>
-      <path d="M0 137h560" stroke="#101f19" stroke-width="3"/>
-      <path d="M0 206h560v66H0z" fill="#344840"/>
-      <path d="M0 207h560m-560 64h560" fill="none" stroke="#65776a" stroke-width="2"/>
-      <path d="M0 244h560" fill="none" stroke="#7f9385" stroke-width="1" stroke-dasharray="12 13"/>
-      <g fill="none" stroke="#7e9484" stroke-width="1.25">
-        <path d="M175 168v36h133v-36m-105 0v36m27-36v36m27-36v36m26-36v36"/>
-        <path d="M251 311v-36h137v36m-109 0v-36m27 36v-36m27 36v-36m27 36v-36"/>
+
+      <rect width="600" height="178" class="rm-ground"/>
+      <path d="M0 0H178V64Q150 76 112 74L0 82Z" class="rm-green"/>
+      <path d="M0 96H182V118H0Z" class="rm-green"/>
+      <g class="rm-trees">
+        <circle cx="22" cy="28" r="10"/><circle cx="58" cy="18" r="12"/><circle cx="96" cy="34" r="11"/><circle cx="136" cy="22" r="10"/><circle cx="40" cy="58" r="9"/>
+        <circle cx="16" cy="107" r="8"/><circle cx="52" cy="108" r="8"/><circle cx="88" cy="107" r="8"/><circle cx="124" cy="108" r="8"/><circle cx="160" cy="107" r="8"/>
       </g>
-      <use href="#route-parked" transform="translate(216 186)"/><use href="#route-parked" transform="translate(270 186)"/>
-      <use href="#route-parked" transform="translate(292 293)"/><use href="#route-parked" transform="translate(347 293)"/>
-      <path d="M0 211h63l9 9-13 13H0" fill="url(#route-parking)"/>
-      <g fill="#a7b5a4" stroke="#394a3e"><path d="M162 198h8v11h-8zM318 198h8v11h-8zM237 269h8v11h-8zM394 269h8v11h-8z"/></g>
-      <g class="route-road-label route-level-label"><rect x="16" y="147" width="111" height="25" rx="3"/><text x="25" y="165">Паркинг −1</text></g>
-      <g><path d="M403 151h123v58h-18v-6h-82v6h-23z" fill="#496d5d" stroke="#91b6a0" stroke-width="1.4"/>
-        <path d="M412 156h105v39H412z" fill="#2e5546"/><path d="M420 202h83" stroke="#bfe8d6" stroke-width="3"/>
-        <text x="465" y="181" text-anchor="middle" class="route-garage-label">Бокс студии</text>
-        <path d="m431 223 11-12" stroke="#b1d7be" stroke-width="1.6" stroke-dasharray="3 3"/>
+      <rect x="-10" y="122" width="620" height="52" class="rm-road"/>
+      <path d="M-10 122H610M-10 174H610" class="rm-curb"/>
+      <path d="M-10 147.2H610M-10 149.4H610" class="rm-median"/>
+      <path d="M-10 135H610M-10 161H610" class="rm-lane"/>
+      <g class="rm-zebra"><path d="M118 124V146M126 124V146M134 124V146M142 124V146M150 124V146M158 124V146"/></g>
+      <g class="rm-traffic"><use href="#rm-car" transform="translate(300 161) rotate(90)"/><use href="#rm-car" transform="translate(70 161) rotate(90)"/><use href="#rm-car" transform="translate(520 135) rotate(-90)"/></g>
+      <text x="432" y="170" class="rm-road-name">Варшавское ш.</text>
+      <path d="M186 98H600V122H186Z" class="rm-lot"/>
+      <g class="rm-lot-marks"><path d="M300 100V112M326 100V112M352 100V112M378 100V112M404 100V112M430 100V112M456 100V112M482 100V112M508 100V112"/></g>
+      <g class="rm-parked-row"><use href="#rm-car" transform="translate(313 106) rotate(90) scale(.78)"/><use href="#rm-car" transform="translate(365 106) rotate(90) scale(.78)"/><use href="#rm-car" transform="translate(443 106) rotate(90) scale(.78)"/><use href="#rm-car" transform="translate(495 106) rotate(90) scale(.78)"/></g>
+      <path d="M282 8H566Q590 8 590 32V84H282Q252 84 252 46Q252 8 282 8Z" class="rm-roof"/>
+      <path d="M282 14H564Q584 14 584 34V78H282Q258 78 258 46Q258 14 282 14Z" fill="url(#rm-hatch)" class="rm-roof-texture"/>
+      <path d="M252 46Q252 84 282 84H590V98H282Q252 96 252 64Z" class="rm-facade"/>
+      <g class="rm-diamonds">${diamonds.map((color, i) => `<rect x="${290 + i * 13}" y="87" width="6.4" height="6.4" transform="rotate(45 ${293.2 + i * 13} 90.2)" fill="${color}"/>`).join('')}</g>
+      <path d="M594 30l10 8-10 8 10 8-10 8 10 8" class="rm-stairs"/>
+      <text x="384" y="52" class="rm-place">ТЦ «Сомбреро»</text>
+      <rect x="186" y="54" width="68" height="44" rx="2" class="rm-block"/>
+      <rect x="191" y="78" width="25" height="20" class="rm-gate"/><rect x="222" y="78" width="27" height="20" class="rm-gate"/>
+      <rect x="196" y="72" width="12" height="3.4" rx="1" class="rm-exit-light"/><rect x="226" y="72" width="18" height="3.4" rx="1" class="rm-entry-light"/>
+      <text x="220" y="66" text-anchor="middle" class="rm-block-label">Автомойка · Детейлинг</text>
+      <g class="rm-callout"><path d="M164 72L224 74" /><rect x="118" y="63" width="46" height="18" rx="3"/><text x="141" y="76" text-anchor="middle">Въезд</text></g>
+      <use href="#route-above-path" class="route-base"/>
+      <use href="#route-above-path" class="route-trace route-trace-above" pathLength="100"/>
+      <circle cx="600" cy="136" r="4.5" class="route-start"/>
+
+      <rect y="178" width="600" height="226" class="rm-underground"/>
+      <rect y="178" width="600" height="226" fill="url(#rm-concrete)"/>
+      <path d="M0 178H600" class="rm-level-line"/>
+      <g class="rm-pipes"><path d="M150 184H600M150 188H600"/></g>
+      <path d="M0 192Q62 190 84 220Q100 246 132 240V282Q84 286 66 252Q52 226 0 222Z" fill="url(#rm-ramp)" class="rm-ramp"/>
+      <path d="M14 200l6 6-6 6M30 202l6 6-6 6M46 210l5 7-7 4M60 222l3 8-8 2" class="rm-chevrons"/>
+      <rect x="132" y="234" width="430" height="52" class="rm-aisle"/>
+      <path d="M132 260H560" class="rm-aisle-line"/>
+      <path d="M560 234H600V404H560Z" class="rm-aisle"/>
+      <g class="rm-boxes-north">
+        <rect x="214" y="208" width="54" height="26"/><rect x="270" y="208" width="54" height="26"/><rect x="326" y="208" width="54" height="26"/><rect x="382" y="208" width="54" height="26"/><rect x="438" y="208" width="54" height="26"/>
       </g>
-      <text x="95" y="298" class="route-underground-label">Шлагбаум</text><path d="m148 284 7-20" fill="none" stroke="#b1c6b7"/>
-      <use href="#route-below-path" fill="none" stroke="#628e7d" stroke-width="5" stroke-linecap="round"/>
-      <use href="#route-below-path" class="route-trace route-trace-below" pathLength="100" fill="none" stroke="#7ce7d2" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="431" cy="224" r="6" fill="#8df4db" stroke="#162e25" stroke-width="2.5"/>
-      <g class="route-boom"><path d="M158 261v-39" stroke="#132720" stroke-width="7"/><path d="M158 261v-39" stroke="#e9e9ce" stroke-width="4"/><path d="M158 261v-39" stroke="#a5523d" stroke-width="4" stroke-dasharray="6 6"/></g>
-      <circle cx="158" cy="261" r="4.5" fill="#e7c88c" stroke="#23352b" stroke-width="2"/>
-      <g class="route-vehicle" transform="translate(18 94)">
-        <ellipse cx="0" cy="1" rx="17" ry="10" fill="#203d34" opacity=".22"/>
-        <g fill="#162b25"><rect x="-9" y="-8" width="6" height="3" rx="1"/><rect x="4" y="-8" width="5" height="3" rx="1"/><rect x="-9" y="5" width="6" height="3" rx="1"/><rect x="4" y="5" width="5" height="3" rx="1"/></g>
-        <rect x="-13.5" y="-6.6" width="27" height="13.2" rx="4.8" fill="#faffec" stroke="#0b4034" stroke-width="1.5"/>
-        <path d="m-7-4.7 11-.3 3.4 2.1v5.2L4 5l-11-.3-2-2v-5.4Z" fill="#187566"/><path d="m2-4.6 3.9 1.9v5.4L2 4.7zm-7 .2-2 1.5v5.8l2 1.4" fill="#123a33"/>
-        <path d="M11-4v2m0 4v2" stroke="#e9ca84" stroke-width="1.3"/>
+      <g class="rm-boxes-south">
+        <rect x="214" y="286" width="54" height="34"/><rect x="270" y="286" width="54" height="34"/><rect x="326" y="286" width="54" height="34"/><rect x="382" y="286" width="54" height="34"/><rect x="438" y="286" width="54" height="34"/><rect x="494" y="286" width="54" height="34"/>
+      </g>
+      <g class="rm-shutters"><path d="M218 230H264M274 230H320M330 230H376M386 230H432M442 230H488M218 290H264M274 290H320M330 290H376M386 290H432M442 290H488M498 290H544"/></g>
+      <g class="rm-columns"><rect x="266" y="230" width="8" height="8"/><rect x="322" y="230" width="8" height="8"/><rect x="378" y="230" width="8" height="8"/><rect x="434" y="230" width="8" height="8"/><rect x="490" y="230" width="8" height="8"/>
+        <rect x="266" y="282" width="8" height="8"/><rect x="322" y="282" width="8" height="8"/><rect x="378" y="282" width="8" height="8"/><rect x="434" y="282" width="8" height="8"/><rect x="490" y="282" width="8" height="8"/></g>
+      <g class="rm-parked-below"><use href="#rm-car" transform="translate(353 304)" class="rm-taxi"/><use href="#rm-car" transform="translate(465 222) scale(.8)"/></g>
+      <g class="rm-studio">
+        <rect x="494" y="204" width="60" height="30" class="rm-studio-box"/>
+        <rect x="500" y="211" width="48" height="23" fill="url(#rm-shutter)" class="rm-studio-shutter"/>
+        <rect x="498" y="207" width="11" height="17" rx="1" class="rm-banner"/>
+        <path d="M500 219l2-6 2 3 2-5 2 8" class="rm-banner-skyline"/>
+        <g class="rm-pin"><path d="M566 198c-5 0-8.5 3.7-8.5 8.5 0 6 8.5 13 8.5 13s8.5-7 8.5-13c0-4.8-3.5-8.5-8.5-8.5Z"/><circle cx="566" cy="206.5" r="3"/></g>
+      </g>
+      <g class="rm-doors"><rect x="132" y="236" width="5" height="48"/><rect x="136" y="226" width="22" height="9" fill="url(#rm-checker)" class="rm-flag"/></g>
+      <g class="rm-labels">
+        <g class="rm-level-label"><rect x="14" y="350" width="108" height="25" rx="3"/><text x="23" y="368">Паркинг −1</text></g>
+        <text x="70" y="300" class="rm-annotation">Спуск</text>
+        <text x="150" y="342" class="rm-annotation">Шлагбаум</text><path d="M178 332l8-36" class="rm-pointer"/>
+        <text x="482" y="202" text-anchor="end" class="rm-annotation rm-strong">Бокс студии</text>
+      </g>
+      <use href="#route-below-path" class="route-base route-base-dark"/>
+      <use href="#route-below-path" class="route-trace route-trace-below" pathLength="100"/>
+      <g class="route-boom"><path d="M190 286V238" class="rm-boom-shadow"/><path d="M190 286V238" class="rm-boom"/><path d="M190 286V238" class="rm-boom-stripes"/></g>
+      <rect x="185" y="284" width="10" height="9" rx="1.5" class="rm-boom-post"/>
+      <g class="rm-call"><circle cx="210" cy="302" r="9"/><path d="M206.5 298.5c.6 2.8 2.6 5 5.4 6.3l1.6-1.6c.3-.3.7-.3 1 0l1.7 1.3c.4.3.4.8.1 1.1l-1 1.2c-.6.6-1.5.8-2.3.5-4-1.5-7-4.6-8.4-8.6-.3-.8-.1-1.7.5-2.3l1.2-1c.3-.3.8-.3 1.1.1l1.3 1.7c.3.3.3.7 0 1z"/></g>
+      <g class="route-vehicle" transform="translate(600 136)">
+        <ellipse cx="0" cy="1" rx="17" ry="10" class="rv-shadow"/>
+        <g class="rv-wheels"><rect x="-9" y="-8" width="6" height="3" rx="1"/><rect x="4" y="-8" width="5" height="3" rx="1"/><rect x="-9" y="5" width="6" height="3" rx="1"/><rect x="4" y="5" width="5" height="3" rx="1"/></g>
+        <rect x="-13.5" y="-6.6" width="27" height="13.2" rx="4.8" class="rv-body"/>
+        <path d="m-7-4.7 11-.3 3.4 2.1v5.2L4 5l-11-.3-2-2v-5.4Z" class="rv-roof"/><path d="m2-4.6 3.9 1.9v5.4L2 4.7zm-7 .2-2 1.5v5.8l2 1.4" class="rv-glass"/>
+        <path d="M11-4v2m0 4v2" class="rv-lights"/>
       </g>
     </svg>`;
 
-  const stages = [
-    { title: 'Въезд', start: 0, end: 5.3, parked: 4.9, text: 'У ТЦ «Сомбреро» заезжайте под зелёную вывеску «Въезд» и спускайтесь на этаж −1.' },
-    { title: 'Шлагбаум', start: 5.3, end: 10.1, parked: 8.8, text: 'Проезжайте прямо через двери. У шлагбаума остановитесь и позвоните в студию, чтобы вам открыли.' },
-    { title: 'Бокс', start: 10.1, end: 17, parked: 17, text: 'За шлагбаумом езжайте прямо до поворота. Крайний бокс слева — студия.' }
+  // Stage timing of the animation, in seconds. parked — the moment shown when a step is opened by hand.
+  const timing = [
+    { start: 0, end: 5.3, parked: 4.9 },
+    { start: 5.3, end: 10.6, parked: 9.2 },
+    { start: 10.6, end: 16.4, parked: 16.4 }
   ];
 
   const canonical = value => String(value || '').toLowerCase().replace(/ё/g, 'е').replace(/[^а-яa-z0-9]/gi, '');
@@ -84,29 +114,141 @@
       && /[−–-]\s*1|минус\s*(?:1|перв)/i.test(contacts.entrance || '');
   }
 
-  function create(contacts) {
-    if (!fits(contacts)) return null;
-    const card = document.createElement('section');
-    card.className = 'route-card';
+  function element(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  // options.steps — texts and photos of the steps; options.video(time) — opens the arrival video at a moment.
+  function create(contacts, options = {}) {
+    const page = window.StudioPage;
+    const widget = page?.mapWidget?.(contacts) || '';
+    const drawn = fits(contacts);
+    if (!drawn && !widget) return null;
+    const steps = (Array.isArray(options.steps) ? options.steps : []).slice(0, 3);
+    const card = element('section', 'route-card');
     card.setAttribute('aria-labelledby', 'route-heading');
-    card.innerHTML = `
-      <div class="route-header"><h3 id="route-heading">Схема проезда</h3><button type="button" class="route-toggle"></button></div>
-      ${floorplan}
-      <div class="route-directions"><div class="route-stages" role="group" aria-label="Этапы проезда"></div>
-      <div class="route-instruction"><p></p></div></div>`;
-    const buttons = stages.map((stage, index) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.innerHTML = '<span aria-hidden="true">' + (index + 1) + '</span>' + stage.title;
-      btn.setAttribute('aria-controls', 'route-step-copy');
-      card.querySelector('.route-stages').append(btn);
-      return btn;
-    });
-    const copy = card.querySelector('.route-instruction p');
+    const header = element('div', 'route-header');
+    const heading = element('h3', 'route-heading-text', drawn ? 'Как доехать' : 'Карта');
+    heading.id = 'route-heading';
+    const tabs = element('div', 'route-tabs');
+    tabs.setAttribute('role', 'tablist');
+    tabs.setAttribute('aria-labelledby', heading.id);
+    const toggle = element('button', 'route-toggle');
+    toggle.type = 'button';
+    header.append(heading, tabs, toggle);
+    card.append(header);
+
+    const panels = [];
+    function tab(id, label, panel) {
+      const button = element('button', 'route-tab', label);
+      button.type = 'button';
+      button.id = 'route-tab-' + id;
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-controls', panel.id);
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', button.id);
+      tabs.append(button);
+      panels.push({ id, button, panel });
+      button.addEventListener('click', () => show(id));
+      button.addEventListener('keydown', event => {
+        if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+        const index = panels.findIndex(item => item.id === id);
+        const next = panels[(index + (event.key === 'ArrowRight' ? 1 : panels.length - 1)) % panels.length];
+        show(next.id);
+        next.button.focus();
+      });
+    }
+
+    let schemePanel = null;
+    if (drawn) {
+      schemePanel = element('div', 'route-panel route-scheme');
+      schemePanel.id = 'route-scheme';
+      schemePanel.innerHTML = scheme;
+      card.append(schemePanel);
+      tab('scheme', 'Схема', schemePanel);
+    }
+    let mapPanel = null;
+    if (widget) {
+      mapPanel = element('div', 'route-panel route-map');
+      mapPanel.id = 'route-map';
+      mapPanel.hidden = Boolean(drawn);
+      card.append(mapPanel);
+      tab('map', 'Яндекс Карта', mapPanel);
+    }
+    tabs.hidden = panels.length < 2;
+
+    function loadMap() {
+      if (!mapPanel || mapPanel.childElementCount) return;
+      const frame = element('iframe', 'route-frame');
+      frame.src = widget;
+      frame.title = 'Студия на Яндекс Картах';
+      frame.loading = 'lazy';
+      frame.allowFullscreen = true;
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
+      const link = page?.contactUrl?.('map', contacts.map);
+      mapPanel.append(frame);
+      if (link) {
+        const open = element('a', 'route-map-link', 'Открыть в Яндекс Картах');
+        open.href = link;
+        open.target = '_blank';
+        open.rel = 'noopener noreferrer';
+        mapPanel.append(open);
+      }
+    }
+
+    let activeTab = panels[0].id;
+    function show(id) {
+      activeTab = id;
+      for (const item of panels) {
+        const selected = item.id === id;
+        item.button.setAttribute('aria-selected', String(selected));
+        item.button.tabIndex = selected ? 0 : -1;
+        item.panel.hidden = !selected;
+      }
+      if (id === 'map') loadMap();
+      updatePlayback();
+    }
+
+    if (!drawn) {
+      toggle.hidden = true;
+      show('map');
+      return card;
+    }
+
+    const directions = element('div', 'route-directions');
+    const stagesBox = element('div', 'route-stages');
+    stagesBox.setAttribute('role', 'group');
+    stagesBox.setAttribute('aria-label', 'Этапы проезда');
+    const instruction = element('div', 'route-instruction');
+    const copy = element('p', 'route-copy');
     copy.id = 'route-step-copy';
-    const phone = document.createElement('a');
-    phone.className = 'route-phone';
-    phone.textContent = 'позвоните в студию';
+    copy.setAttribute('aria-live', 'polite');
+    const photo = element('button', 'route-photo');
+    photo.type = 'button';
+    const photoImage = element('img');
+    photoImage.alt = '';
+    photoImage.loading = 'lazy';
+    photoImage.decoding = 'async';
+    const photoLabel = element('span', 'route-photo-label');
+    photo.append(photoImage, photoLabel);
+    instruction.append(copy, photo);
+    directions.append(stagesBox, instruction);
+    card.append(directions);
+
+    const buttons = timing.map((stage, index) => {
+      const button = element('button');
+      button.type = 'button';
+      const number = element('span', '', String(index + 1));
+      number.setAttribute('aria-hidden', 'true');
+      button.append(number, steps[index]?.title || ['Въезд', 'Шлагбаум', 'Бокс'][index]);
+      button.setAttribute('aria-controls', copy.id);
+      stagesBox.append(button);
+      return button;
+    });
+    const phone = element('a', 'route-phone', 'позвоните в студию');
     const number = String(contacts.phone || '').replace(/[^\d+]/g, '');
     if (/^\+?\d{7,15}$/.test(number)) phone.href = 'tel:' + number;
 
@@ -119,41 +261,69 @@
     });
     const vehicle = card.querySelector('.route-vehicle');
     const boom = card.querySelector('.route-boom');
-    const toggle = card.querySelector('.route-toggle');
+    const call = card.querySelector('.rm-call');
+    const studio = card.querySelector('.rm-studio');
     const lessMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const total = stages.at(-1).end;
-    const gate = (142 - 37) / paths[1].length;
+    const total = timing.at(-1).end;
+    const gate = (190 - 18) / paths[1].length * 1.02;
     const clamp = value => Math.max(0, Math.min(1, value));
+    const ease = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
     let second = 0, selected = -1, raf = 0, previous = 0;
     let wantsPlay = !lessMotion.matches, inView = false;
 
     function paint(time) {
       second = Math.min(total, Math.max(0, time));
-      const stage = second < stages[1].start ? 0 : second < stages[2].start ? 1 : 2;
-      const ground = clamp(second / 4.75);
-      const inside = stage < 2 ? gate * clamp((second - 5.3) / 2.8)
-        : gate + (1 - gate) * clamp((second - 10.15) / 6.1);
-      [ground, inside].forEach((progress, i) => {
+      const stage = second < timing[1].start ? 0 : second < timing[2].start ? 1 : 2;
+      const street = ease(second / 4.9);
+      const inside = stage < 2 ? gate * ease((second - 5.4) / 3.6) : gate + (1 - gate) * ease((second - 10.7) / 5.4);
+      [street, inside].forEach((progress, i) => {
         paths[i].trace.setAttribute('stroke-dashoffset', String((1 - progress) * paths[i].length));
       });
       const activePath = paths[stage === 0 ? 0 : 1];
-      const at = activePath.length * (stage === 0 ? ground : inside);
+      const at = activePath.length * (stage === 0 ? street : inside);
       const point = activePath.path.getPointAtLength(at);
       const before = activePath.path.getPointAtLength(Math.max(0, at - 1));
       const after = activePath.path.getPointAtLength(Math.min(activePath.length, at + 1));
       const angle = Math.atan2(after.y - before.y, after.x - before.x) * 180 / Math.PI;
-      vehicle.setAttribute('transform', 'translate(' + point.x + ' ' + point.y + ') rotate(' + angle + ')');
-      boom.setAttribute('transform', 'rotate(' + (clamp((second - 9.3) / .8) * 84) + ' 158 261)');
+      vehicle.setAttribute('transform', 'translate(' + point.x.toFixed(2) + ' ' + point.y.toFixed(2) + ') rotate(' + angle.toFixed(1) + ')');
+      // The car fades at the gate and appears again on the ramp.
+      const fade = stage === 0 ? 1 - clamp((second - 4.7) / .5) : clamp((second - 5.3) / .4);
+      vehicle.setAttribute('opacity', fade.toFixed(2));
+      boom.setAttribute('transform', 'rotate(' + (-clamp((second - 9.4) / .9) * 84).toFixed(1) + ' 190 286)');
+      call.classList.toggle('is-ringing', second > 8.4 && second < 10.4);
+      studio.classList.toggle('is-here', second >= total - .4);
       if (stage !== selected) {
         selected = stage;
-        buttons.forEach((btn, i) => btn.setAttribute('aria-pressed', String(stage === i)));
-        copy.textContent = stages[stage].text;
-        if (stage === 1 && phone.hasAttribute('href')) {
-          const [beforePhone, afterPhone] = stages[stage].text.split(phone.textContent);
-          copy.replaceChildren(beforePhone, phone, afterPhone);
-        }
+        buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(stage === i)));
+        describe(stage);
       }
     }
+
+    function describe(stage) {
+      const step = steps[stage] || {};
+      const text = step.text || '';
+      if (phone.hasAttribute('href') && text.includes(phone.textContent)) {
+        const [beforePhone, ...rest] = text.split(phone.textContent);
+        copy.replaceChildren(beforePhone, phone, rest.join(phone.textContent));
+      } else copy.textContent = text;
+      const image = page?.mediaUrl?.(step.image) || '';
+      photo.hidden = !image;
+      if (image) {
+        photoImage.src = image;
+        const withVideo = typeof options.video === 'function';
+        photo.disabled = !withVideo;
+        photoLabel.textContent = withVideo ? 'Этот момент в видео' : 'Как выглядит на месте';
+        photo.setAttribute('aria-label', (withVideo ? 'Смотреть в видео: ' : 'Фото: ') + (step.title || ''));
+      }
+    }
+    photo.addEventListener('click', () => {
+      const step = steps[Math.max(0, selected)];
+      if (typeof options.video === 'function') {
+        wantsPlay = false;
+        updatePlayback();
+        options.video(Number(step?.time) || 0);
+      }
+    });
 
     function updatePlayback() {
       cancelAnimationFrame(raf);
@@ -162,8 +332,8 @@
       toggle.dataset.state = wantsPlay ? 'pause' : second >= total ? 'replay' : 'play';
       toggle.textContent = label;
       toggle.setAttribute('aria-label', label + ' — анимация маршрута');
-      toggle.hidden = lessMotion.matches;
-      if (wantsPlay && inView && !document.hidden && !lessMotion.matches) raf = requestAnimationFrame(tick);
+      toggle.hidden = lessMotion.matches || activeTab !== 'scheme';
+      if (wantsPlay && inView && activeTab === 'scheme' && !document.hidden && !lessMotion.matches) raf = requestAnimationFrame(tick);
     }
     function tick(now) {
       if (previous) paint(second + (now - previous) / 1000);
@@ -171,8 +341,11 @@
       if (second >= total) { wantsPlay = false; updatePlayback(); }
       else raf = requestAnimationFrame(tick);
     }
-    buttons.forEach((btn, i) => btn.addEventListener('click', () => {
-      wantsPlay = false; paint(stages[i].parked); updatePlayback();
+    buttons.forEach((button, i) => button.addEventListener('click', () => {
+      wantsPlay = false;
+      if (activeTab !== 'scheme') show('scheme');
+      paint(timing[i].parked);
+      updatePlayback();
     }));
     toggle.addEventListener('click', () => {
       if (second >= total) paint(0);
@@ -180,7 +353,7 @@
       updatePlayback();
     });
     lessMotion.addEventListener('change', () => {
-      wantsPlay = false; paint(stages[Math.max(0, selected)].parked); updatePlayback();
+      wantsPlay = false; paint(timing[Math.max(0, selected)].parked); updatePlayback();
     });
     document.addEventListener('visibilitychange', updatePlayback);
     if ('IntersectionObserver' in window) {
@@ -188,9 +361,10 @@
         inView = entries[0].isIntersecting; updatePlayback();
       }, { threshold: .22 }).observe(card);
     } else { inView = true; }
-    paint(lessMotion.matches ? stages[0].parked : 0);
+    show('scheme');
+    paint(lessMotion.matches ? timing[0].parked : 0);
     updatePlayback();
     return card;
   }
-  window.StudioArrivalMap = { create };
+  window.StudioArrivalMap = { create, fits };
 })();

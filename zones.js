@@ -10,7 +10,18 @@ window.STUDIO_ZONES = [
       'Дополнительно можно обработать пластик дверных карт вибродемпфером и антискрипом по периметру или нанести антикор Kerry в скрытые полости дверей. Каждая услуга — 1 000 ₽ за дверь, 4 000 ₽ за четыре.'
     ],
     source: 'https://disk.yandex.ru/d/qD1vBFLRpOiHVA',
-    image: 'assets/zone-doors.webp'
+    image: 'assets/zone-doors.webp',
+    structure: {
+      shape: 'door',
+      base: 'Металл двери', baseText: 'Широкие панели двери вибрируют на ходу и от работы динамика.',
+      cover: 'Дверная карта', coverText: 'Обшивка возвращается на место и закрывает слои. Для её стыков можно заказать антискрип.'
+    },
+    gallery: [
+      { image: 'assets/zone-doors.webp', caption: 'Двери после обработки: вибродемпфер и шумопоглотитель' },
+      { image: 'v2/media/gallery/doors-cobra-speaker.webp', caption: 'Cobra на металле, Soft Wave на соседней двери' },
+      { image: 'v2/media/gallery/doors-integra.webp', caption: 'Звукоизолятор Integra поверх вибродемпфера' },
+      { image: 'v2/media/gallery/doors-cobra.webp', caption: 'Вибродемпфер Cobra на внутренней панели' }
+    ]
   },
   {
     id: 'arches',
@@ -22,7 +33,15 @@ window.STUDIO_ZONES = [
       'Шумоизоляция шин — от 5 000 ₽ за работу. Комплект материалов приобретается отдельно. «Тихие шины» до R20 стоят 5 000 ₽, «Тихие шины 2.0» до R22 — 12 000 ₽. Шиномонтаж по прайсу студии — от 2 000 ₽ для R14 до 10 000 ₽ для R21.'
     ],
     source: 'https://disk.yandex.ru/d/LD31Av7qpjZBrQ',
-    image: 'assets/zone-arches.webp'
+    image: 'assets/zone-arches.webp',
+    structure: {
+      shape: 'arch',
+      base: 'Металл арки', baseText: 'Арка принимает удары песка, камней и воды из-под колёс — отсюда гул на скорости.',
+      cover: 'Подкрылок', coverText: 'Подкрылок закрывает арку снаружи. Его можно обработать отдельно.'
+    },
+    gallery: [
+      { image: 'assets/zone-arches.webp', caption: 'Наружная арка: вибродемпфер и звукоизолятор Blockshot' }
+    ]
   },
   {
     id: 'floor',
@@ -34,7 +53,18 @@ window.STUDIO_ZONES = [
       'Премиум — от 22 000 ₽. Нижний слой — вибродемпфер Viper, верхний — звукоизоляторы Blockshot Gen.2 и Raptor. Вес — 23 кг.'
     ],
     source: 'https://disk.yandex.ru/d/K5jaM2uqb7_xAA',
-    image: 'assets/zone-floor.webp'
+    image: 'assets/zone-floor.webp',
+    structure: {
+      shape: 'floor',
+      base: 'Металл пола', baseText: 'Пол передаёт в салон гул дороги и вибрации от колёс.',
+      cover: 'Ковролин', coverText: 'Ковролин и сиденья возвращаются на штатные места.'
+    },
+    gallery: [
+      { image: 'assets/zone-floor.webp', caption: 'Пол салона после укладки вибродемпфера' },
+      { image: 'v2/media/gallery/floor-viper.webp', caption: 'Вибродемпфер Viper на полу и тоннеле' },
+      { image: 'v2/media/gallery/floor-raptor.webp', caption: 'Второй слой — звукоизолятор Raptor' },
+      { image: 'v2/media/gallery/floor-blockshot.webp', caption: 'Звукоизолятор Blockshot под креслами' }
+    ]
   },
   {
     id: 'trunk',
@@ -46,7 +76,15 @@ window.STUDIO_ZONES = [
       'Премиум — от 22 000 ₽. Первый слой — Viper и Cobra, второй — Raptor и Blockshot Gen.2, на обшивке крышки — Soft Wave. Вес — 24 кг.'
     ],
     source: 'https://disk.yandex.ru/d/EoEO0sADUJHF4w',
-    image: 'assets/zone-trunk.webp'
+    image: 'assets/zone-trunk.webp',
+    structure: {
+      shape: 'trunk',
+      base: 'Металл багажника', baseText: 'Пол багажника и задние арки усиливают гул от задних колёс.',
+      cover: 'Обшивка багажника', coverText: 'Пол и боковины багажника закрывают материалы.'
+    },
+    gallery: [
+      { image: 'assets/zone-trunk.webp', caption: 'Багажник и задние арки после обработки' }
+    ]
   },
   {
     id: 'roof',
@@ -57,7 +95,15 @@ window.STUDIO_ZONES = [
       'Премиум — 9 000–13 000 ₽ в комплексе. Первый слой — вибродемпфер Cobra, второй — шумопоглотитель Soft Wave. Вес — 5 кг.'
     ],
     source: 'https://disk.yandex.ru/d/v3VmksmECXvukQ',
-    image: 'assets/zone-roof.webp'
+    image: 'assets/zone-roof.webp',
+    structure: {
+      shape: 'roof',
+      base: 'Металл крыши', baseText: 'Тонкая крыша резонирует от дождя и встречного ветра.',
+      cover: 'Обшивка потолка', coverText: 'Потолочная обшивка закрывает материалы — снаружи их не видно.'
+    },
+    gallery: [
+      { image: 'assets/zone-roof.webp', caption: 'Крыша: два слоя под обшивкой потолка' }
+    ]
   },
   {
     id: 'dashboard',
@@ -68,6 +114,14 @@ window.STUDIO_ZONES = [
       'На металлический моторный щит укладывают вибродемпфер Viper, затем звукоизолятор Blockshot Gen.2. Обратную сторону пластиковой панели покрывают вибродемпфером Cobra и шумопоглотителем Soft Wave.'
     ],
     source: 'https://disk.yandex.ru/d/S1DZmFjsE65PSA',
-    image: 'assets/zone-dashboard.webp'
+    image: 'assets/zone-dashboard.webp',
+    structure: {
+      shape: 'dashboard',
+      base: 'Моторный щит', baseText: 'Через щит в салон проходит шум двигателя и передних колёс.',
+      cover: 'Панель приборов', coverText: 'Пластиковую панель обрабатывают с обратной стороны и ставят на место.'
+    },
+    gallery: [
+      { image: 'assets/zone-dashboard.webp', caption: 'Обратная сторона панели: Cobra и Soft Wave' }
+    ]
   }
 ];

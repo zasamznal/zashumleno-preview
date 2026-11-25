@@ -4,15 +4,16 @@
   <meta name="robots" content="noindex, nofollow">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101414">
+  <meta name="theme-color" content="#13111c">
   <meta name="description" content="Студия шумоизоляции и автозвука в Москве. Подберите комплект работ для автомобиля, сравните тарифы и обсудите расчёт с мастером.">
   <title>Зашумлено — шумоизоляция и автозвук в Москве</title>
   <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
-  <link rel="preload" as="image" href="v2/media/hero-coupe-teal.webp" media="(min-width:681px)" fetchpriority="high">
-  <link rel="preload" as="image" href="v2/media/hero-mobile-teal.webp" media="(max-width:680px)" fetchpriority="high">
+  <link rel="preload" as="image" href="v2/media/hero-coupe-lilac.webp" media="(min-width:681px)" fetchpriority="high">
+  <link rel="preload" as="image" href="v2/media/hero-mobile-lilac.webp" media="(max-width:680px)" fetchpriority="high">
   <link rel="stylesheet" href="assets/fonts/fonts.css">
   <link rel="stylesheet" href="v2/site.css">
   <link rel="stylesheet" href="v2/estimate.css">
+  <link rel="stylesheet" href="v2/car-shapes.css">
   <link rel="stylesheet" href="v2/zone-icons.css">
   <link rel="stylesheet" href="v2/layers.css">
   <link rel="stylesheet" href="v2/cases.css">
@@ -23,9 +24,10 @@
   <link rel="stylesheet" href="v2/route-map.css">
   <link rel="stylesheet" href="v2/motion.css">
   <link rel="stylesheet" href="v2/hero-acoustics.css">
-  <script defer src="prices.js"></script><script defer src="zones.js"></script><script defer src="works.js"></script>
-  <script defer src="page-content.js"></script><script defer src="content-loader.js"></script>
-  <script defer src="v2/site.js"></script><script defer src="v2/estimate-engine.js"></script><script defer src="v2/estimate.js"></script>
+  <script defer src="prices.js"></script><script defer src="zones.js"></script><script defer src="works.js"></script><script defer src="vehicles.js"></script><script defer src="materials.js"></script>
+  <script defer src="page-content.js"></script><script defer src="content-upgrade.js"></script><script defer src="content-loader.js"></script>
+  <script defer src="v2/site.js"></script><script defer src="v2/vehicle-pricing.js"></script><script defer src="v2/car-shapes.js"></script><script defer src="v2/car-picker.js"></script>
+  <script defer src="v2/estimate-engine.js"></script><script defer src="v2/estimate.js"></script>
   <script defer src="v2/layers.js"></script><script defer src="v2/cases.js"></script><script defer src="v2/rates.js"></script>
   <script defer src="v2/services.js"></script><script defer src="v2/quote.js"></script>
   <script defer src="v2/route-map.js"></script><script defer src="v2/visit.js"></script>
@@ -53,8 +55,8 @@
   <main id="main">
     <section id="top" class="cover">
       <picture class="cover-picture">
-        <source data-mobile-hero media="(max-width: 680px)" srcset="v2/media/hero-mobile-teal.webp">
-        <img data-hero-image src="v2/media/hero-coupe-teal.webp" width="1922" height="818" fetchpriority="high" alt="">
+        <source data-mobile-hero media="(max-width: 680px)" srcset="v2/media/hero-mobile-lilac.webp">
+        <img data-hero-image src="v2/media/hero-coupe-lilac.webp" width="1922" height="818" fetchpriority="high" alt="">
       </picture>
       <div class="wrap cover-inner">
         <div class="cover-copy">
@@ -69,7 +71,7 @@
       </div>
     </section>
     <section id="calculator" class="estimate-section" aria-label="Калькулятор шумоизоляции"><div class="wrap"><div data-estimate></div></div></section>
-    <section id="layers" aria-label="Что внутри двери"><div class="wrap"><div data-layers></div></div></section>
+    <section id="layers" aria-label="Материалы шумоизоляции"><div class="wrap"><div data-layers></div></div></section>
     <section id="works" class="content-section" aria-labelledby="works-title">
       <div class="wrap">
         <div class="section-intro"><div><p class="eyebrow" data-section-kicker>Из мастерской</p><h2 data-section-title id="works-title">Работы студии</h2></div><div class="intro-aside"><p data-section-desc></p><a data-channel href="https://t.me/ZaShumlenoAvto" target="_blank" rel="noopener noreferrer">Все работы в Telegram</a></div></div>
@@ -101,8 +103,8 @@
     <noscript><p class="wrap no-script">Для калькулятора и обновляемого прайса включите JavaScript. <a href="https://t.me/Zashumleno">Связаться со студией в Telegram</a></p></noscript>
   </main>
   <footer class="footer"><div class="wrap foot-row">
-    <a data-brand class="wordmark" href="#top"><img data-brand-mark src="assets/mark.svg" alt="" width="38" height="38"><img data-custom-logo hidden alt=""><span data-brand-name>ЗАШУМЛЕНО</span></a>
-    <nav aria-label="Сведения о студии"><a data-map href="#studio"><span data-short-address>Варшавское шоссе, 152А</span></a><a href="legal.html">Реквизиты и информация</a><a data-vk href="https://vk.com/arkanin" target="_blank" rel="noopener noreferrer">ВКонтакте</a><a data-channel href="https://t.me/ZaShumlenoAvto" target="_blank" rel="noopener noreferrer">Telegram</a><a href="#top">Наверх</a></nav>
+    <div class="foot-brand"><a data-brand class="wordmark" href="#top"><img data-brand-mark src="assets/mark.svg" alt="" width="38" height="38"><img data-custom-logo hidden alt=""><span data-brand-name>ЗАШУМЛЕНО</span></a><p class="foot-tagline" data-brand-tagline>Создай свою атмосферу</p></div>
+    <nav aria-label="Сведения о студии"><a data-map href="#studio"><span data-short-address>Варшавское шоссе, 152А</span></a><a href="legal.html">Реквизиты и информация</a><a data-vk href="https://vk.com/arkanin" target="_blank" rel="noopener noreferrer">ВКонтакте</a><a data-channel href="https://t.me/ZaShumlenoAvto" target="_blank" rel="noopener noreferrer">Telegram</a><a href="admin/">Демо-кабинет</a><a href="#top">Наверх</a></nav>
   </div></footer>
 </body>
 </html>

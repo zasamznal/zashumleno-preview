@@ -22,7 +22,18 @@ window.STUDIO_PRICES = [
       "Доля материалов в цене — 65%."
     ],
     "source": "https://disk.yandex.ru/d/qD1vBFLRpOiHVA",
-    "sheet": "sheets/doors-budget.jpg"
+    "sheet": "sheets/doors-budget.jpg",
+    "layers": [
+      {
+        "material": "bronze2"
+      },
+      {
+        "material": "bronze2"
+      },
+      {
+        "material": "volna"
+      }
+    ]
   },
   {
     "title": "Стандартный комплект",
@@ -47,7 +58,18 @@ window.STUDIO_PRICES = [
       "Доля материалов в цене — 70%."
     ],
     "source": "https://disk.yandex.ru/d/qD1vBFLRpOiHVA",
-    "sheet": "sheets/doors-standard.jpg"
+    "sheet": "sheets/doors-standard.jpg",
+    "layers": [
+      {
+        "material": "bronze2"
+      },
+      {
+        "material": "bronze2"
+      },
+      {
+        "material": "softwave"
+      }
+    ]
   },
   {
     "title": "Премиальный комплект",
@@ -73,7 +95,21 @@ window.STUDIO_PRICES = [
       "Доля материалов в цене — 75%."
     ],
     "source": "https://disk.yandex.ru/d/qD1vBFLRpOiHVA",
-    "sheet": "sheets/doors-premium.jpg"
+    "sheet": "sheets/doors-premium.jpg",
+    "layers": [
+      {
+        "material": "cobra"
+      },
+      {
+        "material": "integra"
+      },
+      {
+        "material": "cobra"
+      },
+      {
+        "material": "softwave"
+      }
+    ]
   },
   {
     "title": "Дополнительные работы по дверям",
@@ -123,7 +159,18 @@ window.STUDIO_PRICES = [
       "На материалы приходится 75% стоимости. Обработку подкрылков можно добавить по отдельному тарифу."
     ],
     "source": "https://disk.yandex.ru/d/LD31Av7qpjZBrQ",
-    "sheet": "sheets/arches-metal.jpg"
+    "sheet": "sheets/arches-metal.jpg",
+    "layers": [
+      {
+        "material": "viper"
+      },
+      {
+        "material": "blockshot"
+      },
+      {
+        "material": "masterwax"
+      }
+    ]
   },
   {
     "title": "Обработка подкрылков",
@@ -150,7 +197,14 @@ window.STUDIO_PRICES = [
       "Обработка приглушает шум песка, щебня, слякоти и воды, летящих из-под колёс. При необходимости мойка и сушка подкрылков входят в стоимость."
     ],
     "source": "https://disk.yandex.ru/d/LD31Av7qpjZBrQ",
-    "sheet": "sheets/arches-extras.jpg"
+    "sheet": "sheets/arches-extras.jpg",
+    "layers": [
+      {
+        "material": "bronze2",
+        "alt": "locker",
+        "note": "Bronze 2 — на пластиковые подкрылки, Locker — на войлочные"
+      }
+    ]
   },
   {
     "title": "Шумоизоляция шин",
@@ -206,7 +260,12 @@ window.STUDIO_PRICES = [
       "На материалы приходится 65% стоимости."
     ],
     "source": "https://disk.yandex.ru/d/K5jaM2uqb7_xAA",
-    "sheet": "sheets/floor-budget.jpg"
+    "sheet": "sheets/floor-budget.jpg",
+    "layers": [
+      {
+        "material": "bronze3"
+      }
+    ]
   },
   {
     "title": "Стандартный комплект",
@@ -230,7 +289,15 @@ window.STUDIO_PRICES = [
       "В комплекте используются бюджетные материалы на битумной основе. Они тяжелее современных аналогов. На материалы приходится 70% стоимости."
     ],
     "source": "https://disk.yandex.ru/d/K5jaM2uqb7_xAA",
-    "sheet": "sheets/floor-standard.jpg"
+    "sheet": "sheets/floor-standard.jpg",
+    "layers": [
+      {
+        "material": "bronze3"
+      },
+      {
+        "material": "ranger"
+      }
+    ]
   },
   {
     "title": "Премиальный комплект",
@@ -255,7 +322,17 @@ window.STUDIO_PRICES = [
       "На материалы приходится 75% стоимости."
     ],
     "source": "https://disk.yandex.ru/d/K5jaM2uqb7_xAA",
-    "sheet": "sheets/floor-premium.jpg"
+    "sheet": "sheets/floor-premium.jpg",
+    "layers": [
+      {
+        "material": "viper"
+      },
+      {
+        "material": "blockshot",
+        "alt": "raptor",
+        "note": "Blockshot и Raptor — в разных частях пола"
+      }
+    ]
   },
   {
     "title": "Бюджетный комплект",
@@ -279,7 +356,14 @@ window.STUDIO_PRICES = [
       "На материалы приходится 65% стоимости. По данным студии, материалы тяжелее современных аналогов."
     ],
     "source": "https://disk.yandex.ru/d/EoEO0sADUJHF4w",
-    "sheet": "sheets/trunk-budget.jpg"
+    "sheet": "sheets/trunk-budget.jpg",
+    "layers": [
+      {
+        "material": "bronze3",
+        "alt": "bronze2",
+        "note": "Bronze 3 — на пол багажника, Bronze 2 — на крышку"
+      }
+    ]
   },
   {
     "title": "Стандартный комплект",
@@ -303,7 +387,17 @@ window.STUDIO_PRICES = [
       "На материалы приходится 70% стоимости. Студия отмечает большой вес комплекта."
     ],
     "source": "https://disk.yandex.ru/d/EoEO0sADUJHF4w",
-    "sheet": "sheets/trunk-standard.jpg"
+    "sheet": "sheets/trunk-standard.jpg",
+    "layers": [
+      {
+        "material": "bronze3",
+        "alt": "bronze2",
+        "note": "Bronze 3 — на пол, Bronze 2 — на крышку"
+      },
+      {
+        "material": "ranger"
+      }
+    ]
   },
   {
     "title": "Премиальный комплект",
@@ -327,7 +421,23 @@ window.STUDIO_PRICES = [
       "На материалы приходится 75% стоимости. Монтаж дополнительных слоёв занимает больше времени. Из-за сильного сцепления материал трудно снять."
     ],
     "source": "https://disk.yandex.ru/d/EoEO0sADUJHF4w",
-    "sheet": "sheets/trunk-premium.jpg"
+    "sheet": "sheets/trunk-premium.jpg",
+    "layers": [
+      {
+        "material": "viper",
+        "alt": "cobra",
+        "note": "Viper и Cobra — в разных частях багажника"
+      },
+      {
+        "material": "raptor",
+        "alt": "blockshot",
+        "note": "Raptor и Blockshot — вторым слоем"
+      },
+      {
+        "material": "softwave",
+        "note": "Soft Wave — на обшивке крышки"
+      }
+    ]
   },
   {
     "title": "Стандартный комплект",
@@ -348,7 +458,15 @@ window.STUDIO_PRICES = [
       "Вес материалов — 6,5 кг. На материалы приходится 35% стоимости."
     ],
     "source": "https://disk.yandex.ru/d/v3VmksmECXvukQ",
-    "sheet": "sheets/roof-standard.jpg"
+    "sheet": "sheets/roof-standard.jpg",
+    "layers": [
+      {
+        "material": "bronze2"
+      },
+      {
+        "material": "volna"
+      }
+    ]
   },
   {
     "title": "Премиальный комплект",
@@ -369,7 +487,15 @@ window.STUDIO_PRICES = [
       "Вес материалов — 5 кг. На материалы приходится 35% стоимости."
     ],
     "source": "https://disk.yandex.ru/d/v3VmksmECXvukQ",
-    "sheet": "sheets/roof-premium.jpg"
+    "sheet": "sheets/roof-premium.jpg",
+    "layers": [
+      {
+        "material": "cobra"
+      },
+      {
+        "material": "softwave"
+      }
+    ]
   },
   {
     "title": "Премиальный комплект",
@@ -391,6 +517,21 @@ window.STUDIO_PRICES = [
       "Вес материалов — 3–6 кг. На материалы приходится 30% стоимости."
     ],
     "source": "https://disk.yandex.ru/d/S1DZmFjsE65PSA",
-    "sheet": "sheets/dashboard.jpg"
+    "sheet": "sheets/dashboard.jpg",
+    "layers": [
+      {
+        "material": "viper"
+      },
+      {
+        "material": "blockshot"
+      },
+      {
+        "material": "softwave",
+        "note": "Soft Wave и Cobra — на обратной стороне пластиковой панели"
+      },
+      {
+        "material": "cobra"
+      }
+    ]
   }
 ];

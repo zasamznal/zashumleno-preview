@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <base href="../">
+  <script src="admin/demo.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#13111c">
+  <title>Кабинет студии — Зашумлено</title>
+  <link rel="icon" type="image/svg+xml" href="v2/brand.svg">
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="admin/admin.css">
+  <link rel="stylesheet" href="admin/catalog-editors.css">
+  <link rel="stylesheet" href="admin/page-editor.css">
+  <link rel="stylesheet" href="admin/redesign.css">
+  <link rel="stylesheet" href="v2/car-shapes.css">
+  <link rel="stylesheet" href="admin/studio.css">
+  <script defer src="admin/shell.js"></script>
+  <script defer src="page-content.js"></script>
+  <script defer src="prices.js"></script>
+  <script defer src="zones.js"></script>
+  <script defer src="works.js"></script>
+  <script defer src="vehicles.js"></script>
+  <script defer src="materials.js"></script>
+  <script defer src="content-upgrade.js"></script>
+  <script defer src="v2/vehicle-pricing.js"></script>
+  <script defer src="v2/car-shapes.js"></script>
+  <script defer src="v2/estimate-engine.js"></script>
+  <script defer src="v2/layers.js"></script>
+  <script defer src="admin/kit.js"></script>
+  <script defer src="admin/catalog-editors.js"></script>
+  <script defer src="admin/site-content.js"></script>
+  <script defer src="admin/vehicles-editor.js"></script>
+  <script defer src="admin/materials-editor.js"></script>
+  <script defer src="admin/palette-editor.js"></script>
+  <script defer src="admin/media-library.js"></script>
+</head>
+<body>
+  <a class="a-skip" href="#screen-title">К содержимому</a>
+  <header class="a-header">
+    <a href="" class="a-brand" aria-label="Зашумлено — на сайт"><img class="a-brand-mark" src="v2/brand.svg" width="46" height="36" alt=""><strong>ЗАШУМЛЕНО</strong></a>
+    <span class="a-header-title">Кабинет студии</span>
+    <a class="a-top-link" href="" target="_blank" rel="noopener">Открыть сайт</a>
+    <button class="a-logout" id="logout" type="button" hidden>Выйти</button>
+  </header>
+  <main class="a-entry" id="entry">
+    <div class="a-entry-cover" aria-hidden="true"></div>
+    <section class="a-login-card" aria-labelledby="login-title">
+      <p class="a-eyebrow">Кабинет владельца</p><h1 id="login-title">Вход в студию<span>.</span></h1>
+      <p class="a-intro">Здесь вы меняете цены, фото и видео, тексты и цвета сайта — и публикуете обновления.</p>
+      <form id="login-form">
+        <p class="a-demo-note">Это демо-кабинет: введите любой пароль. Правки увидите только вы в этом браузере.</p>
+        <label for="password">Пароль</label>
+        <div class="a-password"><input type="password" id="password" name="password" autocomplete="current-password" required maxlength="512"><button type="button" id="show-password" aria-pressed="false" aria-label="Показать пароль">Показать</button></div>
+        <p class="a-error" id="login-error" role="alert" hidden></p>
+        <button class="a-btn a-action" type="submit">Войти в кабинет</button>
+      </form>
+      <noscript>Для работы кабинета включите JavaScript.</noscript>
+    </section>
+  </main>
+  <div class="a-app" id="app" hidden>
+    <aside class="a-sidebar">
+      <nav id="navigation" aria-label="Разделы кабинета"></nav>
+    </aside>
+    <main class="a-main" id="main">
+      <div class="a-mobile-nav"><label for="section-select">Раздел кабинета</label><select id="section-select"></select></div>
+      <div class="a-panel-head">
+        <div><p class="a-eyebrow" id="screen-group">Главная</p><h1 id="screen-title" tabindex="-1">Кабинет студии</h1><p id="screen-description"></p></div>
+        <a class="a-btn a-quiet a-preview" id="preview" href="?preview=draft" target="_blank" rel="noopener" aria-expanded="false" aria-controls="preview-pane">Предпросмотр</a>
+      </div>
+      <div id="banner" class="a-banner" role="alert" hidden><p></p><button type="button" class="a-inline" id="reload-snapshot" hidden>Загрузить свежую версию</button></div>
+      <section id="editor" class="a-editor" aria-labelledby="screen-title"></section>
+      <div class="a-actions" role="group" aria-label="Сохранение сайта">
+        <p class="a-save-state" id="save-state" role="status"></p>
+        <div class="a-action-buttons"><button class="a-btn a-quiet" id="save" type="button" hidden>Сохранить сейчас</button><button class="a-btn a-action" id="publish" type="button">Опубликовать <span class="a-count" id="publish-count"></span></button></div>
+      </div>
+    </main>
+  </div>
+  <aside class="a-preview-pane" id="preview-pane" hidden aria-label="Предпросмотр черновика">
+    <div class="a-preview-bar"><strong>Предпросмотр черновика</strong><span>Клиенты видят сайт без этих правок, пока вы не опубликуете их.</span>
+      <button type="button" class="a-btn a-quiet" id="preview-reload">Обновить</button><button type="button" class="a-btn a-quiet" id="preview-close">Закрыть</button></div>
+    <iframe id="preview-frame" title="Сайт с изменениями черновика"></iframe>
+  </aside>
+  <div id="toast" class="a-toast" role="status" hidden></div>
+  <dialog id="publish-dialog" class="a-dialog">
+    <form method="dialog"><p class="a-eyebrow">Публикация</p><h2>Обновить сайт?</h2><p>Клиенты увидят изменения в этих разделах:</p>
+    <ul class="a-publish-list" id="publish-list"></ul>
+    <div class="a-dialog-actions"><button class="a-btn a-quiet" type="submit" value="cancel" autofocus>Вернуться</button><button class="a-btn a-action" type="submit" value="publish">Опубликовать сайт</button></div></form>
+  </dialog>
+</body>
+</html>

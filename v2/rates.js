@@ -166,6 +166,140 @@
     return details;
   }
 
+  // «Разбивка» of the zone prices by body type for each brand group, computed from the cabinet coefficients.
+  const shortTitles = { бюджетный: 'Бюджет', стандартный: 'Стандарт', премиальный: 'Премиум', оптимальный: 'Оптимум', максимальный: 'Максимум', базовый: 'База' };
+  function shortTitle(title) {
+    const words = String(title || '').replace(/\s+комплект$/i, '').trim();
+    return shortTitles[words.toLowerCase()] || words;
+  }
+
+  function bodyTable(group) {
+    const pricing = window.StudioVehicles;
+    const vehicles = window.STUDIO_VEHICLES;
+    if (!pricing || !vehicles || !window.StudioEstimate || !group.zone) return null;
+    const config = pricing.normalize(vehicles);
+    if (!config.bodies.length) return null;
+    const engine = window.StudioEstimate.create(window.STUDIO_PRICES || [], window.STUDIO_ZONES || []);
+    const zone = engine.zones.find(item => item.id === group.zone.id);
+    const choices = (zone?.groups || []).flatMap(item => item.choices)
+      .filter(choice => choice.scalable && choice.min != null && !choice.required);
+    if (!choices.length) return null;
+    const classes = config.classes.length ? config.classes : [{ id: 'all', title: 'Все марки', percent: 0, brands: [] }];
+    const format = new Intl.NumberFormat('ru-RU');
+    const box = el('section', 'rates-bodies');
+    const head = el('div', 'rates-bodies-head');
+    const title = el('h4', '', 'Цены по типу кузова');
+    title.id = 'rates-bodies-title-' + group.id;
+    box.setAttribute('aria-labelledby', title.id);
+    const switcher = el('div', 'rates-classes');
+    switcher.setAttribute('role', 'group');
+    switcher.setAttribute('aria-label', 'Класс марки');
+    head.append(title, switcher);
+    const scroller = el('div', 'rates-bodies-scroll');
+    scroller.tabIndex = 0;
+    scroller.setAttribute('aria-label', 'Таблица цен по типу кузова, прокручивается');
+    const table = el('table', 'rates-bodies-table');
+    const headRow = table.createTHead().insertRow();
+    const corner = el('th', '', 'Комплект');
+    corner.scope = 'col';
+    headRow.append(corner);
+    const columns = config.bodies.map(body => {
+      const cell = el('th');
+      cell.scope = 'col';
+      cell.dataset.body = body.id;
+      if (window.StudioCarShapes) cell.append(window.StudioCarShapes.svg(body.shape, 'car-shape rates-car'));
+      cell.append(el('span', '', body.title));
+      headRow.append(cell);
+      return cell;
+    });
+    const body = table.createTBody();
+    const cells = choices.map(choice => {
+      const row = body.insertRow();
+      const name = el('th', '', choice.title);
+      name.scope = 'row';
+      if (choice.unit) name.append(el('small', '', choice.unit));
+      row.append(name);
+      return config.bodies.map(item => {
+        const cell = row.insertCell();
+        cell.dataset.body = item.id;
+        return { cell, choice, body: item };
+      });
+    });
+    // На узком экране та же информация показывается «по кузовам»: строка — кузов, столбцы — комплекты.
+    const compact = el('table', 'rates-bodies-compact');
+    const compactCaption = el('caption', 'rates-sr', 'Цены по типу кузова');
+    compact.append(compactCaption);
+    const compactHead = compact.createTHead().insertRow();
+    const compactCorner = el('th', '', 'Цены от, ₽');
+    compactCorner.scope = 'col';
+    compactHead.append(compactCorner);
+    for (const choice of choices) {
+      const cell = el('th', '', shortTitle(choice.title));
+      cell.scope = 'col';
+      cell.title = choice.title;
+      compactHead.append(cell);
+    }
+    const compactBody = compact.createTBody();
+    const compactRows = [];
+    const compactCells = config.bodies.map(item => {
+      const row = compactBody.insertRow();
+      row.dataset.body = item.id;
+      compactRows.push(row);
+      const name = el('th');
+      name.scope = 'row';
+      const label = el('span', 'rates-body-name');
+      if (window.StudioCarShapes) label.append(window.StudioCarShapes.svg(item.shape, 'car-shape rates-car'));
+      label.append(el('span', '', item.title));
+      name.append(label);
+      row.append(name);
+      return choices.map(choice => ({ cell: row.insertCell(), choice, body: item, compact: true }));
+    });
+    const note = el('p', 'rates-bodies-note');
+    scroller.append(table);
+    box.append(head, scroller, compact, note);
+    let current = classes[0];
+    let highlighted = '';
+    function paint() {
+      for (const row of [...cells, ...compactCells]) {
+        for (const { cell, choice, body: item, compact: short } of row) {
+          const factor = (1 + pricing.bodyPercent(config, item.id, choice.zoneId) / 100) * (1 + current.percent / 100);
+          const min = pricing.adjust(choice.min, factor, config.rounding);
+          const max = choice.max == null ? null : pricing.adjust(choice.max, factor, config.rounding);
+          cell.textContent = short ? format.format(min)
+            : (max == null ? 'от ' : '') + format.format(min) + (max != null && max !== min ? '–' + format.format(max) : '');
+        }
+      }
+      for (const button of switcher.children) button.setAttribute('aria-pressed', String(button.dataset.group === current.id));
+      const brands = current.brands.slice(0, 6).join(', ') + (current.brands.length > 6 ? ' и другие' : '');
+      note.textContent = 'Цены в рублях' + (brands ? ' для марок: ' + brands : '') + '. ' + (config.basis || '');
+    }
+    function mark(bodyId) {
+      highlighted = bodyId || '';
+      for (const cell of [...columns, ...cells.flat().map(item => item.cell), ...compactRows]) {
+        cell.classList.toggle('is-current', Boolean(highlighted) && cell.dataset.body === highlighted);
+      }
+    }
+    for (const group of classes) {
+      const button = el('button', 'rates-class', group.title);
+      button.type = 'button';
+      button.dataset.group = group.id;
+      button.addEventListener('click', () => { current = group; paint(); });
+      switcher.append(button);
+    }
+    function follow(detail) {
+      const vehicle = detail?.vehicle;
+      const brand = vehicle?.brand ? pricing.findBrand(config, vehicle.brand) : null;
+      if (brand) current = classes.find(item => item.id === brand.group.id) || current;
+      mark(vehicle?.body);
+      paint();
+    }
+    window.addEventListener('studio:vehicle', event => { if (box.isConnected) follow(event.detail); });
+    const saved = window.StudioCarPicker?.stored?.();
+    follow({ vehicle: saved });
+    switcher.hidden = classes.length < 2;
+    return box;
+  }
+
   function groupPanel(group, seed, canRequest) {
     const panel = el('div', 'rates-current');
     const zone = group.zone;
@@ -193,6 +327,8 @@
       if (canRequest) list.append(ask({ service: group.name, price: '' }));
     }
     panel.append(list);
+    const bodies = bodyTable(group);
+    if (bodies) panel.append(bodies);
     const originalZone = seed?.zones?.find(item => item.id === group.id);
     const initialRates = seed?.prices?.filter(rate => rate.group === group.name);
     const unchanged = !seed || sameRates(group.rates, initialRates);

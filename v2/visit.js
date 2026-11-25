@@ -63,19 +63,27 @@
     fileLink.hidden = true;
     dialog.append(top, video, fileLink);
 
-    function open() {
+    let origin = button;
+    function open(time, from) {
+      origin = from || button;
       if (!video.hasAttribute('src')) video.src = videoUrl;
       if (typeof dialog.showModal !== 'function') {
         fileLink.click();
         return;
       }
-      dialog.showModal();
+      if (!dialog.open) dialog.showModal();
       document.documentElement.classList.add('visit-dialog-open');
+      const start = Number(time);
+      if (Number.isFinite(start) && start > 0) {
+        // The arrival steps open the video at their own moment.
+        const seek = () => { try { video.currentTime = Math.min(start, (video.duration || start + 1) - .5); } catch { /* Seeking is optional. */ } };
+        if (video.readyState >= 1) seek(); else video.addEventListener('loadedmetadata', seek, { once: true });
+      }
       video.play().catch(() => {
         if (video.error) fileLink.hidden = false;
       });
     }
-    button.addEventListener('click', open);
+    button.addEventListener('click', () => open(0, button));
     close.addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', event => {
       if (event.target !== dialog) return;
@@ -86,7 +94,7 @@
     dialog.addEventListener('close', () => {
       video.pause();
       document.documentElement.classList.remove('visit-dialog-open');
-      if (button.isConnected) button.focus({ preventScroll: true });
+      if (origin?.isConnected) origin.focus({ preventScroll: true });
     });
     video.addEventListener('error', () => { fileLink.hidden = false; });
     video.addEventListener('loadedmetadata', () => {
@@ -95,7 +103,7 @@
       const seconds = Math.round(video.duration);
       time.textContent = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
     });
-    return { button, dialog };
+    return { button, dialog, play: open };
   }
 
   async function mount() {
@@ -125,6 +133,11 @@
       const hint = element('span', '', contacts.entrance);
       hint.dataset.entrance = '';
       address.append(hint);
+    }
+    if (contacts.metro) {
+      const metro = element('span', 'visit-metro', contacts.metro);
+      metro.dataset.metro = '';
+      address.append(metro);
     }
     if (address.children.length) info.append(address);
 
@@ -160,17 +173,20 @@
     if (actions.childElementCount) info.append(actions);
     host.replaceChildren(info);
 
-    const routeMap = window.StudioArrivalMap?.create(contacts);
+    const videoUrl = reader.mediaUrl(contacts.routeVideo);
+    const film = videoUrl ? filmCard(videoUrl, reader.mediaUrl(contacts.routePoster), contacts.routeCaption || 'Видео проезда') : null;
+    const routeMap = window.StudioArrivalMap?.create(contacts, {
+      steps: reader.current.route,
+      video: film ? time => film.play(time, document.activeElement) : null
+    });
     const media = routeMap ? element('div', 'visit-route') : host;
     if (routeMap) {
       media.append(routeMap);
       host.append(media);
     }
-    const videoUrl = reader.mediaUrl(contacts.routeVideo);
-    if (videoUrl) {
-      const { button, dialog } = filmCard(videoUrl, reader.mediaUrl(contacts.routePoster), contacts.routeCaption || 'Видео проезда');
-      media.append(button);
-      host.append(dialog);
+    if (film) {
+      media.append(film.button);
+      host.append(film.dialog);
     }
   }
 

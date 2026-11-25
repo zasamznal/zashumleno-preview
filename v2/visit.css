@@ -69,6 +69,8 @@
 .visit-address span,
 .visit-details { font-size: 1rem; line-height: 1.45; }
 .visit-address span { color: var(--muted); }
+.visit-address .visit-metro { display: inline-flex; align-items: center; gap: .45rem; color: var(--ink); }
+.visit-metro::before { content: 'М'; display: inline-grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--accent-dark); color: #fff; font-size: .7rem; font-weight: 800; }
 .visit-details { margin: 0; }
 
 .visit-details > div {
@@ -81,7 +83,7 @@
 
 .visit-details dt { color: var(--muted); }
 .visit-details dd { margin: 0; color: inherit; overflow-wrap: anywhere; }
-.visit-phone, .visit-chat { color: inherit; text-decoration-color: #8b9a93; text-underline-offset: .2em; }
+.visit-phone, .visit-chat { color: inherit; text-decoration-color: color-mix(in srgb, var(--accent-dark) 45%, var(--paper)); text-underline-offset: .2em; }
 .visit-phone { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
 .visit-details > div:has(.visit-phone) { align-items: center; padding-block: 0; }
 
@@ -124,7 +126,7 @@
   padding: 0;
   border: 0;
   border-radius: .25rem;
-  background: #27312f;
+  background: var(--night-3);
   color: white;
   font: inherit;
   text-align: left;
@@ -196,7 +198,7 @@
   overflow: auto;
   background: var(--dark);
   color: white;
-  border: 1px solid #485751;
+  border: 1px solid var(--line-dark);
   border-radius: .3rem;
 }
 
@@ -230,7 +232,7 @@
   width: 100%;
   height: min(76vh, 52rem);
   height: min(76dvh, 52rem);
-  background: #090a0a;
+  background: var(--night-deep);
   object-fit: contain;
 }
 
