@@ -1,0 +1,52 @@
+.acoustics-demo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--accent, #70e3dd);
+}
+.acoustics-demo > svg { position: absolute; display: block; max-width: none; overflow: visible; }
+.cover:has(.acoustics-demo) .cover-inner { position: relative; z-index: 1; }
+.acoustics-road-line { fill: none; stroke: url(#zs-road-light); stroke-linecap: round; stroke-linejoin: round; }
+.acoustics-front { fill: none; stroke: #9ff5e8; stroke-width: 2.8; stroke-linecap: round; }
+.acoustics-seam { fill: none; stroke: #d4fff4; stroke-width: 1.35; }
+.acoustics-caption {
+  position: absolute;
+  right: max(var(--gutter, 5vw), calc((100% - var(--measure, 91rem)) / 2));
+  bottom: clamp(.9rem, 2.1vw, 2.1rem);
+  z-index: 2;
+  display: inline-flex;
+  gap: .75rem;
+  align-items: center;
+  color: #f2f8f6;
+  background: linear-gradient(115deg, rgba(7,22,20,.95), rgba(10,26,24,.87));
+  border: 1px solid #5b7973;
+  border-radius: .45rem;
+  padding: .36rem .85rem .36rem .35rem;
+  text-shadow: none;
+}
+.acoustics-caption:not(:has(button:not([hidden]))) { padding-left: .85rem; }
+.acoustics-caption button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid #7bb2a8;
+  border-radius: 50%;
+  color: var(--accent, #70e3dd);
+  background: #152e29;
+}
+.acoustics-caption button:hover { background: #224238; }
+.acoustics-caption button svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.acoustics-caption > span { display: grid; gap: .1rem; text-align: left; }
+.acoustics-topic { color: #b7d0c9; font: 600 .72rem/1.2 Roboto, Arial, sans-serif; }
+.acoustics-phase { min-width: 10.1em; font: 660 .9rem/1.18 Roboto, Arial, sans-serif; letter-spacing: -.012em; }
+@media (max-width: 680px) {
+  .acoustics-caption { bottom: .6rem; left: var(--gutter, 5vw); right: auto; gap: .5rem; padding: .2rem .65rem .2rem .2rem; }
+  .acoustics-topic { font-size: .69rem; }
+  .acoustics-phase { font-size: .83rem; }
+}
+@media print { .acoustics-demo,.acoustics-caption { display: none; } }

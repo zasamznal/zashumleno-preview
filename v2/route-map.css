@@ -1,0 +1,73 @@
+.visit-route { min-width: 0; }
+.route-card {
+  overflow: hidden;
+  min-width: 0;
+  background: #182b24;
+  color: #f3f7ef;
+  border: 1px solid #435249;
+  border-radius: .42rem;
+}
+.route-header { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .38rem 1.08rem; }
+.route-header h3 { font-size: clamp(1.1rem, 1.55vw, 1.45rem); font-weight: 680; letter-spacing: -.035em; }
+.route-toggle {
+  display: inline-flex; align-items: center; gap: .48rem; min-height: 44px; padding: .35rem 0 .35rem .5rem;
+  background: none; border: 0; color: #bde9d8; font-size: .88rem; font-weight: 600;
+}
+.route-toggle::before { display: block; width: .62rem; height: .7rem; content: ''; }
+.route-toggle[data-state="pause"]::before { border-inline: .18rem solid currentColor; }
+.route-toggle[data-state="play"]::before { background: currentColor; clip-path: polygon(8% 0,100% 50%,8% 100%); }
+.route-toggle[data-state="replay"]::before { width: .84rem; height: .84rem; content: '↻'; line-height: .75; font-size: 1.12rem; }
+.route-drawing { display: block; width: 100%; height: auto; background: #dce4d8; font-family: Roboto,Arial,sans-serif; }
+.route-place { font-size: 24px; font-weight: 730; letter-spacing: -.65px; fill: #213c2e; }
+.route-address,.route-annotation { fill: #465a4a; font-size: 15px; font-weight: 590; }
+.route-road-label rect { fill: #edf3e8; stroke: #a6b7a5; }
+.route-road-label text { font-size: 16px; font-weight: 650; fill: #344e3d; }
+.route-level-label rect { fill: #142720; stroke: #698375; }
+.route-level-label text { fill: #cde9d9; }
+.route-garage-label { fill: #deffe9; font-size: 16px; font-weight: 680; }
+.route-underground-label { fill: #d4e4d6; font-size: 15px; font-weight: 580; }
+.route-directions { border-top: 1px solid #45584d; }
+.route-stages { display: flex; gap: .5rem; align-items: stretch; margin: 0 .95rem; }
+.route-stages button {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: .48rem;
+  min-width: 0; min-height: 47px; padding: .45rem .15rem; background: transparent;
+  border: 0; border-bottom: 2px solid #43574b; color: #c1cdc3; font-size: .93rem; font-weight: 600;
+}
+.route-stages button span {
+  display: inline-grid; place-items: center; flex: none; width: 1.2rem; height: 1.2rem;
+  border: 1px solid #6f8477; border-radius: 50%; font-size: .69rem; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.route-stages button[aria-pressed=true] { color: #9be9cf; border-color: #84dfc1; }
+.route-stages button[aria-pressed=true] span { background: #a4ecd5; color: #193c2f; border-color: #a4ecd5; }
+.route-instruction { padding: .75rem 1.1rem .9rem; }
+.route-instruction p { min-height: 2.65em; color: #f3f6f0; font-size: .99rem; line-height: 1.4; }
+.route-phone { color: #a6ebcf; text-underline-offset: .2em; }
+.route-card :is(a,button):focus-visible { outline: 3px solid #a8f5ce; outline-offset: -3px; }
+.route-card .route-phone:focus-visible { outline-offset: 2px; }
+.visit-route .visit-film {
+  display: flex; align-items: center; aspect-ratio: auto; min-height: 3.5rem; margin-top: .52rem; padding: .25rem .7rem;
+  border: 1px solid var(--rule); background: transparent; color: var(--ink); isolation: auto; border-radius: .3rem;
+}
+.visit-route .visit-film::before { content: none; }
+.visit-route .visit-still { position: static; z-index: auto; width: 3.5rem; height: 2.55rem; flex: none; object-fit: cover; border-radius: .14rem; }
+.visit-route .visit-film-caption { gap: .55rem; padding: 0 0 0 .6rem; }
+.visit-route .visit-play { width: 1.65rem; background: none; color: var(--accent-dark); border-color: #859d91; }
+.visit-route .visit-play::after { border-left-width: .4rem; border-block-width: .25rem; }
+.visit-route .visit-film-title { font-size: .96rem; font-weight: 620; }
+.visit-route .visit-time { color: var(--muted); font-size: .9rem; }
+@media (hover: hover) {
+  .route-toggle:hover,.route-stages button:hover { color: #edfff4; }
+  .visit-route .visit-film:hover { background: #e5ebe2; border-color: #a9b9aa; }
+  .visit-route .visit-film:hover .visit-still { transform: none; }
+}
+@media (max-width: 33rem) {
+  .route-header { padding-inline: .8rem; }
+  .route-road-label text { font-size: 17px; }
+  .route-address,.route-annotation,.route-underground-label { font-size: 17px; }
+  .route-garage-label { font-size: 18px; }
+  .route-stages { gap: .35rem; margin-inline: .62rem; }
+  .route-stages button { font-size: .84rem; gap: .28rem; }
+  .route-instruction { padding: .7rem .85rem .8rem; }
+  .route-instruction p { min-height: 4.2em; font-size: .91rem; }
+}

@@ -1,0 +1,83 @@
+/* A single entrance for the cover, followed by shorter, local movements. */
+#top [data-hero-title] > span { display: block; }
+
+#reading-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 48;
+  height: 2px;
+  transform: scaleX(var(--reading-fraction, 0));
+  transform-origin: left center;
+  pointer-events: none;
+  background: var(--accent, #70e3dd);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #top.motion-cover-coming [data-hero-image] {
+    transform-origin: 74% 54%;
+    animation: zs-cover-arrives 1250ms cubic-bezier(.18,.77,.22,1) both;
+  }
+
+  #top.motion-cover-coming [data-hero-title] > span {
+    animation: zs-line-arrives 730ms cubic-bezier(.15,.78,.25,1) both;
+  }
+
+  #top.motion-cover-coming [data-hero-title] > span:nth-of-type(2) {
+    animation-delay: 85ms;
+  }
+
+  #top.motion-cover-coming [data-hero-desc] {
+    animation: zs-lede-arrives 700ms 110ms cubic-bezier(.2,.7,.25,1) both;
+  }
+
+  .section-intro.motion-intro-entering {
+    animation: zs-intro-arrives 540ms cubic-bezier(.19,.77,.25,1) both;
+  }
+
+  #works [data-cases].motion-gallery-entering {
+    animation: zs-gallery-arrives 570ms cubic-bezier(.16,.74,.22,1) both;
+  }
+
+  #services img.motion-picture-entering {
+    animation: zs-material-arrives 760ms var(--motion-beat, 0ms) cubic-bezier(.17,.71,.28,1) both;
+  }
+
+  @keyframes zs-cover-arrives {
+    from { scale: 1.055; }
+    to { scale: 1; }
+  }
+
+  @keyframes zs-line-arrives {
+    from { translate: 0 .27em; opacity: .71; }
+    to { translate: 0 0; opacity: 1; }
+  }
+
+  @keyframes zs-lede-arrives {
+    from { translate: 0 .42em; opacity: .8; }
+    to { translate: 0 0; opacity: 1; }
+  }
+
+  @keyframes zs-intro-arrives {
+    from { translate: 0 .7rem; opacity: .78; }
+    to { translate: 0 0; opacity: 1; }
+  }
+
+  @keyframes zs-gallery-arrives {
+    from { translate: 0 .85rem; }
+    to { translate: 0 0; }
+  }
+
+  @keyframes zs-material-arrives {
+    from { clip-path: inset(0 0 8% 0); scale: 1.025; }
+    to { clip-path: inset(0); scale: 1; }
+  }
+}
+
+@media (max-width: 47rem) and (prefers-reduced-motion: no-preference) {
+  #top.motion-cover-coming [data-hero-image] { animation-duration: 850ms; }
+  #top.motion-cover-coming [data-hero-title] > span { animation-duration: 530ms; }
+}
+
+@media (prefers-reduced-motion: reduce), print {
+  #reading-progress { display: none; }
+}
