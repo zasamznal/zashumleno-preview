@@ -48,7 +48,7 @@
       cover: 'trunk'
     },
     arch: {
-      view: 'rotateX(8deg) rotateY(-30deg)', badge: [16, 72], fan: 'side',
+      view: 'rotateX(8deg) rotateY(-30deg)', badge: [16, 72], fan: 'side', spread: 60, box: [0, 58],
       outline: 'M44 268A156 156 0 0 1 356 268L312 268A112 112 0 0 0 88 268Z',
       holes: '',
       ribs: 'M66 268A134 134 0 0 1 334 268',
@@ -394,14 +394,21 @@
       scene.style.setProperty('--ly-billboard', invert(view));
       scene.dataset.shape = current.zone.structure?.shape || 'door';
       scene.dataset.fan = fan;
-      // The fan always fits the stage: fewer sheets spread wider.
+      // The fan always fits the stage: fewer sheets spread wider, and a sideways fan is centred.
       const steps = Math.max(1, layers.length - 1);
+      scene.style.left = scene.style.right = '';
       if (fan === 'up') {
         scene.style.setProperty('--dx', '0%');
         scene.style.setProperty('--dz', (compact.matches ? Math.min(46, 180 / steps) : Math.min(60, 270 / steps)).toFixed(1) + 'px');
       } else {
-        scene.style.setProperty('--dx', Math.min(24, 104 / steps).toFixed(1) + '%');
+        const dx = Math.min(24, (current.shape.spread || 104) / steps);
+        const [, width] = current.shape.box || [3, 46];
+        const extent = width * (1 + steps * dx / 100);
+        const left = Math.max(0, Math.min(100 - extent, 49 - extent / 2));
+        scene.style.setProperty('--dx', dx.toFixed(1) + '%');
         scene.style.setProperty('--dz', '22px');
+        scene.style.left = left.toFixed(1) + '%';
+        scene.style.right = (100 - left - width).toFixed(1) + '%';
       }
       scene.replaceChildren(...layers.map((layer, index) => {
         const node = el('div', 'ly-layer');

@@ -73,7 +73,7 @@ a { color: inherit; text-underline-offset: .23em; }
 .cover-kicker,.eyebrow { font-weight: 720; font-size: .8125rem; line-height: 1.4; text-transform: uppercase; letter-spacing: .1em; }
 .cover-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin-bottom: clamp(1.15rem,1.8vw,2rem); color: var(--accent); }
 .racing-stripes { width: 1.3rem; height: .72rem; background: repeating-linear-gradient(112deg,transparent 0 2px,currentColor 2px 5px,transparent 5px 7px); }
-.cover h1 { font-weight: 840; font-stretch: 84%; font-size: clamp(4.6rem,7.65vw,8.75rem); letter-spacing: -.071em; line-height: .89; }
+.cover h1 { font-weight: 840; font-stretch: 84%; font-size: clamp(4.6rem,7.65vw,7.85rem); letter-spacing: -.071em; line-height: .89; }
 .cover h1 .hero-line { display: block; max-width: 100%; }
 .cover h1 br { display: none; }
 .cover h1 .hero-line:last-child { color: var(--accent); font-weight: 640; font-style: italic; letter-spacing: -.066em; }

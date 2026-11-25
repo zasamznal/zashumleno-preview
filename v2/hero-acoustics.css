@@ -8,8 +8,10 @@
 }
 .acoustics-demo > svg { position: absolute; display: block; max-width: none; overflow: visible; }
 .cover:has(.acoustics-demo) .cover-inner { position: relative; z-index: 1; }
-.acoustics-ring { fill: none; stroke: color-mix(in srgb, var(--spark) 82%, #fff); stroke-linejoin: round; }
+.acoustics-ring { fill: none; stroke: color-mix(in srgb, var(--spark) 82%, #fff); stroke-linecap: round; }
 .acoustics-ring-calm { stroke: color-mix(in srgb, var(--accent) 85%, #fff); }
+.acoustics-ring-far { opacity: .42; }
+.acoustics-ring-halo { opacity: .16; }
 .acoustics-halo { fill: none; stroke: color-mix(in srgb, var(--night) 55%, transparent); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 1 1; }
 .acoustics-layer { fill: none; stroke: color-mix(in srgb, var(--accent) 60%, #fff); stroke-width: 3.2; stroke-linecap: round; stroke-dasharray: 1 1; }
 .acoustics-sweep { fill: none; stroke: #fff; stroke-width: 4.4; stroke-linecap: round; stroke-dasharray: .08 1.2; }
@@ -17,7 +19,8 @@
 [data-head] { fill: #fff; }
 .acoustics-caption {
   position: absolute;
-  right: max(var(--gutter, 5vw), calc((100% - var(--measure, 91rem)) / 2));
+  /* Under the rear bumper: the rings around the wheel stay in view. */
+  left: 37%;
   bottom: clamp(.9rem, 2.1vw, 2.1rem);
   z-index: 2;
   display: inline-flex;

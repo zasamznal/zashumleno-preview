@@ -466,7 +466,8 @@
     }
     const actions = node('div', 'a-status-actions');
     const open = node('a', 'a-btn a-quiet', 'Открыть сайт');
-    open.href = '/'; open.target = '_blank'; open.rel = 'noopener';
+    // The header link knows where the site is (the demo copy lives in a subfolder).
+    open.href = document.querySelector('.a-top-link')?.href || '/'; open.target = '_blank'; open.rel = 'noopener';
     actions.append(open);
     if (unpublished && published) {
       const reset = node('button', 'a-btn a-quiet', 'Вернуть как на сайте');
@@ -497,6 +498,25 @@
     host.replaceChildren(dashboard);
   }
 
+  // Long texts are easier to edit when the box grows with them instead of scrolling inside a small field.
+  function fitTextarea(area) {
+    if (!(area instanceof HTMLTextAreaElement) || !area.isConnected || area.closest('[hidden]')) return;
+    area.style.height = 'auto';
+    const border = area.offsetHeight - area.clientHeight;
+    area.style.height = Math.min(area.scrollHeight + border, Math.max(320, innerHeight * .6)) + 'px';
+  }
+  const textareaWatch = new MutationObserver(records => {
+    for (const record of records) for (const added of record.addedNodes) {
+      if (added.nodeType !== 1) continue;
+      if (added.matches('textarea')) requestAnimationFrame(() => fitTextarea(added));
+      for (const area of added.querySelectorAll?.('textarea') || []) requestAnimationFrame(() => fitTextarea(area));
+    }
+  });
+  document.addEventListener('input', event => { if (event.target instanceof HTMLTextAreaElement) fitTextarea(event.target); });
+  document.addEventListener('toggle', event => {
+    if (event.target instanceof HTMLDetailsElement && event.target.open) event.target.querySelectorAll('textarea').forEach(fitTextarea);
+  }, true);
+
   function navigate(id, push = true, focus = true) {
     if (!content || busy || uploads) { byId('section-select').value = active; return; }
     const next = sections.has(id) ? id : 'overview';
@@ -522,6 +542,7 @@
   }
 
   async function boot() {
+    textareaWatch.observe(byId('editor'), { childList: true, subtree: true });
     buildNav();
     const loginButton = byId('login-form').querySelector('button[type=submit]');
     loginButton.disabled = true;

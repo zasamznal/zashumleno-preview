@@ -62,15 +62,22 @@
   const sweep = svg.querySelector('[data-sweep]');
   const ns = svg.namespaceURI;
   const floor = svg.querySelector('[data-floor]');
+  // A ring on the floor: the near half is bright with a soft halo, the far half is fainter and partly hidden by the tyre.
   function ring(className) {
-    const path = document.createElementNS(ns, 'path');
-    path.setAttribute('class', className);
-    floor.append(path);
-    return path;
+    const group = document.createElementNS(ns, 'g');
+    group.setAttribute('class', className);
+    const parts = ['far', 'halo', 'near'].map(name => {
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('class', 'acoustics-ring-' + name);
+      group.append(path);
+      return path;
+    });
+    floor.append(group);
+    return { group, far: parts[0], halo: parts[1], near: parts[2] };
   }
-  // Road noise spreads over the floor from the tyre; once the arch is lined the rings are weak, smooth and short.
-  const loudRings = [.1, .5, .9, 1.3, 1.7].map(start => ({ start, life: 1.5, reach: 380, amp: 1, width: 2.8, wobble: .022, path: ring('acoustics-ring') }));
-  const calmRings = [3.35, 3.95, 4.55].map((start, i) => ({ start, life: 1.6, reach: [250, 205, 165][i], amp: [.75, .5, .3][i], width: 2.4, wobble: 0, path: ring('acoustics-ring acoustics-ring-calm') }));
+  // Road noise spreads over the floor from the tyre; once the arch is lined the rings are weak, slow and short.
+  const loudRings = [.1, .5, .9, 1.3, 1.7].map(start => ({ start, life: 1.5, reach: 380, amp: 1, width: 2.8, path: ring('acoustics-ring') }));
+  const calmRings = [3.35, 3.95, 4.55].map((start, i) => ({ start, life: 1.7, reach: [250, 205, 165][i], amp: [.75, .5, .3][i], width: 2.2, path: ring('acoustics-ring acoustics-ring-calm') }));
   const duration = 6200;
   let elapsed = 0;
   let paused = false;
@@ -84,17 +91,20 @@
 
   function ripple(item, t) {
     const p = (t - item.start) / item.life;
-    if (p <= 0 || p >= 1) { item.path.setAttribute('opacity', '0'); return; }
+    const { group, far, halo, near } = item.path;
+    if (p <= 0 || p >= 1) { group.setAttribute('opacity', '0'); return; }
     const rx = 34 + (item.reach - 34) * (1 - (1 - p) ** 1.8);
-    const points = [];
-    for (let n = 0; n <= 72; n++) {
-      const angle = n / 72 * Math.PI * 2;
-      const r = rx * (1 + item.wobble * Math.sin(angle * 13 + t * 16 + item.start * 5));
-      points.push((n ? 'L' : 'M') + (contact.x + r * Math.cos(angle)).toFixed(1) + ' ' + (contact.y + r * .24 * Math.sin(angle)).toFixed(1));
-    }
-    item.path.setAttribute('d', points.join('') + 'Z');
-    item.path.setAttribute('opacity', (item.amp * ease(p / .1) * (1 - p) ** 1.25).toFixed(3));
-    item.path.setAttribute('stroke-width', (item.width * (1 - .45 * p)).toFixed(2));
+    const ry = rx * .24;
+    const left = (contact.x - rx).toFixed(1), right = (contact.x + rx).toFixed(1), y = contact.y.toFixed(1);
+    const arc = sweep => `M${left} ${y}A${rx.toFixed(1)} ${ry.toFixed(1)} 0 0 ${sweep} ${right} ${y}`;
+    far.setAttribute('d', arc(1));
+    near.setAttribute('d', arc(0));
+    halo.setAttribute('d', arc(0));
+    const width = item.width * (1 - .45 * p);
+    near.setAttribute('stroke-width', width.toFixed(2));
+    far.setAttribute('stroke-width', (width * .6).toFixed(2));
+    halo.setAttribute('stroke-width', (width * 4).toFixed(2));
+    group.setAttribute('opacity', (item.amp * ease(p / .1) * (1 - p) ** 1.25).toFixed(3));
   }
 
   function draw(time) {

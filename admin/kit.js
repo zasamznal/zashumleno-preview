@@ -161,12 +161,17 @@
     return window.StudioPage?.mediaUrl(value) || '';
   }
 
+  // Address of the site's home: files such as «sheets/…» are relative to it (the demo copy lives in a subfolder).
+  function siteRoot() {
+    return new URL(document.querySelector('.a-top-link')?.getAttribute('href') ?? '/', document.baseURI);
+  }
+
   function previewOf(url, kind) {
     if (!url) {
       const empty = el('span', 'k-media-empty', kind === 'video' ? 'Видео не выбрано' : 'Нет файла');
       return empty;
     }
-    const absolute = new URL(url, document.baseURI).href;
+    const absolute = new URL(url, siteRoot()).href;
     if (kind === 'video') {
       const video = el('video');
       video.src = absolute;
@@ -177,8 +182,19 @@
       return video;
     }
     if (kind === 'file') {
-      const link = el('a', 'k-file-link', decodeURIComponent(url.split('/').pop() || 'файл'));
+      const name = decodeURIComponent(url.split(/[?#]/)[0].split('/').pop() || 'файл');
+      const link = el('a', 'k-file-link');
       link.href = absolute; link.target = '_blank'; link.rel = 'noopener';
+      link.title = 'Открыть: ' + name;
+      // A price sheet saved as a picture is shown as a thumbnail; PDF and ZIP keep their name.
+      if (/\.(?:jpe?g|png|webp)$/i.test(name)) {
+        const thumb = el('img');
+        thumb.src = absolute;
+        thumb.alt = '';
+        thumb.loading = 'lazy';
+        link.classList.add('k-file-thumb');
+        link.append(thumb);
+      } else link.textContent = name;
       return link;
     }
     const image = el('img');
@@ -289,5 +305,5 @@
     } catch { return 21; }
   }
 
-  window.StudioKit = { el, button, card, wrap, text, number, select, color, check, media, mediaUrl, previewOf, move, uid, contrast };
+  window.StudioKit = { el, button, card, wrap, text, number, select, color, check, media, mediaUrl, previewOf, siteRoot, move, uid, contrast };
 })();

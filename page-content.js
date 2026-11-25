@@ -363,11 +363,15 @@
         if (customLogo) img.src = logo; else img.removeAttribute('src');
       }, mark);
     });
-    const icon = doc.querySelector('link[rel="icon"]');
-    if (icon) {
-      if (!icon.dataset.originalIcon) icon.dataset.originalIcon = icon.getAttribute('href') || '';
-      icon.setAttribute('href', logo || icon.dataset.originalIcon);
-      if (logo) icon.removeAttribute('type');
+    // Tab icons follow a logo uploaded in the cabinet; the studio mark and favicon.ico stay otherwise.
+    for (const icon of doc.querySelectorAll('link[rel="icon"]')) {
+      if (!('originalIcon' in icon.dataset)) {
+        icon.dataset.originalIcon = icon.getAttribute('href') || '';
+        icon.dataset.originalType = icon.getAttribute('type') || '';
+      }
+      icon.setAttribute('href', customLogo ? logo : icon.dataset.originalIcon);
+      if (customLogo || !icon.dataset.originalType) icon.removeAttribute('type');
+      else icon.setAttribute('type', icon.dataset.originalType);
     }
     const heading = doc.querySelector('[data-hero-title]');
     if (heading) {
@@ -377,7 +381,8 @@
         if (index) children.push(doc.createElement('br'));
         const span = doc.createElement('span');
         span.className = 'hero-line';
-        span.textContent = line;
+        // Short prepositions and conjunctions stay with the next word («в движении» never breaks after «в»).
+        span.textContent = line.replace(/(^|[\s\u00a0])([а-яё]{1,2})\s+/gi, '$1$2\u00a0');
         children.push(span);
       });
       heading.replaceChildren(...children);

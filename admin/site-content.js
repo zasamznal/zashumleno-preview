@@ -74,7 +74,7 @@
     const previewURL = value => {
       const url = StudioPage.mediaUrl(value);
       preview.hidden = !(isImage && url);
-      if (isImage && url) preview.src = new URL(url, document.baseURI).href;
+      if (isImage && url) preview.src = new URL(url, window.StudioKit?.siteRoot?.() || new URL('/', location.href)).href;
       else preview.removeAttribute('src');
     };
     const path = field(ctx, box, target, key, title, {

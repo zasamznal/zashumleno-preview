@@ -33,8 +33,8 @@
         const item = K.el('div', 'k-gallery-item');
         const preview = K.el('div', 'k-gallery-preview');
         preview.append(K.previewOf(K.mediaUrl(photo.image), 'image'));
-        const caption = K.el('input');
-        caption.type = 'text';
+        const caption = K.el('textarea');
+        caption.rows = 2;
         caption.value = photo.caption || '';
         caption.placeholder = 'Подпись к фото';
         caption.maxLength = 160;

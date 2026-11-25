@@ -231,7 +231,7 @@
           preview.replaceChildren();
           if (!item[key] || (video && !window.StudioPage.mediaUrl(item[key]))) return;
           let link;
-          try { link = new URL(item[key], new URL("/", location.href)); } catch { return; }
+          try { link = new URL(item[key], window.StudioKit?.siteRoot?.() || new URL("/", location.href)); } catch { return; }
           if (!["https:", "http:"].includes(link.protocol)) return;
           if (pdfAllowed) {
             const open = node("a", "cat-preview-link", "Посмотреть прикреплённый лист");

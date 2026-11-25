@@ -13,7 +13,8 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  #top.motion-cover-coming [data-hero-image] {
+  /* The acoustic overlay is drawn on the photo, so it settles together with it. */
+  #top.motion-cover-coming :is([data-hero-image], .acoustics-demo) {
     transform-origin: 74% 54%;
     animation: zs-cover-arrives 1250ms cubic-bezier(.18,.77,.22,1) both;
   }
@@ -74,7 +75,7 @@
 }
 
 @media (max-width: 47rem) and (prefers-reduced-motion: no-preference) {
-  #top.motion-cover-coming [data-hero-image] { animation-duration: 850ms; }
+  #top.motion-cover-coming :is([data-hero-image], .acoustics-demo) { animation-duration: 850ms; }
   #top.motion-cover-coming [data-hero-title] > span { animation-duration: 530ms; }
 }
 
