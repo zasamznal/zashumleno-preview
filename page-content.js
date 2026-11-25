@@ -309,6 +309,26 @@
     element.hidden = !url;
   }
 
+  // Business card for search engines (schema.org AutoRepair), kept in step with the contacts edited in the cabinet.
+  function structuredData(page, doc) {
+    const script = doc.querySelector('script[data-structured]');
+    if (!script) return;
+    let data;
+    try { data = JSON.parse(script.textContent); } catch { return; }
+    const { brand, contacts, legal } = page;
+    const name = String(brand.name || '').trim();
+    // «ЗАШУМЛЕНО» on the logo is written as a regular name for search engines.
+    if (name) data.name = name === name.toUpperCase() ? name.charAt(0) + name.slice(1).toLowerCase() : name;
+    if (contacts.phone) data.telephone = contacts.phone; else delete data.telephone;
+    const street = String(contacts.address || '').replace(/^(?:г\.?\s*)?москва,?\s*/i, '').trim();
+    if (street) data.address = { ...data.address, streetAddress: street };
+    const time = /ежедневно[^\d]*(\d{1,2}[:.]\d{2})\s*[–—-]\s*(\d{1,2}[:.]\d{2})/i.exec(legal?.hours || '');
+    if (time) data.openingHours = 'Mo-Su ' + time[1].replace('.', ':').padStart(5, '0') + '-' + time[2].replace('.', ':').padStart(5, '0');
+    else delete data.openingHours;
+    data.sameAs = ['telegram', 'telegramChannel', 'vk'].map(key => contactUrl(key, contacts[key])).filter(Boolean);
+    script.textContent = JSON.stringify(data);
+  }
+
   function apply(value, doc = document) {
     const page = normalize(value);
     api.current = page;
@@ -323,6 +343,9 @@
 
     if (brand.siteTitle.trim()) doc.title = brand.siteTitle;
     doc.querySelector('meta[name="description"]')?.setAttribute('content', brand.description);
+    for (const meta of doc.querySelectorAll('meta[property="og:description"]')) meta.setAttribute('content', brand.description);
+    if (brand.siteTitle.trim()) for (const meta of doc.querySelectorAll('meta[property="og:title"]')) meta.setAttribute('content', brand.siteTitle);
+    structuredData(page, doc);
     for (const [setting, css] of Object.entries(colorVariables)) {
       const color = brand[setting];
       if (/^#[a-f0-9]{6}$/i.test(color)) doc.documentElement.style.setProperty(css, color);

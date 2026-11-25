@@ -8,9 +8,13 @@
 }
 .acoustics-demo > svg { position: absolute; display: block; max-width: none; overflow: visible; }
 .cover:has(.acoustics-demo) .cover-inner { position: relative; z-index: 1; }
-.acoustics-road-line { fill: none; stroke: url(#zs-road-light); stroke-linecap: round; stroke-linejoin: round; }
-.acoustics-front { fill: none; stroke: color-mix(in srgb, var(--accent) 80%, #fff); stroke-width: 2.8; stroke-linecap: round; }
-.acoustics-seam { fill: none; stroke: color-mix(in srgb, var(--accent) 35%, #fff); stroke-width: 1.35; }
+.acoustics-ring { fill: none; stroke: color-mix(in srgb, var(--spark) 82%, #fff); stroke-linejoin: round; }
+.acoustics-ring-calm { stroke: color-mix(in srgb, var(--accent) 85%, #fff); }
+.acoustics-halo { fill: none; stroke: color-mix(in srgb, var(--night) 55%, transparent); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 1 1; }
+.acoustics-layer { fill: none; stroke: color-mix(in srgb, var(--accent) 60%, #fff); stroke-width: 3.2; stroke-linecap: round; stroke-dasharray: 1 1; }
+.acoustics-sweep { fill: none; stroke: #fff; stroke-width: 4.4; stroke-linecap: round; stroke-dasharray: .08 1.2; }
+.acoustics-layer-b { stroke: var(--accent); stroke-width: 1.8; }
+[data-head] { fill: #fff; }
 .acoustics-caption {
   position: absolute;
   right: max(var(--gutter, 5vw), calc((100% - var(--measure, 91rem)) / 2));
@@ -41,7 +45,9 @@
 }
 .acoustics-caption button:hover { background: color-mix(in srgb, var(--accent) 22%, var(--night)); }
 .acoustics-caption button svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.acoustics-caption > span { display: grid; gap: .1rem; text-align: left; }
+.acoustics-caption > span:not(.acoustics-meter) { display: grid; gap: .1rem; text-align: left; }
+.acoustics-meter { display: flex; flex: 0 0 auto; align-items: flex-end; gap: 2px; height: 1.35rem; }
+.acoustics-meter i { width: 3px; height: 100%; border-radius: 2px; background: linear-gradient(to top, var(--accent), color-mix(in srgb, var(--spark) 70%, var(--accent))); transform: scaleY(var(--level, .2)); transform-origin: bottom; }
 .acoustics-topic { color: var(--muted-on-dark); font: 600 .72rem/1.2 Roboto, Arial, sans-serif; }
 .acoustics-phase { min-width: 10.1em; font: 660 .9rem/1.18 Roboto, Arial, sans-serif; letter-spacing: -.012em; }
 @media (max-width: 680px) {

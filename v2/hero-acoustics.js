@@ -13,66 +13,65 @@
   const scene = document.createElement('div');
   scene.className = 'acoustics-demo';
   scene.setAttribute('aria-hidden', 'true');
-  const arch = 'M-109 92C-101 25-84-111-49-159C-28-188-2-203 28-184C75-150 90-64 90 45';
-  const section = arch + 'C96-25 90-151 46-196C13-231-26-221-60-183C-91-144-110-37-113 68Z';
+  // Contour of the wheel-well opening on the cover, in coordinates centred on the rear wheel.
+  const lineA = 'M-102.5 83.5C-101.2 76.5 -97.2 55.1 -94.5 41.5C-91.9 27.8 -89.4 14.8 -86.6 1.5C-83.7 -11.8 -80.9 -25.1 -77.6 -38.4C-74.3 -51.7 -70.9 -65.0 -66.6 -78.2C-62.3 -91.5 -57.8 -104.7 -51.7 -118.0C-45.6 -131.2 -36.7 -147.7 -29.9 -157.6C-23.2 -167.5 -16.5 -172.6 -11.4 -177.1C-6.2 -181.6 -3.0 -182.8 1.0 -184.7C5.1 -186.6 8.8 -188.5 13.0 -188.5C17.2 -188.5 21.8 -186.6 26.0 -184.7C30.2 -182.8 33.5 -181.7 38.3 -177.2C43.1 -172.7 49.7 -165.8 54.9 -157.7C60.1 -149.5 65.5 -139.7 69.6 -128.2C73.8 -116.6 77.1 -101.8 79.5 -88.5C82.0 -75.3 83.5 -62.1 84.5 -48.8C85.5 -35.6 86.0 -21.5 85.5 -9.1C85.0 3.3 82.9 16.4 81.5 25.6C80.2 34.9 78.2 43.1 77.5 46.5';
+  const lineB = 'M-93.2 85.2C-91.9 78.3 -87.9 56.9 -85.2 43.3C-82.6 29.7 -80.1 16.7 -77.3 3.5C-74.5 -9.7 -71.6 -23.0 -68.4 -36.1C-65.1 -49.2 -61.8 -62.3 -57.6 -75.3C-53.4 -88.3 -49.0 -101.1 -43.1 -114.0C-37.2 -126.8 -28.4 -142.9 -22.1 -152.2C-15.8 -161.6 -9.6 -166.0 -5.1 -170.0C-0.6 -173.9 2.0 -174.6 5.0 -176.1C8.0 -177.6 10.2 -179.0 13.0 -179.0C15.8 -179.0 19.0 -177.5 22.1 -176.0C25.3 -174.6 27.7 -174.1 31.8 -170.2C35.9 -166.3 42.1 -160.1 46.9 -152.5C51.7 -145.0 56.8 -135.9 60.7 -125.0C64.6 -114.0 67.8 -99.6 70.2 -86.8C72.6 -74.0 74.1 -61.0 75.0 -48.1C76.0 -35.2 76.5 -21.5 76.0 -9.5C75.5 2.6 73.4 15.3 72.1 24.3C70.8 33.3 68.9 41.3 68.2 44.8';
+  const band = 'M-102.5 83.5C-101.2 76.5 -97.2 55.1 -94.5 41.5C-91.9 27.8 -89.4 14.8 -86.6 1.5C-83.7 -11.8 -80.9 -25.1 -77.6 -38.4C-74.3 -51.7 -70.9 -65.0 -66.6 -78.2C-62.3 -91.5 -57.8 -104.7 -51.7 -118.0C-45.6 -131.2 -36.7 -147.7 -29.9 -157.6C-23.2 -167.5 -16.5 -172.6 -11.4 -177.1C-6.2 -181.6 -3.0 -182.8 1.0 -184.7C5.1 -186.6 8.8 -188.5 13.0 -188.5C17.2 -188.5 21.8 -186.6 26.0 -184.7C30.2 -182.8 33.5 -181.7 38.3 -177.2C43.1 -172.7 49.7 -165.8 54.9 -157.7C60.1 -149.5 65.5 -139.7 69.6 -128.2C73.8 -116.6 77.1 -101.8 79.5 -88.5C82.0 -75.3 83.5 -62.1 84.5 -48.8C85.5 -35.6 86.0 -21.5 85.5 -9.1C85.0 3.3 82.9 16.4 81.5 25.6C80.2 34.9 78.2 43.1 77.5 46.5L68.2 44.8C68.9 41.3 70.8 33.3 72.1 24.3C73.4 15.3 75.5 2.6 76.0 -9.5C76.5 -21.5 76.0 -35.2 75.0 -48.1C74.1 -61.0 72.6 -74.0 70.2 -86.8C67.8 -99.6 64.6 -114.0 60.7 -125.0C56.8 -135.9 51.7 -145.0 46.9 -152.5C42.1 -160.1 35.9 -166.3 31.8 -170.2C27.7 -174.1 25.3 -174.6 22.1 -176.0C19.0 -177.5 15.8 -179.0 13.0 -179.0C10.2 -179.0 8.0 -177.6 5.0 -176.1C2.0 -174.6 -0.6 -173.9 -5.1 -170.0C-9.6 -166.0 -15.8 -161.6 -22.1 -152.2C-28.4 -142.9 -37.2 -126.8 -43.1 -114.0C-49.0 -101.1 -53.4 -88.3 -57.6 -75.3C-61.8 -62.3 -65.1 -49.2 -68.4 -36.1C-71.6 -23.0 -74.5 -9.7 -77.3 3.5C-80.1 16.7 -82.6 29.7 -85.2 43.3C-87.9 56.9 -91.9 78.3 -93.2 85.2Z';
+  const contact = { x: 4, y: 191 };
   scene.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="zs-cut-metal" x1="0" y1="0" x2=".96" y2=".33" gradientUnits="objectBoundingBox">
-        <stop style="stop-color:color-mix(in srgb,var(--accent) 34%,#24222f)"/><stop offset=".32" style="stop-color:color-mix(in srgb,var(--accent) 78%,#fff)"/><stop offset=".6" style="stop-color:color-mix(in srgb,var(--accent) 45%,#2b2839)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--accent) 28%,#1d1b27)"/>
+      <linearGradient id="zs-lining" gradientUnits="userSpaceOnUse" x1="-100" y1="80" x2="90" y2="-190">
+        <stop style="stop-color:color-mix(in srgb,var(--accent) 80%,#fff)"/><stop offset=".55" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--accent-alt) 50%,var(--accent))"/>
       </linearGradient>
-      <pattern id="zs-cut-foil" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(21)">
-        <path d="M0 0H7M0 3.5H7" style="stroke:color-mix(in srgb,var(--accent) 30%,#fff)" stroke-opacity=".65" stroke-width=".9"/>
-        <path d="M0 0V7" style="stroke:color-mix(in srgb,var(--accent) 22%,#16141e)" stroke-width="1.35"/>
-      </pattern>
-      <linearGradient id="zs-road-light" gradientUnits="userSpaceOnUse" x1="-503" y1="0" x2="-8" y2="0">
-        <stop style="stop-color:var(--spark)" stop-opacity="0"/><stop offset=".17" style="stop-color:var(--spark)" stop-opacity=".66"/><stop offset=".76" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--accent) 45%,#fff)" stop-opacity=".8"/>
-      </linearGradient>
-      <radialGradient id="zs-road-glow"><stop style="stop-color:color-mix(in srgb,var(--accent) 60%,#fff)" stop-opacity=".68"/><stop offset=".36" style="stop-color:var(--accent)" stop-opacity=".3"/><stop offset="1" style="stop-color:var(--accent-dark)" stop-opacity="0"/></radialGradient>
+      <radialGradient id="zs-hot"><stop style="stop-color:var(--spark)" stop-opacity=".9"/><stop offset=".45" style="stop-color:var(--spark)" stop-opacity=".3"/><stop offset="1" style="stop-color:var(--spark)" stop-opacity="0"/></radialGradient>
+      <radialGradient id="zs-calm"><stop style="stop-color:var(--accent)" stop-opacity=".75"/><stop offset=".5" style="stop-color:var(--accent)" stop-opacity=".22"/><stop offset="1" style="stop-color:var(--accent)" stop-opacity="0"/></radialGradient>
+      <mask id="zs-floor" maskUnits="userSpaceOnUse" x="-700" y="-300" width="1400" height="760">
+        <rect x="-700" y="-300" width="1400" height="760" fill="#fff"/>
+        <ellipse cx="4" cy="6" rx="99" ry="186" fill="#000"/>
+      </mask>
+      <filter id="zs-glow" x="-40%" y="-20%" width="180%" height="140%"><feGaussianBlur stdDeviation="3.6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     </defs>
     <g data-mounted>
-      <g data-road></g>
-      <ellipse data-contact cx="-2" cy="181" rx="84" ry="12" fill="url(#zs-road-glow)"/>
-      <g data-fronts></g>
-      <g data-section>
-        <g data-foil>
-          <path d="${section}" fill="url(#zs-cut-metal)" style="stroke:color-mix(in srgb,var(--accent) 25%,#15131d)" stroke-width="2.4"/>
-          <path d="${section}" fill="url(#zs-cut-foil)" opacity=".78"/>
-          <path d="M-107 62C-99-23-83-116-49-163C-24-198 2-207 30-190C64-164 81-104 88-58" class="acoustics-seam"/>
-        </g>
-        <g data-damper>
-          <path d="${arch}" fill="none" style="stroke:color-mix(in srgb,var(--accent) 22%,#14121c)" stroke-width="10"/>
-          <path d="${arch}" fill="none" style="stroke:color-mix(in srgb,var(--accent) 70%,#3d3a52)" stroke-width="4.8" stroke-dasharray="1 3" opacity=".8"/>
-        </g>
-        <path d="${arch}" fill="none" style="stroke:var(--accent)" stroke-width="2.7"/>
+      <ellipse data-hot cx="${contact.x}" cy="${contact.y}" rx="96" ry="17" fill="url(#zs-hot)"/>
+      <ellipse data-calm cx="${contact.x}" cy="${contact.y}" rx="84" ry="13" fill="url(#zs-calm)"/>
+      <g data-floor mask="url(#zs-floor)"></g>
+      <g data-lining>
+        <path data-band d="${band}" fill="url(#zs-lining)"/>
+        <path data-halo d="${lineA}" pathLength="1" class="acoustics-halo"/>
+        <path data-layer="b" d="${lineB}" pathLength="1" class="acoustics-layer acoustics-layer-b"/>
+        <g filter="url(#zs-glow)"><path data-layer="a" d="${lineA}" pathLength="1" class="acoustics-layer"/><path data-sweep d="${lineA}" pathLength="1" class="acoustics-sweep"/><circle data-head r="4.6"/></g>
       </g>
-      <g data-cabin fill="none" style="stroke:color-mix(in srgb,var(--accent) 55%,#fff)" stroke-linecap="round"><path d="M-18-228q14-9 25-5" stroke-width="2.6"/><path d="M-22-244q10-7 17-3" stroke-width="1.7"/><path d="M-27-258q5-3 9-2" stroke-width="1.2"/></g>
-      <path data-energy d="${arch}" pathLength="1" fill="none" style="stroke:color-mix(in srgb,var(--spark) 30%,#fff)" stroke-width="5" stroke-linecap="round"/>
     </g>
   </svg>`;
   const caption = document.createElement('div');
   caption.className = 'acoustics-caption';
-  caption.innerHTML = '<button type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path/></svg></button><span><span class="acoustics-topic">Шумоизоляция арки</span><span class="acoustics-phase"></span></span>';
+  caption.innerHTML = '<button type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path/></svg></button><span class="acoustics-meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span><span class="acoustics-topic">Шумоизоляция арки</span><span class="acoustics-phase"></span></span>';
   const control = caption.querySelector('button');
   const glyph = control.querySelector('path');
   const phaseLabel = caption.querySelector('.acoustics-phase');
+  const bars = [...caption.querySelectorAll('.acoustics-meter i')];
   const svg = scene.querySelector('svg');
   const mount = svg.querySelector('[data-mounted]');
-  const cutaway = svg.querySelector('[data-section]');
-  const foil = svg.querySelector('[data-foil]');
-  const damper = svg.querySelector('[data-damper]');
-  const cabin = svg.querySelector('[data-cabin]');
-  const glow = svg.querySelector('[data-contact]');
-  const runner = svg.querySelector('[data-energy]');
+  const hot = svg.querySelector('[data-hot]');
+  const calmGlow = svg.querySelector('[data-calm]');
+  const fill = svg.querySelector('[data-band]');
+  const layerA = svg.querySelector('[data-layer="a"]');
+  const layerB = svg.querySelector('[data-layer="b"]');
+  const head = svg.querySelector('[data-head]');
+  const halo = svg.querySelector('[data-halo]');
+  const sweep = svg.querySelector('[data-sweep]');
   const ns = svg.namespaceURI;
-  function curve(group, className) {
+  const floor = svg.querySelector('[data-floor]');
+  function ring(className) {
     const path = document.createElementNS(ns, 'path');
     path.setAttribute('class', className);
-    group.append(path);
+    floor.append(path);
     return path;
   }
-  const road = Array.from({ length: 6 }, () => curve(svg.querySelector('[data-road]'), 'acoustics-road-line'));
-  const fronts = Array.from({ length: 3 }, () => curve(svg.querySelector('[data-fronts]'), 'acoustics-front'));
-  const duration = 5600;
+  // Road noise spreads over the floor from the tyre; once the arch is lined the rings are weak, smooth and short.
+  const loudRings = [.1, .5, .9, 1.3, 1.7].map(start => ({ start, life: 1.5, reach: 380, amp: 1, width: 2.8, wobble: .022, path: ring('acoustics-ring') }));
+  const calmRings = [3.35, 3.95, 4.55].map((start, i) => ({ start, life: 1.6, reach: [250, 205, 165][i], amp: [.75, .5, .3][i], width: 2.4, wobble: 0, path: ring('acoustics-ring acoustics-ring-calm') }));
+  const duration = 6200;
   let elapsed = 0;
   let paused = false;
   let onScreen = false;
@@ -80,51 +79,58 @@
   let frame = 0;
   let lastTick;
   let lastPaint = -99;
+  let length = 0;
   const ease = v => { v = Math.min(1, Math.max(0, v)); return v * v * (3 - 2 * v); };
+
+  function ripple(item, t) {
+    const p = (t - item.start) / item.life;
+    if (p <= 0 || p >= 1) { item.path.setAttribute('opacity', '0'); return; }
+    const rx = 34 + (item.reach - 34) * (1 - (1 - p) ** 1.8);
+    const points = [];
+    for (let n = 0; n <= 72; n++) {
+      const angle = n / 72 * Math.PI * 2;
+      const r = rx * (1 + item.wobble * Math.sin(angle * 13 + t * 16 + item.start * 5));
+      points.push((n ? 'L' : 'M') + (contact.x + r * Math.cos(angle)).toFixed(1) + ' ' + (contact.y + r * .24 * Math.sin(angle)).toFixed(1));
+    }
+    item.path.setAttribute('d', points.join('') + 'Z');
+    item.path.setAttribute('opacity', (item.amp * ease(p / .1) * (1 - p) ** 1.25).toFixed(3));
+    item.path.setAttribute('stroke-width', (item.width * (1 - .45 * p)).toFixed(2));
+  }
 
   function draw(time) {
     const t = time / 1000;
-    // A packet of pressure travels across the ground and excites the tyre.
-    const roadFade = .23 + .77 * (1 - ease((t - 2.7) / 1.15));
-    const pulse = (.5 - .5 * Math.cos(t * 4.5));
-    road.forEach((p, row) => {
-      const points = [];
-      for (let n = 0; n <= 90; n++) {
-        const u = n / 90;
-        const envelope = Math.sin(u * Math.PI) ** .8 * Math.exp(-((u - (.12 + t * .33)) ** 2) / .10);
-        const offset = (row - 2.5) * (7.6 - 5.9 * u);
-        const x = -503 + u * 491;
-        const y = 242 - 61 * u + offset - envelope * (17 + row * 1.9) * Math.sin(u * 38 - t * 8 + row * .39);
-        points.push((n ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1));
-      }
-      p.setAttribute('d', points.join(''));
-      p.setAttribute('stroke-width', row === 2 || row === 3 ? 1.95 : 1.15);
-      p.setAttribute('opacity', String(roadFade * (.59 + .09 * Math.cos(row))));
+    for (const item of loudRings) ripple(item, t);
+    for (const item of calmRings) ripple(item, t);
+    // The lining is laid along the opening: the outer layer first, then the inner one.
+    const laidA = ease((t - 2) / 1.2);
+    const laidB = ease((t - 2.25) / 1.1);
+    for (const path of [layerA, halo]) path.setAttribute('stroke-dashoffset', String(1 - laidA));
+    layerB.setAttribute('stroke-dashoffset', String(1 - laidB));
+    const settle = ease((t - 3.4) / 1.2);
+    layerA.setAttribute('opacity', laidA > 0 ? (1 - .3 * settle).toFixed(3) : '0');
+    halo.setAttribute('opacity', laidA > 0 ? (1 - .35 * settle).toFixed(3) : '0');
+    layerB.setAttribute('opacity', laidB > 0 ? (.85 - .2 * settle).toFixed(3) : '0');
+    fill.setAttribute('opacity', (.5 * ease((t - 2.8) / .8) - .12 * settle).toFixed(3));
+    // A last pulse runs along the lined arch and fades: the vibration has nowhere to go.
+    const run = (t - 3.45) / 1.05;
+    sweep.setAttribute('stroke-dashoffset', (.08 - ease(run) * 1.08).toFixed(3));
+    sweep.setAttribute('opacity', run > 0 && run < 1 ? Math.min(1, run * 8, (1 - run) * 5).toFixed(3) : '0');
+    if (!length) length = layerA.getTotalLength?.() || 0;
+    if (length && laidA > 0 && laidA < 1) {
+      const point = layerA.getPointAtLength(length * laidA);
+      head.setAttribute('cx', point.x.toFixed(1));
+      head.setAttribute('cy', point.y.toFixed(1));
+      head.setAttribute('opacity', String(Math.min(1, laidA * 6, (1 - laidA) * 6)));
+    } else head.setAttribute('opacity', '0');
+    const beat = .5 + .5 * Math.sin(t * 9);
+    hot.setAttribute('opacity', ((1 - ease((t - 2) / 1.2)) * (.5 + .5 * beat) * ease(t / .3)).toFixed(3));
+    calmGlow.setAttribute('opacity', (ease((t - 3) / 1) * (.55 - .25 * ease((t - 5) / 1.2))).toFixed(3));
+    const loud = 1 - .8 * ease((t - 2.5) / 2.7);
+    bars.forEach((bar, i) => {
+      const flutter = time >= duration ? .62 : .55 + .45 * Math.abs(Math.sin(t * (6.5 + i * 2.1) + i * 1.7));
+      bar.style.setProperty('--level', Math.max(.14, loud * flutter * (1 - Math.abs(i - 2) * .12)).toFixed(3));
     });
-    glow.setAttribute('opacity', String(.25 + .68 * pulse * roadFade));
-    // Broken wave fronts rise from the contact patch and attenuate in the lining.
-    fronts.forEach((p, i) => {
-      const progress = ((Math.max(0, t - .45) * .43 + i / 3) % 1);
-      const x = -12 - 65 * Math.sin(progress * Math.PI * .92);
-      const y = 166 - 338 * progress;
-      const span = 15 + 20 * Math.sin(progress * Math.PI);
-      p.setAttribute('d', `M${x - span} ${y + 3}q${span} ${-15 + 7 * progress} ${span * 2} -1`);
-      p.setAttribute('opacity', String(ease(t / .8) * Math.sin(progress * Math.PI) * .83 * (1 - ease((t - 3.85) / 1.5))));
-    });
-    const reveal = .18 + .76 * ease((t - .78) / 1.1) - .39 * ease((t - 4.45) / 1.1);
-    cutaway.setAttribute('opacity', String(reveal));
-    // The cutaway opens for the passing pulse, then both layers seat against the body.
-    const lifted = ease((t - .65) / .95) * (1 - ease((t - 2.2) / 1.25));
-    foil.setAttribute('transform', `translate(${-12 * lifted} ${-22 * lifted})`);
-    damper.setAttribute('transform', `translate(${-4 * lifted} ${-7 * lifted})`);
-    const residual = ease((t - 2.75) / .5) * (1 - ease((t - 3.65) / .95));
-    cabin.setAttribute('opacity', String(residual * .74));
-    cabin.setAttribute('transform', `translate(${-4 * residual} ${-10 * residual})`);
-    const travel = ease((t - 1.1) / 3.3);
-    runner.setAttribute('stroke-dasharray', '.17 1.2');
-    runner.setAttribute('stroke-dashoffset', String(.18 - travel));
-    runner.setAttribute('opacity', String(.91 * ease(t - .9) * (1 - ease((t - 3.7) / .9))));
-    const label = t < 1.6 ? 'Шум от дороги' : t < 3.95 ? 'Слои гасят вибрации' : 'Колебания затихают';
+    const label = t < 2.1 ? 'Шум от дороги' : t < 3.7 ? 'Слои гасят вибрации' : 'В салоне тише';
     if (phaseLabel.textContent !== label) phaseLabel.textContent = label;
   }
 

@@ -6,6 +6,11 @@
   // of boxes with the studio as the last one on the left. Proportions are schematic, landmarks and their order are real.
   const diamonds = ['#7b4fd6', '#e0388f', '#d8343b', '#2f7fe0', '#f3f1f7', '#7b4fd6', '#e0388f', '#2f7fe0', '#d8343b', '#f3f1f7',
     '#7b4fd6', '#e0388f', '#d8343b', '#2f7fe0', '#f3f1f7', '#7b4fd6', '#e0388f', '#2f7fe0', '#d8343b', '#f3f1f7', '#7b4fd6', '#e0388f'];
+  // Traffic keeps to the right: lane centres on Варшавское шоссе (two lanes each way) and in the aisle of level −1.
+  const lane = { west: 128.5, westFast: 141.3, eastFast: 155.5, east: 167.8, aisleIn: 273, aisleOut: 247 };
+  const arrow = (x, y, angle, turn = '') => `<g transform="translate(${x} ${y}) rotate(${angle})" class="rm-arrow"><path d="M-9 0H6"/>${turn}<path d="M9 0L4-3.4V3.4Z" class="rm-arrow-head"/></g>`;
+  // A straight-and-right arrow: the branch turns to the driver's right (+y in the arrow's own frame).
+  const turnRight = '<path d="M-2 0Q3 0 3 5.5"/><path d="M3 9L.2 4.6H5.8Z" class="rm-arrow-head"/>';
   const scheme = `
     <svg class="route-drawing" viewBox="0 0 600 404" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
       <defs>
@@ -15,8 +20,8 @@
         <pattern id="rm-checker" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f4f4f6"/><rect width="3" height="3" fill="#18171c"/><rect x="3" y="3" width="3" height="3" fill="#18171c"/></pattern>
         <linearGradient id="rm-ramp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="rm-ramp-top"/><stop offset="1" class="rm-ramp-bottom"/></linearGradient>
         <g id="rm-car"><rect x="-7" y="-12" width="14" height="24" rx="4.5" class="rm-parked"/><path d="M-5-6h10l-1 4h-8zM-5 6h10l-1-3h-8z" class="rm-parked-glass"/></g>
-        <path id="route-above-path" d="M612 136H294Q272 136 264 122L250 98Q246 90 238 88"/>
-        <path id="route-below-path" d="M18 206Q70 204 86 232Q98 256 132 260H520Q536 260 536 248V240"/>
+        <path id="route-above-path" d="M612 ${lane.west}H292C262 ${lane.west} 236 124 236 106V90"/>
+        <path id="route-below-path" d="M-12 229C60 229 78 ${lane.aisleIn} 132 ${lane.aisleIn}H484C512 ${lane.aisleIn} 524 263 524 246V222"/>
       </defs>
 
       <rect width="600" height="178" class="rm-ground"/>
@@ -29,11 +34,22 @@
       <rect x="-10" y="122" width="620" height="52" class="rm-road"/>
       <path d="M-10 122H610M-10 174H610" class="rm-curb"/>
       <path d="M-10 147.2H610M-10 149.4H610" class="rm-median"/>
-      <path d="M-10 135H610M-10 161H610" class="rm-lane"/>
-      <g class="rm-zebra"><path d="M118 124V146M126 124V146M134 124V146M142 124V146M150 124V146M158 124V146"/></g>
-      <g class="rm-traffic"><use href="#rm-car" transform="translate(300 161) rotate(90)"/><use href="#rm-car" transform="translate(70 161) rotate(90)"/><use href="#rm-car" transform="translate(520 135) rotate(-90)"/></g>
-      <text x="432" y="170" class="rm-road-name">Варшавское ш.</text>
+      <path d="M-10 135H112M164 135H610M-10 161H112M164 161H610" class="rm-lane"/>
+      <g class="rm-zebra"><path d="M120 125V145M128 125V145M136 125V145M144 125V145M152 125V145M160 125V145M120 151V171M128 151V171M136 151V171M144 151V171M152 151V171M160 151V171"/></g>
+      <path d="M168 123.5V146.5M112 150V172.5" class="rm-stop-line"/>
+      <g class="rm-arrows">
+        ${arrow(352, lane.west, 180, turnRight)}${arrow(470, lane.westFast, 180)}${arrow(220, lane.westFast, 180)}
+        ${arrow(258, lane.eastFast, 0)}${arrow(420, lane.east, 0)}${arrow(60, lane.east, 0)}
+      </g>
+      <g class="rm-traffic" data-traffic>
+        <use href="#rm-car" data-lane="${lane.westFast}" data-dir="-1" data-at="470"/>
+        <use href="#rm-car" data-lane="${lane.eastFast}" data-dir="1" data-at="300"/>
+        <use href="#rm-car" data-lane="${lane.east}" data-dir="1" data-at="40"/>
+        <use href="#rm-car" data-lane="${lane.east}" data-dir="1" data-at="440"/>
+      </g>
+      <g class="rm-road-tag"><rect x="494" y="${lane.east - 6.5}" width="100" height="13" rx="3"/><text x="544" y="${lane.east + 4.3}" text-anchor="middle" class="rm-road-name">Варшавское ш.</text></g>
       <path d="M186 98H600V122H186Z" class="rm-lot"/>
+      <path d="M210 122V98" class="rm-lot-edge"/>
       <g class="rm-lot-marks"><path d="M300 100V112M326 100V112M352 100V112M378 100V112M404 100V112M430 100V112M456 100V112M482 100V112M508 100V112"/></g>
       <g class="rm-parked-row"><use href="#rm-car" transform="translate(313 106) rotate(90) scale(.78)"/><use href="#rm-car" transform="translate(365 106) rotate(90) scale(.78)"/><use href="#rm-car" transform="translate(443 106) rotate(90) scale(.78)"/><use href="#rm-car" transform="translate(495 106) rotate(90) scale(.78)"/></g>
       <path d="M282 8H566Q590 8 590 32V84H282Q252 84 252 46Q252 8 282 8Z" class="rm-roof"/>
@@ -45,21 +61,24 @@
       <rect x="186" y="54" width="68" height="44" rx="2" class="rm-block"/>
       <rect x="191" y="78" width="25" height="20" class="rm-gate"/><rect x="222" y="78" width="27" height="20" class="rm-gate"/>
       <rect x="196" y="72" width="12" height="3.4" rx="1" class="rm-exit-light"/><rect x="226" y="72" width="18" height="3.4" rx="1" class="rm-entry-light"/>
+      <path d="M229 112l6.5-7 6.5 7" class="rm-entry-chevron"/><path d="M197 104l6.5 7 6.5-7" class="rm-exit-chevron"/>
       <text x="220" y="66" text-anchor="middle" class="rm-block-label">Автомойка · Детейлинг</text>
       <g class="rm-callout"><path d="M164 72L224 74" /><rect x="118" y="63" width="46" height="18" rx="3"/><text x="141" y="76" text-anchor="middle">Въезд</text></g>
       <use href="#route-above-path" class="route-base"/>
       <use href="#route-above-path" class="route-trace route-trace-above" pathLength="100"/>
-      <circle cx="600" cy="136" r="4.5" class="route-start"/>
+      <circle cx="600" cy="${lane.west}" r="4.5" class="route-start"/>
 
       <rect y="178" width="600" height="226" class="rm-underground"/>
       <rect y="178" width="600" height="226" fill="url(#rm-concrete)"/>
       <path d="M0 178H600" class="rm-level-line"/>
       <g class="rm-pipes"><path d="M150 184H600M150 188H600"/></g>
-      <path d="M0 192Q62 190 84 220Q100 246 132 240V282Q84 286 66 252Q52 226 0 222Z" fill="url(#rm-ramp)" class="rm-ramp"/>
-      <path d="M14 200l6 6-6 6M30 202l6 6-6 6M46 210l5 7-7 4M60 222l3 8-8 2" class="rm-chevrons"/>
+      <path d="M-2 190C62 190 76 234 132 234V286C70 286 56 242 -2 242Z" fill="url(#rm-ramp)" class="rm-ramp"/>
+      <path d="M-2 216C66 216 76 260 132 260" class="rm-ramp-line"/>
+      <path d="M16 225l6 4-6 4M36 228l6 4.6-6.4 3.4M56 238l5 5.4-7 2.6M74 252l3 6.4-7.4 1.6" class="rm-chevrons"/>
       <rect x="132" y="234" width="430" height="52" class="rm-aisle"/>
-      <path d="M132 260H560" class="rm-aisle-line"/>
+      <path d="M137 260H560" class="rm-aisle-line"/>
       <path d="M560 234H600V404H560Z" class="rm-aisle"/>
+      <path d="M580 290V404" class="rm-aisle-line"/>
       <g class="rm-boxes-north">
         <rect x="214" y="208" width="54" height="26"/><rect x="270" y="208" width="54" height="26"/><rect x="326" y="208" width="54" height="26"/><rect x="382" y="208" width="54" height="26"/><rect x="438" y="208" width="54" height="26"/>
       </g>
@@ -69,6 +88,11 @@
       <g class="rm-shutters"><path d="M218 230H264M274 230H320M330 230H376M386 230H432M442 230H488M218 290H264M274 290H320M330 290H376M386 290H432M442 290H488M498 290H544"/></g>
       <g class="rm-columns"><rect x="266" y="230" width="8" height="8"/><rect x="322" y="230" width="8" height="8"/><rect x="378" y="230" width="8" height="8"/><rect x="434" y="230" width="8" height="8"/><rect x="490" y="230" width="8" height="8"/>
         <rect x="266" y="282" width="8" height="8"/><rect x="322" y="282" width="8" height="8"/><rect x="378" y="282" width="8" height="8"/><rect x="434" y="282" width="8" height="8"/><rect x="490" y="282" width="8" height="8"/></g>
+      <g class="rm-arrows rm-arrows-dark">
+        ${arrow(300, lane.aisleIn, 0)}${arrow(420, lane.aisleIn, 0)}
+        ${arrow(360, lane.aisleOut, 180)}${arrow(240, lane.aisleOut, 180)}
+      </g>
+      <path d="M178 262V284" class="rm-stop-line"/>
       <g class="rm-parked-below"><use href="#rm-car" transform="translate(353 304)" class="rm-taxi"/><use href="#rm-car" transform="translate(465 222) scale(.8)"/></g>
       <g class="rm-studio">
         <rect x="494" y="204" width="60" height="30" class="rm-studio-box"/>
@@ -80,21 +104,25 @@
       <g class="rm-doors"><rect x="132" y="236" width="5" height="48"/><rect x="136" y="226" width="22" height="9" fill="url(#rm-checker)" class="rm-flag"/></g>
       <g class="rm-labels">
         <g class="rm-level-label"><rect x="14" y="350" width="108" height="25" rx="3"/><text x="23" y="368">Паркинг −1</text></g>
-        <text x="70" y="300" class="rm-annotation">Спуск</text>
-        <text x="150" y="342" class="rm-annotation">Шлагбаум</text><path d="M178 332l8-36" class="rm-pointer"/>
+        <text x="40" y="306" class="rm-annotation">Спуск</text>
+        <text x="150" y="342" class="rm-annotation">Шлагбаум</text><path d="M178 332l10-36" class="rm-pointer"/>
         <text x="482" y="202" text-anchor="end" class="rm-annotation rm-strong">Бокс студии</text>
       </g>
       <use href="#route-below-path" class="route-base route-base-dark"/>
       <use href="#route-below-path" class="route-trace route-trace-below" pathLength="100"/>
-      <g class="route-boom"><path d="M190 286V238" class="rm-boom-shadow"/><path d="M190 286V238" class="rm-boom"/><path d="M190 286V238" class="rm-boom-stripes"/></g>
+      <g class="rm-exit-boom"><path d="M196 236V258" class="rm-boom-shadow"/><path d="M196 236V258" class="rm-boom"/><path d="M196 236V258" class="rm-boom-stripes"/><rect x="191" y="228" width="10" height="9" rx="1.5" class="rm-boom-post"/></g>
+      <g class="route-boom"><path d="M190 286V262" class="rm-boom-shadow"/><path d="M190 286V262" class="rm-boom"/><path d="M190 286V262" class="rm-boom-stripes"/></g>
       <rect x="185" y="284" width="10" height="9" rx="1.5" class="rm-boom-post"/>
-      <g class="rm-call"><circle cx="210" cy="302" r="9"/><path d="M206.5 298.5c.6 2.8 2.6 5 5.4 6.3l1.6-1.6c.3-.3.7-.3 1 0l1.7 1.3c.4.3.4.8.1 1.1l-1 1.2c-.6.6-1.5.8-2.3.5-4-1.5-7-4.6-8.4-8.6-.3-.8-.1-1.7.5-2.3l1.2-1c.3-.3.8-.3 1.1.1l1.3 1.7c.3.3.3.7 0 1z"/></g>
-      <g class="route-vehicle" transform="translate(600 136)">
+      <g class="rm-call"><circle cx="210" cy="304" r="9"/><path d="M206.5 300.5c.6 2.8 2.6 5 5.4 6.3l1.6-1.6c.3-.3.7-.3 1 0l1.7 1.3c.4.3.4.8.1 1.1l-1 1.2c-.6.6-1.5.8-2.3.5-4-1.5-7-4.6-8.4-8.6-.3-.8-.1-1.7.5-2.3l1.2-1c.3-.3.8-.3 1.1.1l1.3 1.7c.3.3.3.7 0 1z"/></g>
+      <g class="route-vehicle" transform="translate(600 ${lane.west})">
         <ellipse cx="0" cy="1" rx="17" ry="10" class="rv-shadow"/>
         <g class="rv-wheels"><rect x="-9" y="-8" width="6" height="3" rx="1"/><rect x="4" y="-8" width="5" height="3" rx="1"/><rect x="-9" y="5" width="6" height="3" rx="1"/><rect x="4" y="5" width="5" height="3" rx="1"/></g>
         <rect x="-13.5" y="-6.6" width="27" height="13.2" rx="4.8" class="rv-body"/>
         <path d="m-7-4.7 11-.3 3.4 2.1v5.2L4 5l-11-.3-2-2v-5.4Z" class="rv-roof"/><path d="m2-4.6 3.9 1.9v5.4L2 4.7zm-7 .2-2 1.5v5.8l2 1.4" class="rv-glass"/>
         <path d="M11-4v2m0 4v2" class="rv-lights"/>
+        <path d="M-13.2-4.6v2.4M-13.2 2.2v2.4" class="rv-brake"/>
+        <g class="rv-signal" data-side="left"><circle cx="10.5" cy="-6.4" r="1.9"/><circle cx="-11.5" cy="-6.4" r="1.9"/></g>
+        <g class="rv-signal" data-side="right"><circle cx="10.5" cy="6.4" r="1.9"/><circle cx="-11.5" cy="6.4" r="1.9"/></g>
       </g>
     </svg>`;
 
@@ -260,12 +288,25 @@
       return { path, length, trace };
     });
     const vehicle = card.querySelector('.route-vehicle');
+    const signals = { left: card.querySelector('.rv-signal[data-side="left"]'), right: card.querySelector('.rv-signal[data-side="right"]') };
+    const brake = card.querySelector('.rv-brake');
+    const traffic = [...card.querySelectorAll('[data-traffic] use')].map(car => ({
+      car, lane: Number(car.dataset.lane), dir: Number(car.dataset.dir), at: Number(car.dataset.at)
+    }));
     const boom = card.querySelector('.route-boom');
     const call = card.querySelector('.rm-call');
     const studio = card.querySelector('.rm-studio');
     const lessMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const total = timing.at(-1).end;
-    const gate = (190 - 18) / paths[1].length * 1.02;
+    // Where the car stops: its nose at the stop line in front of the barrier.
+    const gate = (() => {
+      let low = 0, high = paths[1].length;
+      for (let i = 0; i < 24; i++) {
+        const middle = (low + high) / 2;
+        if (paths[1].path.getPointAtLength(middle).x < 178 - 14) low = middle; else high = middle;
+      }
+      return low / paths[1].length;
+    })();
     const clamp = value => Math.max(0, Math.min(1, value));
     const ease = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
     let second = 0, selected = -1, raf = 0, previous = 0;
@@ -286,10 +327,21 @@
       const after = activePath.path.getPointAtLength(Math.min(activePath.length, at + 1));
       const angle = Math.atan2(after.y - before.y, after.x - before.x) * 180 / Math.PI;
       vehicle.setAttribute('transform', 'translate(' + point.x.toFixed(2) + ' ' + point.y.toFixed(2) + ') rotate(' + angle.toFixed(1) + ')');
+      // Indicators before each turn and brake lights at the stops, like a careful driver.
+      const blink = Math.floor(second * 3.2) % 2 === 0;
+      const turningRight = stage === 0 && point.x < 430 && second < 4.75;
+      const turningLeft = stage === 2 && point.x > 380 && second < total - .3;
+      signals.right.classList.toggle('is-on', turningRight && blink);
+      signals.left.classList.toggle('is-on', turningLeft && blink);
+      brake.classList.toggle('is-on', (stage === 0 && second > 3.7) || (stage === 1 && second > 7.6) || (stage === 2 && second < 10.95) || second > total - .5);
+      for (const item of traffic) {
+        const x = ((item.at + item.dir * 17 * second) % 680 + 680) % 680 - 40;
+        item.car.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + item.lane + ') rotate(' + (item.dir > 0 ? 90 : -90) + ') scale(.92)');
+      }
       // The car fades at the gate and appears again on the ramp.
       const fade = stage === 0 ? 1 - clamp((second - 4.7) / .5) : clamp((second - 5.3) / .4);
       vehicle.setAttribute('opacity', fade.toFixed(2));
-      boom.setAttribute('transform', 'rotate(' + (-clamp((second - 9.4) / .9) * 84).toFixed(1) + ' 190 286)');
+      boom.setAttribute('transform', 'rotate(' + (clamp((second - 9.4) / .9) * 84).toFixed(1) + ' 190 286)');
       call.classList.toggle('is-ringing', second > 8.4 && second < 10.4);
       studio.classList.toggle('is-here', second >= total - .4);
       if (stage !== selected) {

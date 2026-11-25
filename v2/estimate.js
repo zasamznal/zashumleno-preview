@@ -158,6 +158,31 @@
     get(".est-receipt-icon").append(icon("receipt"));
     get(".est-work-select").append(icon("chevron"));
     get(".est-details summary").append(icon("chevron"));
+    // On a phone the receipt sits below the kits: a slim bar keeps the running total in sight.
+    const receipt = get(".est-receipt");
+    const dock = element("div", "est-dock");
+    dock.hidden = true;
+    const dockText = element("span", "est-dock-text");
+    const dockCount = element("span", "est-dock-count");
+    const dockAmount = element("strong", "est-dock-amount");
+    dockText.append(dockCount, dockAmount);
+    const dockButton = button("est-dock-button");
+    dockButton.textContent = "К смете";
+    dockButton.addEventListener("click", () => receipt.scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "center" }));
+    dock.append(dockText, dockButton);
+    receipt.after(dock);
+    const phone = window.matchMedia("(max-width: 44rem)");
+    let receiptInView = false;
+    let calculatorInView = false;
+    function syncDock() {
+      dock.hidden = !(phone.matches && calculatorInView && !receiptInView && summary.lines.length);
+    }
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(([entry]) => { receiptInView = entry.isIntersecting; syncDock(); }).observe(receipt);
+      // Only while the calculator itself fills the middle of the screen.
+      new IntersectionObserver(([entry]) => { calculatorInView = entry.isIntersecting; syncDock(); }, { rootMargin: "-25% 0px -35% 0px" }).observe(get(".est-layout"));
+    }
+    phone.addEventListener?.("change", syncDock);
 
     function displayTotal(animate) {
       cancelAnimationFrame(frame);
@@ -273,6 +298,9 @@
       const requestSection = document.getElementById("request");
       request.hidden = !requestSection || requestSection.hidden;
       displayTotal(Boolean(message));
+      dockCount.textContent = plural(summary.lines.length);
+      dockAmount.textContent = summary.totalText;
+      syncDock();
       syncChoices();
       refreshRules();
       if (message) get(".est-announcement").textContent = message + ". Итого: " + summary.totalText;

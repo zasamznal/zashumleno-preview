@@ -433,7 +433,12 @@
 
     function renderList() {
       listTitle.textContent = 'Слои — от металла к обшивке';
+      // The same sheet laid twice (two layers of Bronze 2, for example) is named as the second layer.
+      const repeats = new Map();
       list.replaceChildren(...layers.map((layer, index) => {
+        const key = layer.type === 'material' ? layer.material?.id || layer.title : '';
+        const repeat = key ? (repeats.get(key) || 0) + 1 : 0;
+        if (key) repeats.set(key, repeat);
         const item = el('li', 'ly-item');
         const button = el('button', 'ly-item-button');
         button.type = 'button';
@@ -442,6 +447,7 @@
         const number = el('span', 'ly-num', String(index + 1));
         number.setAttribute('aria-hidden', 'true');
         const name = el('span', 'ly-item-name', layer.title);
+        if (repeat > 1) name.append(el('span', 'ly-item-repeat', ' · ' + (['', '', 'второй', 'третий', 'четвёртый'][repeat] || 'ещё один') + ' слой'));
         const tag = el('span', 'ly-tag', kinds[layer.kind] || kinds.other);
         tag.dataset.kind = layer.kind;
         button.append(number, name, tag);

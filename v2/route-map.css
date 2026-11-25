@@ -39,8 +39,18 @@
 .rm-median { stroke: #f2f1f5; stroke-width: 1.1; fill: none; }
 .rm-lane { stroke: #f2f1f5; stroke-width: 1.2; stroke-dasharray: 12 10; fill: none; opacity: .8; }
 .rm-zebra path { stroke: #f2f1f5; stroke-width: 4.5; opacity: .85; }
+.rm-stop-line { stroke: #f2f1f5; stroke-width: 2.4; opacity: .9; fill: none; }
+.rm-arrow path { fill: none; stroke: #f2f1f5; stroke-width: 1.6; stroke-linecap: round; opacity: .75; }
+.rm-arrow .rm-arrow-head { fill: #f2f1f5; stroke: none; }
+.rm-arrows-dark .rm-arrow path { stroke: #b9b5c8; opacity: .5; }
+.rm-arrows-dark .rm-arrow .rm-arrow-head { fill: #b9b5c8; }
+.rm-lot-edge { stroke: #8d8a99; stroke-width: 1; stroke-dasharray: 3 3; fill: none; }
+.rm-entry-chevron { fill: none; stroke: #3ddc84; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.rm-exit-chevron { fill: none; stroke: #e2453c; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
+.rm-ramp-line { fill: none; stroke: #b9b5c8; stroke-width: 1.2; stroke-dasharray: 8 8; opacity: .55; }
 .rm-traffic .rm-parked { fill: #8e8b9c; }
-.rm-road-name { fill: #f2f1f5; font-size: 13px; font-weight: 650; letter-spacing: .02em; }
+.rm-road-name { fill: #f2f1f5; font-size: 12px; font-weight: 650; letter-spacing: .02em; }
+.rm-road-tag rect { fill: #4b4955; stroke: #6e6b7a; stroke-width: .8; }
 .rm-lot { fill: #66646f; }
 .rm-lot-marks path { stroke: #e9e7ef; stroke-width: 1; opacity: .75; }
 .rm-parked { fill: #7b7888; stroke: #b3b0c0; stroke-width: .8; }
@@ -75,7 +85,7 @@
 .rm-ramp { stroke: #5d5a69; stroke-width: 1; }
 .rm-chevrons { fill: none; stroke: #d6d2e2; stroke-width: 1.6; opacity: .45; stroke-linecap: round; }
 .rm-aisle { fill: #393742; }
-.rm-aisle-line { stroke: #8f8b9c; stroke-width: 1.2; stroke-dasharray: 12 12; fill: none; }
+.rm-aisle-line { stroke: #c9c5d6; stroke-width: 1.4; stroke-dasharray: 12 10; fill: none; opacity: .7; }
 .rm-boxes-north rect, .rm-boxes-south rect { fill: #4b4956; stroke: #6c6977; stroke-width: 1; }
 .rm-shutter-line { stroke: #9a97a7; stroke-width: .8; }
 .rm-shutters path { stroke: #a9a6b6; stroke-width: 2; fill: none; }
@@ -110,6 +120,10 @@
 .rv-roof { fill: var(--accent-dark); }
 .rv-glass { fill: #24213a; }
 .rv-lights { stroke: #ffd36b; stroke-width: 1.3; }
+.rv-brake { stroke: #e2453c; stroke-width: 1.6; stroke-linecap: round; opacity: .35; }
+.rv-brake.is-on { opacity: 1; filter: drop-shadow(0 0 2.5px #ff3b30); }
+.rv-signal circle { fill: #f5a524; opacity: 0; }
+.rv-signal.is-on circle { opacity: 1; filter: drop-shadow(0 0 2px #f5a524); }
 @media (prefers-reduced-motion: no-preference) {
   .rm-call.is-ringing circle { animation: rm-ring 1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   .rm-studio.is-here .rm-pin { animation: rm-pin 1.2s cubic-bezier(.3,.7,.3,1) both; transform-box: fill-box; transform-origin: center bottom; }
