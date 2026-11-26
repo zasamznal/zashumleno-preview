@@ -18,6 +18,8 @@
   border: 1px solid #a9b6ae; border-radius: .38rem; background: #fff; color: #182220; padding: .55rem .7rem;
 }
 .pe-field textarea { resize: vertical; }
+/* A button placed next to a field lines up with the field's input, below its label. */
+.pe-field-action { padding-top: 1.75rem; justify-items: start; }
 .pe-field > input[type="color"] { padding: .25rem; width: 6rem; cursor: pointer; }
 .pe-media { display: grid; align-content: start; gap: .57rem; padding: .9rem; background: #f4f6f3; border-radius: .4rem; }
 .pe-preview { width: auto; max-width: min(100%, 15rem); max-height: 6rem; object-fit: contain; object-position: left; border-radius: .2rem; }

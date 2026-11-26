@@ -290,9 +290,22 @@
     field(ctx, legal, l, 'hours', 'Режим работы');
     field(ctx, legal, l, 'hoursSourceUrl', 'Ссылка на источник расписания', { wide: true });
     const terms = card(ctx.host, 'Условия оказания услуг');
-    for (const [key, label] of [['payment', 'Порядок и способы оплаты'], ['timing', 'Сроки работ'], ['warranty', 'Условия гарантии'], ['policyText', 'Дополнение к политике обработки данных']]) {
-      field(ctx, terms, l, key, label, { multiline: true, wide: true, limit: key === 'policyText' ? 15000 : 3000 });
+    for (const [key, label] of [['payment', 'Порядок и способы оплаты'], ['timing', 'Сроки работ'], ['warranty', 'Условия гарантии']]) {
+      field(ctx, terms, l, key, label, { multiline: true, wide: true, limit: 3000 });
     }
+    const privacy = card(ctx.host, 'Политика обработки персональных данных',
+      'Страница политики собирается из реквизитов выше: имя предпринимателя, ИНН, ОГРНИП, адрес, телефон и почта для обращений подставляются сами.');
+    field(ctx, privacy, l, 'policyDate', 'Дата редакции политики', { hint: 'ДД.ММ.ГГГГ', limit: 10,
+      note: 'Меняйте дату, когда обновляете реквизиты или текст политики.' });
+    const open = el('a', 'pe-button', 'Открыть страницу политики');
+    open.href = 'privacy.html';
+    open.target = '_blank';
+    open.rel = 'noopener';
+    const openBox = el('div', 'pe-field pe-field-action');
+    openBox.append(open);
+    privacy.append(openBox);
+    field(ctx, privacy, l, 'policyText', 'Дополнительные положения', { multiline: true, wide: true, limit: 15000,
+      note: 'Необязательно. Текст появится в конце политики, например если юрист попросит добавить пункт.' });
     const owner = card(ctx.host, 'Владелец сайта', 'Заполните, если сайт и услуги принадлежат разным владельцам.');
     field(ctx, owner, l, 'siteOwnerName', 'Наименование владельца', { wide: true });
     field(ctx, owner, l, 'siteOwnerAddress', 'Адрес владельца для публикации', { wide: true });

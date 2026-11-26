@@ -111,6 +111,7 @@
             <strong class="est-total-amount" aria-hidden="true">0 ₽</strong><span class="est-sr est-readable-total">0 ₽</span>
             <p class="est-condition" hidden></p>
             <button class="est-request" type="button" disabled>Запросить расчёт</button>
+            <p class="est-offer">Расчёт предварительный и не является публичной офертой. Точную стоимость студия назовёт после осмотра автомобиля.</p>
           </div>
         </aside>
       </div>

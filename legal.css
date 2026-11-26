@@ -62,6 +62,17 @@ a:focus-visible { outline: 2px solid var(--teal); outline-offset: 4px; }
 .legal-copy .legal-action { margin-top: 1.35rem; }
 #operator-policy p { white-space: pre-line; }
 .legal-columns [role=status] { grid-column: 1 / -1; }
+/* Long document titles (the privacy policy) and their parts. */
+.legal-intro h1.legal-title-long { font-size: clamp(2.15rem, 6.1vw, 6.3rem); line-height: .96; }
+.legal-edition { margin: 1.3rem 0 0; color: var(--muted); font-size: 1.02rem; }
+.legal-copy ul { margin: .6rem 0 1.1rem; padding-left: 1.35rem; max-width: 72ch; }
+.legal-copy li { margin: .45rem 0; overflow-wrap: anywhere; }
+.legal-copy li::marker { color: var(--teal); }
+.legal-purpose { margin: 1.5rem 0; padding: .3rem clamp(1rem, 2.2vw, 1.6rem) .5rem; border: 1px solid var(--rule); border-radius: 1rem;
+  background: color-mix(in srgb, white 50%, var(--paper)); }
+.legal-purpose h3 { margin: 1rem 0 .35rem; }
+.legal-purpose dd { font-weight: 430; }
+.legal-purpose dl > div { grid-template-columns: minmax(8rem, 27%) minmax(0, 1fr); }
 @media (max-width: 48rem) {
   .legal-bar { min-height: 3.8rem; }
   .legal-columns { display: block; }
@@ -71,7 +82,7 @@ a:focus-visible { outline: 2px solid var(--teal); outline-offset: 4px; }
 @media (max-width: 33rem) {
   /* Phone numbers, mail and links in the details are easy to tap. */
   .legal-details dd a, dd a { display: inline-flex; align-items: center; min-height: 2.75rem; }
-  .legal-copy dl > div { grid-template-columns: 1fr; row-gap: .13rem; }
+  .legal-copy dl > div, .legal-purpose dl > div { grid-template-columns: 1fr; row-gap: .13rem; }
   .legal-copy dt { font-size: .9rem; }
   .legal-mark { width: 2rem; height: 1.6rem; }
 }
@@ -89,5 +100,6 @@ a:focus-visible { outline: 2px solid var(--teal); outline-offset: 4px; }
   .legal-intro h1 { font-size: 2.8rem; }
   .legal-copy section { padding-block: 1rem; }
   .legal-copy dl > div { break-inside: avoid; }
+  .legal-purpose { break-inside: avoid; background: none; }
   .legal-copy h2, .legal-copy h3 { break-after: avoid; }
 }

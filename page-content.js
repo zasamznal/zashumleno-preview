@@ -51,7 +51,7 @@
       registeringAuthority: 'Управление Федеральной налоговой службы по Тульской области', legalAddress: '', email: '',
       registryEmail: 'arkanin5x5@gmail.com', sourceUrl: 'https://egrul.nalog.ru/index.html', hours: 'Ежедневно 11:00–20:00, московское время',
       hoursSourceUrl: 'https://yandex.ru/maps/org/zashumleno/61005116584/',
-      payment: '', timing: '', warranty: '', policyText: '', siteOwnerName: '', siteOwnerAddress: '', siteOwnerEmail: ''
+      payment: '', timing: '', warranty: '', policyText: '', policyDate: '26.11.2026', siteOwnerName: '', siteOwnerAddress: '', siteOwnerEmail: ''
     }
   };
   const keys = defaults.sections.map(section => section.id);
@@ -295,6 +295,7 @@
     }
     if (page.legal.inn && !/^(?:\d{10}|\d{12})$/.test(page.legal.inn)) return 'ИНН должен содержать 10 или 12 цифр.';
     if (page.legal.registrationNumber && !/^(?:\d{13}|\d{15})$/.test(page.legal.registrationNumber)) return 'ОГРН содержит 13 цифр, ОГРНИП — 15.';
+    if (page.legal.policyDate && !/^\d{2}\.\d{2}\.\d{4}$/.test(page.legal.policyDate.trim())) return 'Дату редакции политики укажите в формате ДД.ММ.ГГГГ.';
     return '';
   }
 
@@ -326,6 +327,8 @@
     if (time) data.openingHours = 'Mo-Su ' + time[1].replace('.', ':').padStart(5, '0') + '-' + time[2].replace('.', ':').padStart(5, '0');
     else delete data.openingHours;
     data.sameAs = ['telegram', 'telegramChannel', 'vk'].map(key => contactUrl(key, contacts[key])).filter(Boolean);
+    if (legal?.name) data.legalName = legal.name; else delete data.legalName;
+    if (legal?.inn) data.taxID = legal.inn; else delete data.taxID;
     script.textContent = JSON.stringify(data);
   }
 
@@ -454,6 +457,15 @@
     copy('[data-entrance]', contacts.entrance);
     copy('[data-metro]', contacts.metro);
     copy('[data-hours]', legal.hours);
+    // Who provides the services, on every page footer (consumer protection law, art. 9).
+    each('[data-requisites]', el => {
+      const number = legal.registrationNumber;
+      // A label stays on the same line as its number.
+      const parts = [legal.name, legal.inn && 'ИНН\u00a0' + legal.inn,
+        number && (number.length === 13 ? 'ОГРН\u00a0' : 'ОГРНИП\u00a0') + number].filter(Boolean);
+      setText(el, parts.join(' · '));
+      el.hidden = !parts.length;
+    });
     copy('[data-person]', contacts.person);
     copy('[data-role]', contacts.role);
     copy('[data-route-caption]', contacts.routeCaption);

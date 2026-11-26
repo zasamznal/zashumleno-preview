@@ -27,9 +27,42 @@
     list.append(group);
   }
 
+  function validEmail(address) {
+    return typeof address === "string" && /^[^\s@?,#]+@[^\s@?,#]+\.[^\s@?,#]+$/.test(address);
+  }
+
   function emailRow(list, label, address) {
-    const valid = typeof address === "string" && /^[^\s@?,#]+@[^\s@?,#]+\.[^\s@?,#]+$/.test(address);
-    if (valid) row(list, label, address, "mailto:" + address);
+    if (validEmail(address)) row(list, label, address, "mailto:" + address);
+  }
+
+  // Operator details inside a document text (the privacy policy). The page keeps its printed values
+  // until the content arrives; a row whose value was cleared in the cabinet disappears.
+  function fillFields(contacts, legal, brand) {
+    const number = typeof legal.registrationNumber === "string" ? legal.registrationNumber.trim() : "";
+    const email = [legal.email, legal.registryEmail].find(validEmail) || "";
+    const phone = (contacts.phone || "").replace(/[^\d+]/g, "");
+    const values = {
+      brand,
+      name: legal.name,
+      inn: legal.inn,
+      registrationNumber: number,
+      registrationLabel: number.length === 13 ? "ОГРН" : "ОГРНИП",
+      address: [contacts.address, contacts.entrance].filter(Boolean).join(". "),
+      phone: contacts.phone,
+      email,
+      policyDate: legal.policyDate
+    };
+    const links = { phone: /^\+?\d{7,15}$/.test(phone) ? "tel:" + phone : "", email: email ? "mailto:" + email : "" };
+    const text = key => typeof values[key] === "string" ? values[key].trim() : "";
+    for (const element of document.querySelectorAll("[data-legal]")) {
+      const key = element.dataset.legal;
+      if (!text(key)) continue;
+      element.textContent = text(key);
+      if (element.matches("a") && links[key]) element.href = links[key];
+    }
+    for (const element of document.querySelectorAll("[data-legal-row]")) {
+      element.hidden = !text(element.dataset.legalRow);
+    }
   }
 
   function display(data) {
@@ -38,7 +71,9 @@
     const legal = page.legal || {};
     const brand = typeof page.brand === "string" ? page.brand : page.brand?.name || "Зашумлено";
     document.getElementById("legal-brand").textContent = brand;
-    document.title = "Информация для клиентов — " + brand;
+    // «ЗАШУМЛЕНО» on the logo reads as a regular name in the browser tab.
+    const tabName = brand === brand.toUpperCase() ? brand.charAt(0) + brand.slice(1).toLowerCase() : brand;
+    document.title = document.title.replace(/ — [^—]*$/, "") + " — " + tabName;
     if (window.StudioPage) {
       const colors = { accent: "--accent", darkAccent: "--accent-dark", altAccent: "--accent-alt", nightColor: "--night", paperColor: "--paper" };
       for (const [key, variable] of Object.entries(colors)) {
@@ -51,7 +86,36 @@
       document.querySelector(".legal-mark").hidden = custom;
       if (custom) image.src = logo;
     }
+    fillFields(contacts, legal, brand);
     const info = document.getElementById("studio-info");
+    if (info) details(info, contacts, legal, brand);
+    const owner = document.getElementById("owner-info");
+    if (owner) {
+      const ownerFields = owner.querySelector("dl");
+      ownerFields.replaceChildren();
+      row(ownerFields, "Наименование", legal.siteOwnerName);
+      row(ownerFields, "Адрес", legal.siteOwnerAddress);
+      emailRow(ownerFields, "Электронная почта", legal.siteOwnerEmail);
+      owner.hidden = !ownerFields.children.length;
+    }
+    const terms = document.getElementById("service-terms");
+    if (terms) {
+      terms.replaceChildren();
+      row(terms, "Оплата", legal.payment);
+      row(terms, "Сроки", legal.timing);
+      row(terms, "Гарантии", legal.warranty);
+      terms.hidden = !terms.children.length;
+    }
+    const policy = document.getElementById("operator-policy");
+    if (policy) {
+      const policyText = typeof legal.policyText === "string" ? legal.policyText.trim() : "";
+      policy.querySelector("p").textContent = policyText;
+      policy.hidden = !policyText;
+    }
+  }
+
+  // Requisites list of the page «Информация для клиентов».
+  function details(info, contacts, legal, brand) {
     info.replaceChildren();
     row(info, "Студия", brand);
     row(info, legal.roleLabel || "Предприниматель или организация", legal.name);
@@ -81,23 +145,6 @@
     verifiedLink("Источник режима работы", "Карточка мастерской", legal.hoursSourceUrl, ["yandex.ru", "yandex.com", "2gis.ru"]);
     const chat = window.StudioPage ? window.StudioPage.contactUrl("telegram", contacts.telegram) : fallback.contacts.telegram;
     if (chat) row(info, "Telegram студии", chat, chat);
-    const owner = document.getElementById("owner-info");
-    const ownerFields = owner.querySelector("dl");
-    ownerFields.replaceChildren();
-    row(ownerFields, "Наименование", legal.siteOwnerName);
-    row(ownerFields, "Адрес", legal.siteOwnerAddress);
-    emailRow(ownerFields, "Электронная почта", legal.siteOwnerEmail);
-    owner.hidden = !ownerFields.children.length;
-    const terms = document.getElementById("service-terms");
-    terms.replaceChildren();
-    row(terms, "Оплата", legal.payment);
-    row(terms, "Сроки", legal.timing);
-    row(terms, "Гарантии", legal.warranty);
-    terms.hidden = !terms.children.length;
-    const policy = document.getElementById("operator-policy");
-    const policyText = typeof legal.policyText === "string" ? legal.policyText.trim() : "";
-    policy.querySelector("p").textContent = policyText;
-    policy.hidden = !policyText;
   }
 
   const contents = [...document.querySelectorAll(".legal-nav a")];
