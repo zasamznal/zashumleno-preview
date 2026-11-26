@@ -249,6 +249,7 @@
       const car = describeVehicle();
       const quote = {
         service: 'Расчёт шумоизоляции',
+        workTitles: lines.map(line => line.title),
         price: totalText + (partial ? ' по рассчитанным позициям. Остальные работы — по запросу.' : ''),
         estimate: [car ? 'Автомобиль — ' + car + '.' : '',
           ...lines.map(line => line.title + ' — ' + line.priceText + (line.condition ? '. ' + line.condition : ''))].filter(Boolean).join('\n'),

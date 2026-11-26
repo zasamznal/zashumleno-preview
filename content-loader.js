@@ -21,7 +21,29 @@
   };
   window.STUDIO_SEED = structuredClone(seed);
   const preview = new URL(location.href).searchParams.get('preview') === 'draft';
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('demo-sw.js').catch(() => {});
+  async function connectDemo() {
+    const workers = navigator.serviceWorker;
+    if (!workers) return false;
+    const existing = workers.getRegistration().catch(() => null);
+    workers.register('demo-sw.js').catch(() => {});
+    if (workers.controller) return true;
+    const active = (await existing)?.active;
+    if (!active) return Boolean(workers.controller);
+    // A hard reload can bypass an installed worker. Let it reclaim this tab before reading saved changes.
+    return new Promise(resolve => {
+      const finish = () => {
+        clearTimeout(timeout);
+        workers.removeEventListener('controllerchange', finish);
+        resolve(Boolean(workers.controller));
+      };
+      const timeout = setTimeout(finish, 2500);
+      workers.addEventListener('controllerchange', finish);
+      if (workers.controller) finish();
+      else {
+        try { active.postMessage('claim'); } catch { finish(); }
+      }
+    });
+  }
 
   function notice(message) {
     const box = document.createElement('aside');
@@ -38,15 +60,25 @@
 
   async function load() {
     let content = seed;
-    if (navigator.serviceWorker?.controller) {
+    const connected = await connectDemo();
+    if (preview || connected) {
       try {
+        if (!connected) throw new Error('demo_unavailable');
         const response = await fetch(preview ? 'api/admin/content' : 'api/content', { cache: 'no-store' });
-        const result = response.ok ? await response.json() : null;
-        const stored = result && (preview ? result.draft : result.content);
-        if (stored && Array.isArray(stored.prices) && Array.isArray(stored.zones) && Array.isArray(stored.works)) {
+        if (!response.ok) throw new Error('content_unavailable');
+        const result = await response.json();
+        const stored = preview ? result.draft : result.content;
+        if (stored) {
+          if (![stored.prices, stored.zones, stored.works].every(Array.isArray)) throw new Error('invalid_content');
           content = window.StudioContent ? window.StudioContent.upgrade(stored, seed) : stored;
         }
-      } catch {}
+      } catch {
+        if (preview) {
+          notice('Не удалось открыть черновик. Проверьте вход в демо-кабинет.');
+          document.querySelector('main').hidden = true;
+          return false;
+        }
+      }
     }
     window.STUDIO_PRICES = content.prices;
     window.STUDIO_ZONES = content.zones;
@@ -54,7 +86,14 @@
     window.STUDIO_VEHICLES = content.vehicles && typeof content.vehicles === 'object' ? content.vehicles : seed.vehicles;
     window.STUDIO_MATERIALS = Array.isArray(content.materials) ? content.materials : seed.materials;
     window.StudioPage.apply(content.page);
-    if (preview) notice('Вы просматриваете черновик демо-кабинета.');
+    if (preview) {
+      for (const link of document.querySelectorAll('footer a[href="legal.html"], footer a[href="privacy.html"]')) {
+        const url = new URL(link.href);
+        url.searchParams.set('preview', 'draft');
+        link.href = url.href;
+      }
+      notice('Вы просматриваете черновик демо-кабинета.');
+    }
     return true;
   }
   window.STUDIO_READY = load();

@@ -6,7 +6,7 @@
   const roundings = [1, 10, 50, 100, 500, 1000];
   // Visitors often type a brand in Russian; the canonical names are those of the cabinet list.
   const aliases = {
-    'мерседес': 'Mercedes-Benz', 'мерс': 'Mercedes-Benz', 'mercedes': 'Mercedes-Benz', 'benz': 'Mercedes-Benz',
+    'мерседес': 'Mercedes-Benz', 'мерседес бенц': 'Mercedes-Benz', 'мерс': 'Mercedes-Benz', 'mercedes': 'Mercedes-Benz', 'benz': 'Mercedes-Benz',
     'бмв': 'BMW', 'беха': 'BMW', 'ауди': 'Audi', 'лексус': 'Lexus', 'порше': 'Porsche', 'вольво': 'Volvo',
     'ленд ровер': 'Land Rover', 'лэнд ровер': 'Land Rover', 'рендж ровер': 'Land Rover', 'range rover': 'Land Rover',
     'ягуар': 'Jaguar', 'инфинити': 'Infiniti', 'генезис': 'Genesis', 'кадиллак': 'Cadillac', 'линкольн': 'Lincoln',
@@ -31,7 +31,7 @@
   };
 
   const clean = value => String(value ?? '').trim().replace(/\s+/g, ' ');
-  const fold = value => clean(value).toLocaleLowerCase('ru').replace(/ё/g, 'е');
+  const fold = value => clean(value).toLocaleLowerCase('ru').replace(/ё/g, 'е').replace(/[\s\p{Dash_Punctuation}]+/gu, ' ');
   const percentOf = value => {
     const number = typeof value === 'string' ? Number(value.replace(',', '.').replace(/[^\d.+-]/g, '')) : Number(value);
     return Number.isFinite(number) ? Math.max(-50, Math.min(300, Math.round(number * 10) / 10)) : 0;
@@ -88,7 +88,8 @@
     }
     for (const [alias, brand] of Object.entries(aliases)) {
       const entry = index.get(fold(brand));
-      if (entry && !index.has(alias)) index.set(alias, entry);
+      const aliasKey = fold(alias);
+      if (entry && !index.has(aliasKey)) index.set(aliasKey, entry);
     }
     return index;
   }

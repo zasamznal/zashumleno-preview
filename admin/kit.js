@@ -161,6 +161,14 @@
     return window.StudioPage?.mediaUrl(value) || '';
   }
 
+  function acceptsFile(file, accept) {
+    const formats = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+      heic: 'image/heic', heif: 'image/heif', mp4: 'video/mp4', pdf: 'application/pdf', zip: 'application/zip' };
+    const extension = file.name.split('.').pop().toLowerCase();
+    const mime = file.type === 'application/x-zip-compressed' ? 'application/zip' : file.type || formats[extension];
+    return accept.split(',').includes(mime);
+  }
+
   // Address of the site's home: files such as «sheets/…» are relative to it (the demo copy lives in a subfolder).
   function siteRoot() {
     return new URL(document.querySelector('.a-top-link')?.getAttribute('href') ?? '/', document.baseURI);
@@ -182,7 +190,8 @@
       return video;
     }
     if (kind === 'file') {
-      const name = decodeURIComponent(url.split(/[?#]/)[0].split('/').pop() || 'файл');
+      let name = new URL(absolute).pathname.split('/').pop() || 'файл';
+      try { name = decodeURIComponent(name); } catch { /* A file name may contain a literal percent sign. */ }
       const link = el('a', 'k-file-link');
       link.href = absolute; link.target = '_blank'; link.rel = 'noopener';
       link.title = 'Открыть: ' + name;
@@ -265,6 +274,11 @@
     input.addEventListener('change', async () => {
       const file = input.files?.[0];
       if (!file) return;
+      if (!acceptsFile(file, input.accept)) {
+        status.textContent = 'Этот формат файла не подходит для поля «' + label + '».';
+        input.value = '';
+        return;
+      }
       pick.disabled = true;
       status.textContent = 'Загружаем «' + file.name + '»…';
       try {
@@ -305,5 +319,5 @@
     } catch { return 21; }
   }
 
-  window.StudioKit = { el, button, card, wrap, text, number, select, color, check, media, mediaUrl, previewOf, siteRoot, move, uid, contrast };
+  window.StudioKit = { el, button, card, wrap, text, number, select, color, check, media, mediaUrl, acceptsFile, previewOf, siteRoot, move, uid, contrast };
 })();

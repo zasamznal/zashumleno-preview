@@ -91,15 +91,15 @@
     return { service, price };
   }
 
-  function ask(detail) {
+  function ask(getDetail) {
     const link = el('a', 'rates-inquiry', 'Обсудить');
     link.href = '#request';
-    link.setAttribute('aria-label', 'Обсудить — ' + detail.service);
-    link.addEventListener('click', () => window.dispatchEvent(new CustomEvent('studio:quote', { detail })));
+    link.setAttribute('aria-label', 'Обсудить — ' + getDetail().service);
+    link.addEventListener('click', () => window.dispatchEvent(new CustomEvent('studio:quote', { detail: getDetail() })));
     return link;
   }
 
-  function rateTable(rate, indexes, canRequest) {
+  function rateTable(rate, indexes, canRequest, bindPrice, rowSelection) {
     const wrapper = el('div', 'rates-table-wrap');
     const table = el('table', 'rates-table');
     const head = table.createTHead().insertRow();
@@ -111,26 +111,42 @@
       head.append(column);
     }
     const body = table.createTBody();
-    for (const values of rate.rows) {
+    for (const [rowIndex, values] of rate.rows.entries()) {
       const row = body.insertRow();
       rate.columns.forEach((title, i) => {
         const cell = row.insertCell();
         cell.dataset.label = title;
         cell.textContent = values[i] || '—';
-        if (indexes.includes(i)) cell.className = 'rates-money';
+        if (indexes.includes(i)) {
+          cell.className = 'rates-money';
+          bindPrice(cell, rowIndex, i);
+        }
       });
       if (hasActions) {
         const cell = row.insertCell();
         cell.className = 'rates-row-action';
-        cell.append(ask(selection(rate, values, indexes)));
+        cell.append(ask(() => rowSelection(rowIndex)));
       }
     }
     wrapper.append(table);
     return wrapper;
   }
 
-  function rateCard(rate, seed, canRequest) {
-    const indexes = amountColumns(rate);
+  function rateCard(rate, seed, canRequest, engine, rateIndex, updates) {
+    const indexes = window.StudioEstimate?.priceColumns(rate) || amountColumns(rate);
+    const choiceId = (row, col) => 'estimate-' + rateIndex + '-' + row + '-' + col;
+    const price = (row, col) => engine?.price(choiceId(row, col))?.priceText || rate.rows[row]?.[col];
+    function bindPrice(node, row, col) {
+      updates.push(() => { node.textContent = price(row, col) || '—'; });
+    }
+    function rowSelection(row) {
+      const values = rate.rows[row].map((value, col) => indexes.includes(col) ? price(row, col) : value);
+      const car = engine?.summarize().quote;
+      const ids = new Set(indexes.map(col => choiceId(row, col)));
+      const dependsOnCar = engine?.zones.some(zone => zone.groups.some(group =>
+        group.choices.some(choice => ids.has(choice.id) && choice.scalable)));
+      return { ...selection(rate, values, indexes), model: car?.model, body: car?.body, workTitles: dependsOnCar ? [] : undefined };
+    }
     const first = rate.rows[0] || [];
     const several = rate.rows.length > 1;
     const details = el('details', 'rates-line');
@@ -139,6 +155,7 @@
     const amountIndex = indexes[0];
     const quote = el('span', 'rates-summary-price', several ? rowCount(rate.rows.length) : first[amountIndex] || 'По запросу');
     if (several) quote.classList.add('rates-count');
+    else if (amountIndex != null && first.length) bindPrice(quote, 0, amountIndex);
     const condition = rate.columns[amountIndex] || '';
     if (!several && /^цена\s+за\s|^за\s/iu.test(condition)) {
       title.append(el('small', '', condition.replace(/^цена\s+/iu, '').toLowerCase()));
@@ -151,7 +168,7 @@
     details.append(summary);
 
     const content = el('div', 'rates-detail');
-    content.append(rateTable(rate, indexes, canRequest));
+    content.append(rateTable(rate, indexes, canRequest, bindPrice, rowSelection));
     if (rate.notes?.length) {
       const notes = el('ul', 'rates-notes');
       rate.notes.forEach(line => notes.append(el('li', '', line)));
@@ -160,7 +177,7 @@
     const actions = el('div', 'rates-actions');
     const sheet = currentSheet(rate, seed);
     if (sheet) actions.append(external('Оригинал прайса', sheet, 'rates-original'));
-    if (!several && canRequest && first.length) actions.append(ask(selection(rate, first, indexes)));
+    if (!several && canRequest && first.length) actions.append(ask(() => rowSelection(0)));
     if (actions.childElementCount) content.append(actions);
     details.append(content);
     return details;
@@ -173,18 +190,19 @@
     return shortTitles[words.toLowerCase()] || words;
   }
 
-  function bodyTable(group) {
+  function bodyTable(group, engine, updates) {
     const pricing = window.StudioVehicles;
     const vehicles = window.STUDIO_VEHICLES;
-    if (!pricing || !vehicles || !window.StudioEstimate || !group.zone) return null;
+    if (!pricing || !vehicles || !engine || !group.zone) return null;
     const config = pricing.normalize(vehicles);
     if (!config.bodies.length) return null;
-    const engine = window.StudioEstimate.create(window.STUDIO_PRICES || [], window.STUDIO_ZONES || []);
     const zone = engine.zones.find(item => item.id === group.zone.id);
     const choices = (zone?.groups || []).flatMap(item => item.choices)
       .filter(choice => choice.scalable && choice.min != null && !choice.required);
     if (!choices.length) return null;
-    const classes = config.classes.length ? config.classes : [{ id: 'all', title: 'Все марки', percent: 0, brands: [] }];
+    const classes = [...config.classes];
+    if (!classes.some(group => group.percent === 0)) classes.unshift({ id: '', title: classes.length ? 'Без наценки марки' : 'Все марки', percent: 0, brands: [] });
+    const baseClass = classes.find(group => group.percent === 0);
     const format = new Intl.NumberFormat('ru-RU');
     const box = el('section', 'rates-bodies');
     const head = el('div', 'rates-bodies-head');
@@ -286,21 +304,21 @@
       button.addEventListener('click', () => { current = group; paint(); });
       switcher.append(button);
     }
-    function follow(detail) {
-      const vehicle = detail?.vehicle;
-      const brand = vehicle?.brand ? pricing.findBrand(config, vehicle.brand) : null;
-      if (brand) current = classes.find(item => item.id === brand.group.id) || current;
+    let lastBrand;
+    function follow(vehicle) {
+      if (vehicle.brand !== lastBrand) {
+        current = pricing.findBrand(config, vehicle.brand)?.group || baseClass;
+        lastBrand = vehicle.brand;
+      }
       mark(vehicle?.body);
       paint();
     }
-    window.addEventListener('studio:vehicle', event => { if (box.isConnected) follow(event.detail); });
-    const saved = window.StudioCarPicker?.stored?.();
-    follow({ vehicle: saved });
+    updates.push(follow);
     switcher.hidden = classes.length < 2;
     return box;
   }
 
-  function groupPanel(group, seed, canRequest) {
+  function groupPanel(group, seed, canRequest, prices, engine, updates) {
     const panel = el('div', 'rates-current');
     const zone = group.zone;
     const intro = el('div', 'rates-intro');
@@ -309,6 +327,13 @@
     title.id = 'rates-zone-title';
     copy.append(title);
     if (zone?.description) copy.append(el('p', '', zone.description));
+    const priceContext = el('p', 'rates-car-context');
+    updates.push(() => {
+      const car = engine?.describeVehicle();
+      priceContext.hidden = !car;
+      priceContext.textContent = car ? 'Цены для автомобиля — ' + car + '.' : '';
+    });
+    copy.append(priceContext);
     intro.append(copy);
     const photo = resource(zone?.image);
     if (photo) {
@@ -321,13 +346,13 @@
     }
     panel.append(intro);
     const list = el('div', 'rates-lines');
-    group.rates.forEach(rate => list.append(rateCard(rate, seed?.prices, canRequest)));
+    group.rates.forEach(rate => list.append(rateCard(rate, seed?.prices, canRequest, engine, prices.indexOf(rate), updates)));
     if (!group.rates.length) {
       list.append(el('p', 'rates-empty', 'Стоимость для этой зоны уточняется по модели автомобиля.'));
-      if (canRequest) list.append(ask({ service: group.name, price: '' }));
+      if (canRequest) list.append(ask(() => ({ service: group.name, price: '' })));
     }
     panel.append(list);
-    const bodies = bodyTable(group);
+    const bodies = bodyTable(group, engine, updates);
     if (bodies) panel.append(bodies);
     const originalZone = seed?.zones?.find(item => item.id === group.id);
     const initialRates = seed?.prices?.filter(rate => rate.group === group.name);
@@ -378,6 +403,17 @@
     const status = el('span', 'rates-sr');
     status.setAttribute('role', 'status');
     let current = null;
+    const engine = window.StudioEstimate?.create(prices, window.STUDIO_ZONES || [], window.STUDIO_VEHICLES);
+    let vehicle = window.StudioCarPicker?.stored?.() || {};
+    const updates = [];
+    function refresh() {
+      engine?.setVehicle(vehicle);
+      for (const update of updates) update(vehicle);
+    }
+    window.addEventListener('studio:vehicle', event => {
+      vehicle = event.detail?.vehicle || {};
+      refresh();
+    });
 
     function change(value, updateUrl = false) {
       const key = String(value || '').toLocaleLowerCase('ru');
@@ -386,7 +422,9 @@
         current = group;
         select.value = group.id;
         groupButtons.forEach((button, id) => button.setAttribute('aria-pressed', String(id === group.id)));
-        output.replaceChildren(groupPanel(group, seed, canRequest));
+        updates.length = 0;
+        output.replaceChildren(groupPanel(group, seed, canRequest, prices, engine, updates));
+        refresh();
         status.textContent = group.name + ', ' + sheetCount(group.rates.length);
       }
       if (updateUrl && location.protocol !== 'file:') {

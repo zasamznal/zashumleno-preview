@@ -280,6 +280,7 @@
   .rates-intro-text { display: contents; }
   .rates-intro h3 { grid-column: 1; grid-row: 1; }
   .rates-intro p { grid-column: 1/-1; grid-row: 2; margin: 0; }
+  .rates-intro .rates-car-context { grid-row: 3; }
   .rates-photo { grid-column: 2; grid-row: 1; width: 5.25rem; aspect-ratio: 1.9; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -173,6 +173,7 @@
   }
 
   function showLogin(message = '') {
+    if (previewOpen()) togglePreview(false);
     byId('app').hidden = true;
     byId('logout').hidden = true;
     byId('entry').hidden = false;
@@ -399,15 +400,13 @@
   }
   async function togglePreview(force) {
     const open = typeof force === 'boolean' ? force : !previewOpen();
-    if (open && dirty) {
-      if (!checkEditor()) return;
-      await perform('preview');
-    }
+    if (open && dirty && !await perform('preview')) return;
     document.documentElement.classList.toggle('a-preview-open', open);
     byId('preview-pane').hidden = !open;
     byId('preview').setAttribute('aria-expanded', String(open));
     const frame = byId('preview-frame');
-    if (open && !frame.getAttribute('src')) frame.src = './?preview=draft';
+    if (open) frame.src = byId('preview').href;
+    else frame.removeAttribute('src');
   }
 
   function navigationButton(id, className, label) {
@@ -589,7 +588,7 @@
     if (section) {
       validate = section.render({ host, data: content, change: changed, notify, upload, published, navigate });
     } else { renderHome(host); }
-    if (push && location.hash !== '#' + next) history.pushState(null, '', '#' + next);
+    if (push && location.hash !== '#' + next) history.pushState(null, '', new URL('#' + next, location.href));
     if (focus) { byId('screen-title').focus({ preventScroll: true }); window.scrollTo(0, 0); }
   }
 
@@ -662,7 +661,7 @@
       const tab = window.open('about:blank', '_blank');
       if (tab) { tab.opener = null; tab.document.title = 'Предпросмотр'; tab.document.body.textContent = 'Сохраняем черновик…'; }
       if (await perform('preview')) {
-        if (tab) tab.location.replace('./?preview=draft');
+        if (tab) tab.location.replace(byId('preview').href);
         else notify('Черновик сохранён. Нажмите «Предпросмотр», чтобы открыть его.');
       } else if (tab) tab.close();
     });

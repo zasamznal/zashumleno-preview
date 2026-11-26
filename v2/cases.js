@@ -74,7 +74,7 @@
     layout.append(mobile, catalogue, preview);
     host.replaceChildren(layout);
 
-    let selected = 0;
+    let selected = -1;
     let activeVideo;
     let touchStart;
     for (const [index, work] of works.entries()) {
@@ -199,7 +199,7 @@
     }
 
     function show(index) {
-      if (index < 0 || index >= works.length) return;
+      if (index === selected || index < 0 || index >= works.length) return;
       selected = index;
       const work = works[index];
       renderMedia(work);
@@ -257,6 +257,7 @@
       }
     });
     request.addEventListener('click', () => {
+      activeVideo?.pause();
       const work = works[selected];
       window.dispatchEvent(new CustomEvent('studio:quote', {
         detail: {model: work.model || '', service: work.title || work.model}

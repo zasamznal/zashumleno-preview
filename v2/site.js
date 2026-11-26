@@ -3,6 +3,8 @@
   if (!head) return;
   const button = head.querySelector('.menu-toggle');
   const nav = head.querySelector('[data-nav]');
+  const contact = head.querySelector('.head-contact');
+  const narrow = matchMedia('(max-width: 58rem)');
   function menu(open) {
     head.classList.toggle('menu-open', open);
     button.setAttribute('aria-expanded', String(open));
@@ -10,11 +12,21 @@
   }
   button.addEventListener('click', () => menu(!head.classList.contains('menu-open')));
   nav.addEventListener('click', event => { if (event.target.closest('a')) menu(false); });
+  head.addEventListener('focusout', event => {
+    if (!head.contains(event.relatedTarget)) menu(false);
+  });
   document.addEventListener('pointerdown', event => { if (!head.contains(event.target)) menu(false); });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && head.classList.contains('menu-open')) { menu(false); button.focus(); }
   });
-  matchMedia('(max-width: 58rem)').addEventListener('change', () => menu(false));
+  function arrangeNav() {
+    menu(false);
+    // Keep Tab order consistent with the row and its dropdown at either width.
+    if (narrow.matches) button.after(nav);
+    else contact.before(nav);
+  }
+  arrangeNav();
+  narrow.addEventListener('change', arrangeNav);
 
   // A direct section link can scroll before the CMS has inserted the gallery and calculator.
   const initialHash = location.hash;

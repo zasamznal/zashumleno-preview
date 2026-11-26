@@ -350,6 +350,7 @@
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const compact = matchMedia('(max-width: 34rem)');
     let current = zones[0];
+    let packageZone;
     let rate = current.rates[0];
     let layers = [];
     let active = -1;
@@ -583,14 +584,17 @@
 
     function render(animate) {
       zoneButtons.forEach((button, index) => button.setAttribute('aria-pressed', String(zones[index] === current)));
-      packages.replaceChildren(...current.rates.map(item => {
-        const button = el('button', 'ly-package', shortTitle(item));
-        button.type = 'button';
-        button.title = item.title;
-        button.setAttribute('aria-pressed', String(item === rate));
-        button.addEventListener('click', () => { if (rate !== item) { rate = item; render(true); } });
-        return button;
-      }));
+      if (packageZone !== current) {
+        packages.replaceChildren(...current.rates.map(item => {
+          const button = el('button', 'ly-package', shortTitle(item));
+          button.type = 'button';
+          button.title = item.title;
+          button.addEventListener('click', () => { if (rate !== item) { rate = item; render(true); } });
+          return button;
+        }));
+        packageZone = current;
+      }
+      [...packages.children].forEach((button, index) => button.setAttribute('aria-pressed', String(current.rates[index] === rate)));
       packages.hidden = current.rates.length < 2;
       layers = stackOf(rate);
       active = -1;

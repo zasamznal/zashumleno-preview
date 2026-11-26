@@ -1,4 +1,6 @@
 (() => {
+  const draftMode = new URLSearchParams(location.search).get("preview") === "draft";
+  const demoWorker = document.currentScript?.dataset.demoWorker;
   const fallback = {
     contacts: {
       phone: "+7 910 005-77-05",
@@ -56,9 +58,11 @@
     const text = key => typeof values[key] === "string" ? values[key].trim() : "";
     for (const element of document.querySelectorAll("[data-legal]")) {
       const key = element.dataset.legal;
-      if (!text(key)) continue;
       element.textContent = text(key);
-      if (element.matches("a") && links[key]) element.href = links[key];
+      if (element.matches("a")) {
+        if (links[key]) element.href = links[key];
+        else element.removeAttribute("href");
+      }
     }
     for (const element of document.querySelectorAll("[data-legal-row]")) {
       element.hidden = !text(element.dataset.legalRow);
@@ -147,6 +151,45 @@
     if (chat) row(info, "Telegram студии", chat, chat);
   }
 
+  async function loadPage() {
+    display();
+    if (!/^https?:$/.test(location.protocol)) return;
+    if (draftMode) {
+      for (const link of document.querySelectorAll('[data-main], a[href="legal.html"], a[href="privacy.html"]')) {
+        const back = new URL(link.href);
+        back.searchParams.set("preview", "draft");
+        link.href = back.href;
+      }
+    }
+    try {
+      // On Pages the browser-local demo worker handles the same API as the studio server.
+      if (demoWorker && !navigator.serviceWorker?.controller) {
+        if (!navigator.serviceWorker) throw new Error("Demo storage is unavailable");
+        await navigator.serviceWorker.register(demoWorker);
+        const registration = await navigator.serviceWorker.ready;
+        if (!navigator.serviceWorker.controller) {
+          navigator.serviceWorker.addEventListener("controllerchange", loadPage, { once: true });
+          registration.active.postMessage("claim");
+          return;
+        }
+      }
+      const response = await fetch(draftMode ? "./api/admin/content" : "./api/content", {
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) throw new Error("Content is unavailable");
+      const snapshot = await response.json();
+      display((draftMode ? snapshot.draft : snapshot.content)?.page);
+    } catch {
+      if (draftMode) {
+        const message = document.createElement("p");
+        message.setAttribute("role", "status");
+        message.textContent = "Черновик недоступен. Откройте предпросмотр из панели управления.";
+        document.querySelector(".legal-nav").before(message);
+      }
+    }
+  }
   const contents = [...document.querySelectorAll(".legal-nav a")];
   const sections = contents.map(link => document.querySelector(link.hash));
   function updateContents() {
@@ -167,5 +210,5 @@
   const observer = new IntersectionObserver(updateContents, { rootMargin: "-24% 0px -70% 0px" });
   sections.forEach(section => observer.observe(section));
   updateContents();
-  display();
+  loadPage();
 })();

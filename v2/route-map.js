@@ -237,7 +237,7 @@
         item.panel.hidden = !selected;
       }
       if (id === 'map') loadMap();
-      updatePlayback();
+      if (drawn) updatePlayback();
     }
 
     if (!drawn) {

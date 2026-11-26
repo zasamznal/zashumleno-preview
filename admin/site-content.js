@@ -298,7 +298,7 @@
     field(ctx, privacy, l, 'policyDate', 'Дата редакции политики', { hint: 'ДД.ММ.ГГГГ', limit: 10,
       note: 'Меняйте дату, когда обновляете реквизиты или текст политики.' });
     const open = el('a', 'pe-button', 'Открыть страницу политики');
-    open.href = 'privacy.html';
+    open.href = 'privacy.html?preview=draft';
     open.target = '_blank';
     open.rel = 'noopener';
     const openBox = el('div', 'pe-field pe-field-action');

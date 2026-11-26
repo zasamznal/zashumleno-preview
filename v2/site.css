@@ -123,10 +123,11 @@ a { color: inherit; text-underline-offset: .23em; }
   .head-row { min-height: 4.2rem; gap: .7rem; }
   .head-contact { margin-left: auto; }
   .menu-toggle { display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; }
+  .head-row:has(.topnav:empty) .menu-toggle { display: none; }
   .menu-toggle[aria-expanded=true] span:first-child { transform: translateY(4px) rotate(45deg); }
   .menu-toggle[aria-expanded=true] span:last-child { transform: translateY(-4px) rotate(-45deg); }
   .topnav { display: none; position: absolute; inset: 100% 0 auto; padding: .8rem var(--gutter) 1rem; background: var(--night-deep); border-top: 1px solid var(--line-dark); box-shadow: 0 16px 16px color-mix(in srgb, var(--night-deep) 30%, transparent); }
-  .site-head.menu-open .topnav { display: grid; gap: .1rem; }
+  .site-head.menu-open .topnav:not(:empty) { display: grid; gap: .1rem; }
   .cover-inner { min-height: 32rem; }
   .cover-copy { width: 55%; }
   .cover h1 { font-size: clamp(4.35rem,8.1vw,5.4rem); }

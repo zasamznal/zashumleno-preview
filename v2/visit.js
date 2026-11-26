@@ -64,8 +64,16 @@
     dialog.append(top, video, fileLink);
 
     let origin = button;
+    let requestedStart = 0;
+    function seekToStart() {
+      const end = Number.isFinite(video.duration) ? Math.max(0, video.duration - .5) : requestedStart;
+      try {
+        video.currentTime = Math.min(requestedStart, end);
+      } catch { /* A non-seekable source can still play from its current position. */ }
+    }
     function open(time, from) {
       origin = from || button;
+      requestedStart = Number.isFinite(time) ? Math.max(0, time) : 0;
       if (!video.hasAttribute('src')) video.src = videoUrl;
       if (typeof dialog.showModal !== 'function') {
         fileLink.click();
@@ -73,12 +81,7 @@
       }
       if (!dialog.open) dialog.showModal();
       document.documentElement.classList.add('visit-dialog-open');
-      const start = Number(time);
-      if (Number.isFinite(start) && start > 0) {
-        // The arrival steps open the video at their own moment.
-        const seek = () => { try { video.currentTime = Math.min(start, (video.duration || start + 1) - .5); } catch { /* Seeking is optional. */ } };
-        if (video.readyState >= 1) seek(); else video.addEventListener('loadedmetadata', seek, { once: true });
-      }
+      if (video.readyState >= 1) seekToStart();
       video.play().catch(() => {
         if (video.error) fileLink.hidden = false;
       });
@@ -98,6 +101,7 @@
     });
     video.addEventListener('error', () => { fileLink.hidden = false; });
     video.addEventListener('loadedmetadata', () => {
+      if (dialog.open) seekToStart();
       fileLink.hidden = true;
       if (!Number.isFinite(video.duration)) return;
       const seconds = Math.round(video.duration);

@@ -56,6 +56,11 @@
     input.addEventListener('change', async () => {
       const files = [...(input.files || [])];
       input.value = '';
+      const unsupported = files.find(file => !K.acceptsFile(file, input.accept));
+      if (unsupported) {
+        status.textContent = 'Для галереи нужно фото. Проверьте формат файла «' + unsupported.name + '».';
+        return;
+      }
       add.disabled = true;
       let done = 0;
       for (const file of files) {

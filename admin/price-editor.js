@@ -10,9 +10,11 @@
   const key = value => compact(value).toLocaleLowerCase('ru');
   const rub = value => String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   const nbsp = text => String(text).replace(/ (?=\d)|(?<=\d) (?=₽)/g, '\u00a0');
-  const typedNumber = text => {
-    const digits = String(text ?? '').replace(/[^\d]/g, '').slice(0, 9);
-    return digits ? Number(digits) : null;
+  const typedNumber = (text, maximum = 999999999) => {
+    const digits = String(text ?? '').trim().replace(/(?:₽|руб\.?)$/i, '').replace(/\s/g, '');
+    if (!/^\d+$/.test(digits)) return null;
+    const value = Number(digits);
+    return value > 0 && value <= maximum ? value : null;
   };
   const modes = [['from', 'от'], ['fixed', 'ровно'], ['range', 'от … до'], ['ask', 'по запросу'], ['text', 'свой текст']];
   const storageKey = 'zs-admin-price-zone';
@@ -421,16 +423,16 @@
         ruble.hidden = !numbers;
         dash.hidden = max.hidden = state.mode !== 'range';
         free.hidden = state.mode !== 'text';
-        if (document.activeElement !== min) min.value = state.min != null ? rub(state.min) : '';
-        if (document.activeElement !== max) max.value = state.max != null && state.mode === 'range' ? rub(state.max) : '';
+        if (document.activeElement !== min && !box.classList.contains('is-invalid')) min.value = state.min != null ? rub(state.min) : '';
+        if (document.activeElement !== max && !box.classList.contains('is-invalid')) max.value = state.max != null && state.mode === 'range' ? rub(state.max) : '';
         if (document.activeElement !== free) free.value = state.mode === 'text' ? state.text : '';
-        site.textContent = 'На сайте: ' + writePrice(state).replace(/ /g, ' ');
+        site.textContent = 'На сайте: ' + String(row[column] ?? '').replace(/ /g, ' ');
       }
       function commit() {
         error.textContent = '';
         box.classList.remove('is-invalid');
         if ((state.mode === 'from' || state.mode === 'fixed' || state.mode === 'range') && !(state.min > 0)) {
-          error.textContent = 'Впишите цену цифрами';
+          error.textContent = 'Впишите целую цену от 1 до 999 999 999 ₽.';
           box.classList.add('is-invalid');
           return;
         }
@@ -498,20 +500,31 @@
         input.autocomplete = 'off';
         field.append(input, el('span', 'pz-rub', '₽'));
         const state = el('span', 'pz-body-state');
+        const error = el('small', 'pz-error');
+        error.id = id + '-error';
+        input.setAttribute('aria-describedby', error.id);
         const reset = el('button', 'pz-body-reset', 'Как по наценке');
         reset.type = 'button';
         reset.addEventListener('click', () => {
           if (rate.bodyPrices) delete rate.bodyPrices[body.id];
           if (rate.bodyPrices && !Object.keys(rate.bodyPrices).length) delete rate.bodyPrices;
+          error.textContent = '';
+          input.removeAttribute('aria-invalid');
           input.value = '';
           refresh();
           changed(card, rate, index);
         });
         input.addEventListener('focus', () => { if (!input.value) input.value = input.placeholder; input.select(); });
         input.addEventListener('input', () => {
-          const value = typedNumber(input.value);
-          const auto = automatic(body);
-          if (value == null || value === auto) {
+          const value = typedNumber(input.value, 100000000);
+          if (input.value.trim() && value == null) {
+            error.textContent = 'Впишите целую цену от 1 до 100 000 000 ₽ или очистите поле.';
+            input.setAttribute('aria-invalid', 'true');
+            return;
+          }
+          error.textContent = '';
+          input.removeAttribute('aria-invalid');
+          if (value == null) {
             if (rate.bodyPrices) delete rate.bodyPrices[body.id];
             if (rate.bodyPrices && !Object.keys(rate.bodyPrices).length) delete rate.bodyPrices;
           } else {
@@ -521,7 +534,7 @@
           changed(card, rate, index);
         });
         input.addEventListener('blur', () => paint(cellView, true));
-        cell.append(label, field, state, reset);
+        cell.append(label, field, state, reset, error);
         const cellView = { body, cell, input, state, reset };
         return cellView;
       });
@@ -549,7 +562,7 @@
         const auto = automatic(view.body);
         const typed = Number(rate.bodyPrices?.[view.body.id]) || 0;
         view.input.placeholder = auto != null ? rub(auto) : '—';
-        if (formatted || document.activeElement !== view.input) view.input.value = typed ? rub(typed) : '';
+        if (!view.input.hasAttribute('aria-invalid') && (formatted || document.activeElement !== view.input)) view.input.value = typed ? rub(typed) : '';
         view.cell.dataset.typed = String(Boolean(typed));
         const percent = pricing.bodyPercent(config, view.body.id, zoneId);
         view.state.textContent = typed ? 'вписано вручную' : percent ? 'наценка ' + (percent > 0 ? '+' : '') + String(percent).replace('.', ',') + '%' : 'как в прайсе';
@@ -580,7 +593,7 @@
     root.append(tiles, panel);
     drawTiles();
     drawZone();
-    return () => check(data);
+    return () => [...root.querySelectorAll('.pz-error')].find(error => error.textContent && !error.closest('[hidden]'))?.textContent || check(data);
   }
 
   // Name of the materials of a kit as coloured stripes, metal at the bottom.

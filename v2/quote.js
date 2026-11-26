@@ -39,13 +39,15 @@
     const status = form.querySelector(".zq-status");
     const manual = form.querySelector(".zq-manual");
     const send = form.querySelector(".zq-send");
-    let estimate = "";
-    let price = "";
-    let body = "";
+    let transfer = null;
+    let carWasPrefilled = false;
 
     if (!telegram) {
       send.hidden = true;
       note.textContent = "Скопируйте запрос для консультации со студией.";
+    }
+    if (new URL(location.href).searchParams.get("preview") === "draft") {
+      form.querySelector(".zq-policy").href = "privacy.html?preview=draft#request-form";
     }
     const cars = [...new Set((window.STUDIO_WORKS || []).map(work => work.model).filter(Boolean))];
     const carList = form.querySelector("#zq-cars");
@@ -69,9 +71,7 @@
       manual.value = "";
     }
     function clearEstimate() {
-      price = "";
-      estimate = "";
-      body = "";
+      transfer = null;
       selection.hidden = true;
       selectedLines.textContent = "";
       sum.textContent = "";
@@ -79,24 +79,46 @@
       service.querySelector("option[data-transfer]")?.remove();
       clearFeedback();
     }
+    function modelKey(value) {
+      return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("ru");
+    }
+    function matchesCalculatedCar() {
+      if (transfer?.model == null) return true;
+      const entered = modelKey(car.value);
+      return entered === transfer.model ||
+        (transfer.model !== "" && entered.startsWith(transfer.model + " "));
+    }
+    function renderTransfer() {
+      if (!transfer) return;
+      const matches = matchesCalculatedCar();
+      selection.hidden = false;
+      selectedLines.textContent = (matches ? transfer.estimate : transfer.workTitles) || service.value;
+      sum.textContent = matches ? (transfer.price ? "Предварительно — " + transfer.price : "") :
+        "Стоимость для указанного автомобиля нужно уточнить.";
+      sum.hidden = !sum.textContent;
+    }
     function compose() {
       car.setCustomValidity(car.value.trim() ? "" : "Укажите марку и модель автомобиля.");
       if (!form.reportValidity()) return "";
       const greeting = page.contacts.person ? page.contacts.person + ", здравствуйте!" : "Здравствуйте!";
       // One line about the car: the model from the field plus the body type chosen in the calculator.
       const model = car.value.trim();
+      const matches = matchesCalculatedCar();
+      const body = matches && transfer?.body;
       const withBody = body && !model.toLocaleLowerCase("ru").includes(body.toLocaleLowerCase("ru")) ? model + ", " + body : model;
       const lines = [greeting + " Подскажите стоимость и сроки работ.", "Автомобиль — " + withBody + "."];
       if (service.value) lines.push("Выбранная услуга — " + service.value + ".");
       else lines.push("Помогите подобрать решение для моей машины.");
-      const works = estimate.replace(/^Автомобиль — .*(?:\n|$)/u, "").trim();
+      const works = matches ? (transfer?.estimate || "").replace(/^Автомобиль — .*(?:\n|$)/u, "").trim() : transfer.workTitles;
       if (works) lines.push("", works);
-      if (price) lines.push("Предварительная стоимость — " + price + ".");
+      if (matches && transfer?.price) lines.push("Предварительная стоимость — " + transfer.price + ".");
       return lines.join("\n");
     }
     car.addEventListener("input", () => {
+      carWasPrefilled = false;
       car.setCustomValidity("");
       clearFeedback();
+      renderTransfer();
     });
     service.addEventListener("change", clearEstimate);
     form.querySelector(".zq-reset").addEventListener("click", () => {
@@ -125,8 +147,9 @@
       }
     });
     window.addEventListener("studio:quote", ({ detail = {} }) => {
-      if (typeof detail.model === "string" && detail.model.trim()) {
+      if (typeof detail.model === "string" && (detail.model.trim() || carWasPrefilled)) {
         car.value = detail.model.trim();
+        carWasPrefilled = Boolean(car.value);
         car.setCustomValidity("");
       }
       if (typeof detail.service === "string" && detail.service.trim()) {
@@ -138,13 +161,14 @@
           service.add(option);
         }
         service.value = title;
-        price = String(detail.price ?? "").trim();
-        estimate = typeof detail.estimate === "string" ? detail.estimate.trim() : "";
-        body = typeof detail.body === "string" ? detail.body.trim().toLocaleLowerCase("ru") : "";
-        selection.hidden = false;
-        selectedLines.textContent = estimate || title;
-        sum.textContent = price ? "Предварительно — " + price : "";
-        sum.hidden = !price;
+        transfer = {
+          price: String(detail.price ?? "").trim(),
+          estimate: typeof detail.estimate === "string" ? detail.estimate.trim() : "",
+          body: typeof detail.body === "string" ? detail.body.trim().toLocaleLowerCase("ru") : "",
+          model: Array.isArray(detail.workTitles) ? modelKey(detail.model || "") : null,
+          workTitles: Array.isArray(detail.workTitles) ? detail.workTitles.join("\n") : ""
+        };
+        renderTransfer();
       }
       clearFeedback();
     });

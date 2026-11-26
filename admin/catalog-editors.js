@@ -248,9 +248,10 @@
         const preview = node("div", "cat-media-preview");
         function renderPreview() {
           preview.replaceChildren();
-          if (!item[key] || (video && !window.StudioPage.mediaUrl(item[key]))) return;
+          const source = window.StudioPage.mediaUrl(item[key]);
+          if (!source) return;
           let link;
-          try { link = new URL(item[key], window.StudioKit?.siteRoot?.() || new URL("/", location.href)); } catch { return; }
+          try { link = new URL(source, window.StudioKit?.siteRoot?.() || new URL("/", location.href)); } catch { return; }
           if (!["https:", "http:"].includes(link.protocol)) return;
           if (pdfAllowed) {
             const open = node("a", "cat-preview-link", "Посмотреть прикреплённый лист");
@@ -289,9 +290,9 @@
         file.onchange = async () => {
           const target = file.files[0];
           if (!target) return;
-          if (target.size > limit * 1024 * 1024) { help.textContent = "Файл больше " + limit + " МБ."; return; }
-          if (video && (target.type ? target.type !== "video/mp4" : !/\.mp4$/i.test(target.name))) {
-            help.textContent = "Выберите видео в формате MP4.";
+          if (!window.StudioKit.acceptsFile(target, file.accept)) {
+            help.textContent = "Выберите файл в формате " + formats + ".";
+            file.value = "";
             return;
           }
           upload.disabled = true;
