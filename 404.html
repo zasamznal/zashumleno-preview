@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#13111c">
+  <title>Страница не найдена — Зашумлено</title>
+  <link rel="icon" href="/zashumleno-preview/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/zashumleno-preview/assets/mark.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: dark; --accent: #bcb9d9; --night: #13111c; --paper: #f1eff8; --spark: #d81b7a; --blue: #0a97c7; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: grid; grid-template-rows: auto 1fr auto; min-height: 100%;
+      background: radial-gradient(120% 90% at 78% 30%, #2a2540 0%, var(--night) 58%);
+      color: var(--paper); font: 400 1rem/1.5 Roboto, "Segoe UI", Arial, sans-serif;
+    }
+    header, footer { padding: 1.2rem clamp(1.2rem, 5vw, 4rem); }
+    .brand { display: inline-flex; align-items: center; gap: .5rem; color: #3fb0d5; font-size: 1.2rem; font-weight: 800; font-style: italic; letter-spacing: -.02em; text-decoration: none; }
+    .brand img { width: 2.3rem; height: auto; }
+    main { display: grid; align-content: center; gap: 1.2rem; padding: 2rem clamp(1.2rem, 5vw, 4rem); max-width: 46rem; }
+    .code { margin: 0; font-size: clamp(5rem, 22vw, 11rem); font-weight: 900; line-height: .85; letter-spacing: -.07em;
+      background: linear-gradient(90deg, var(--blue), var(--accent) 55%, var(--spark)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    h1 { margin: 0; font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.05; letter-spacing: -.04em; }
+    p { margin: 0; color: #d4d1e4; font-size: 1.08rem; max-width: 34rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: .4rem; }
+    .actions a { display: inline-flex; align-items: center; min-height: 3rem; padding: .7rem 1.3rem; border-radius: .4rem; font-weight: 700; text-decoration: none; }
+    .primary { background: var(--accent); color: var(--night); }
+    .primary:hover { background: #d4d2ec; }
+    .secondary { border: 1px solid #4a4560; color: var(--paper); }
+    .secondary:hover { border-color: var(--accent); }
+    a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    footer { color: #8f8aa6; font-size: .9rem; }
+    .waves { position: fixed; right: -6rem; bottom: -6rem; width: min(32rem, 80vw); opacity: .35; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <header><a class="brand" href="/zashumleno-preview/"><img src="/zashumleno-preview/assets/mark.svg" alt="" width="46" height="36">ЗАШУМЛЕНО</a></header>
+  <main>
+    <p class="code" aria-hidden="true">404</p>
+    <h1>Такой страницы нет</h1>
+    <p>Возможно, ссылка устарела или в адресе опечатка. Цены, работы студии и адрес — на главной странице.</p>
+    <div class="actions">
+      <a class="primary" href="/zashumleno-preview/">На главную</a>
+      <a class="secondary" href="/zashumleno-preview/#calculator">Рассчитать стоимость</a>
+    </div>
+  </main>
+  <footer>Студия шумоизоляции и автозвука «Зашумлено», Москва</footer>
+  <svg class="waves" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#bcb9d9" stroke-width="1.5"><circle cx="100" cy="100" r="30"/><circle cx="100" cy="100" r="52" opacity=".7"/><circle cx="100" cy="100" r="74" opacity=".45"/><circle cx="100" cy="100" r="96" opacity=".25"/></g></svg>
+</body>
+</html>

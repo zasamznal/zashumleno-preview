@@ -146,11 +146,16 @@
   .ly-stage { aspect-ratio: 1 / 1.02; }
   .ly-scene[data-fan="up"] { inset: 40% 11% 3% 11%; }
   .ly-packages { display: flex; justify-self: stretch; flex-wrap: nowrap; }
-  .ly-package { flex: 1 1 0; min-width: 0; padding-inline: .25rem; font-size: .8rem; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ly-package { flex: 1 1 auto; min-width: 0; padding-inline: .25rem; font-size: .8rem; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ly-hint { display: none; }
   .ly-badge { width: 1.45rem; height: 1.45rem; font-size: .7rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ly-layer, .ly-badge, .ly-photo img { transition: none !important; }
   .ly-panel { animation: none; }
+}
+/* The narrowest phones: package names keep their whole words. */
+@media (max-width: 22rem) {
+  .ly-packages { display: flex; }
+  .ly-package { padding-inline: .2rem; font-size: .74rem; letter-spacing: -.02em; }
 }

@@ -177,7 +177,7 @@
   text-decoration: underline; text-underline-offset: .22em; text-decoration-thickness: 1px; cursor: pointer;
 }
 .rates-inquiry { color: var(--rate-signal); }
-.rates-table .rates-inquiry { min-height: 1.6rem; }
+.rates-table .rates-inquiry { min-height: 2.75rem; display: inline-flex; align-items: center; }
 .rates-bodies { margin-top: 1.8rem; padding: clamp(1rem, 2vw, 1.5rem); background: var(--white); border: 1px solid var(--rule); border-radius: .45rem; }
 .rates-bodies-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .7rem 1.2rem; margin-bottom: 1rem; }
 .rates-bodies-head h4 { margin: 0; font-size: clamp(1.15rem, 1.6vw, 1.45rem); font-weight: 680; letter-spacing: -.03em; }
@@ -219,6 +219,11 @@
 .rates-bodies-compact tr.is-current { background: color-mix(in srgb, var(--accent) 26%, var(--white)); }
 .rates-bodies-compact tr.is-current th:first-child { box-shadow: inset 3px 0 0 var(--accent-dark); }
 .rates-bodies-compact tr.is-current .rates-body-name { padding-left: .4rem; }
+@media (max-width: 24rem) {
+  .rates-bodies-compact th, .rates-bodies-compact td { padding-inline: .15rem; font-size: .78rem; }
+  .rates-bodies-compact tbody th .rates-car { display: none; }
+  .rates-bodies-compact thead th { font-size: .68rem; }
+}
 @media (max-width: 40rem) {
   .rates-bodies-scroll { display: none; }
   .rates-bodies-compact { display: table; }
@@ -280,4 +285,11 @@
 @media (prefers-reduced-motion: reduce) {
   .rates-current { animation: none; }
   .rates-zone, .rates-plus, .rates-plus::after { transition: none; }
+}
+
+/* Narrow phones (320–384 px): the brand groups no longer fit in one scrolling row,
+   so they become equal columns and long names wrap onto two lines. */
+@media (max-width: 24rem) {
+  .rates-classes { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.75rem, 1fr)); overflow: visible; border-radius: 1.1rem; }
+  .rates-classes .rates-class { white-space: normal; line-height: 1.15; padding: .35rem .3rem; border-radius: .85rem; }
 }

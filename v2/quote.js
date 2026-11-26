@@ -42,6 +42,7 @@
     const send = form.querySelector(".zq-send");
     let estimate = "";
     let price = "";
+    let body = "";
 
     if (telegram) form.action = telegram;
     else {
@@ -72,6 +73,7 @@
     function clearEstimate() {
       price = "";
       estimate = "";
+      body = "";
       selection.hidden = true;
       selectedLines.textContent = "";
       sum.textContent = "";
@@ -83,10 +85,14 @@
       car.setCustomValidity(car.value.trim() ? "" : "Укажите марку и модель автомобиля.");
       if (!form.reportValidity()) return "";
       const greeting = page.contacts.person ? page.contacts.person + ", здравствуйте!" : "Здравствуйте!";
-      const lines = [greeting + " Подскажите стоимость и сроки работ.", "Автомобиль — " + car.value.trim() + "."];
+      // One line about the car: the model from the field plus the body type chosen in the calculator.
+      const model = car.value.trim();
+      const withBody = body && !model.toLocaleLowerCase("ru").includes(body.toLocaleLowerCase("ru")) ? model + ", " + body : model;
+      const lines = [greeting + " Подскажите стоимость и сроки работ.", "Автомобиль — " + withBody + "."];
       if (service.value) lines.push("Выбранная услуга — " + service.value + ".");
       else lines.push("Помогите подобрать решение для моей машины.");
-      if (estimate) lines.push("", estimate);
+      const works = estimate.replace(/^Автомобиль — .*(?:\n|$)/u, "").trim();
+      if (works) lines.push("", works);
       if (price) lines.push("Предварительная стоимость — " + price + ".");
       return lines.join("\n");
     }
@@ -139,6 +145,7 @@
         service.value = title;
         price = String(detail.price ?? "").trim();
         estimate = typeof detail.estimate === "string" ? detail.estimate.trim() : "";
+        body = typeof detail.body === "string" ? detail.body.trim().toLocaleLowerCase("ru") : "";
         selection.hidden = false;
         selectedLines.textContent = estimate || title;
         sum.textContent = price ? "Предварительно — " + price : "";

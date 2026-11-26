@@ -414,8 +414,11 @@
       const zone = zones.find(item => item.id === event.detail?.zone);
       if (!zone) return;
       const wanted = String(event.detail?.title || "").toLocaleLowerCase("ru");
-      const group = zone.groups.find(item => item.choices.some(choice => choice.title.toLocaleLowerCase("ru") === wanted)) || zone.groups[0];
-      const choice = group.choices.find(item => item.title.toLocaleLowerCase("ru") === wanted) || group.choices[0];
+      // Both blocks build their options from the same price list, so the option id is the surest match.
+      const exact = event.detail?.id && zone.groups.flatMap(item => item.choices).find(item => item.id === event.detail.id);
+      const group = (exact && zone.groups.find(item => item.id === exact.groupId)) ||
+        zone.groups.find(item => item.choices.some(choice => choice.title.toLocaleLowerCase("ru") === wanted)) || zone.groups[0];
+      const choice = exact || group.choices.find(item => item.title.toLocaleLowerCase("ru") === wanted) || group.choices[0];
       selectZone(zone);
       selectGroup(group.id);
       if (engine.selection.get(choice.groupId) !== choice.id) {

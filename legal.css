@@ -29,7 +29,7 @@ a:focus-visible { outline: 2px solid var(--teal); outline-offset: 4px; }
 .legal-mast { color: #f6f5fa; background: color-mix(in srgb, var(--night) 80%, black); border-bottom: 1px solid color-mix(in srgb, var(--accent) 26%, var(--night)); }
 .legal-mast :focus-visible { outline-color: var(--aqua); }
 .legal-bar { display: flex; align-items: center; justify-content: space-between; min-height: 4.5rem; gap: 1rem; }
-.legal-brand-link { display: inline-flex; min-width: 0; gap: .46rem; align-items: center; text-decoration: none; color: inherit; font-size: clamp(1.18rem, 1.7vw, 1.55rem); font-weight: 880; font-stretch: 80%; font-style: italic; letter-spacing: -.035em; text-transform: uppercase; line-height: 1; }
+.legal-brand-link { display: inline-flex; min-width: 0; min-height: 2.75rem; gap: .46rem; align-items: center; text-decoration: none; color: inherit; font-size: clamp(1.18rem, 1.7vw, 1.55rem); font-weight: 880; font-stretch: 80%; font-style: italic; letter-spacing: -.035em; text-transform: uppercase; line-height: 1; }
 .legal-brand-link #legal-brand { color: color-mix(in srgb, var(--accent-alt) 78%, white); }
 .legal-brand-link:hover { color: white; }
 .legal-brand-link #legal-brand { overflow-wrap: anywhere; }
@@ -69,6 +69,8 @@ a:focus-visible { outline: 2px solid var(--teal); outline-offset: 4px; }
   .legal-nav a { font-size: .94rem; }
 }
 @media (max-width: 33rem) {
+  /* Phone numbers, mail and links in the details are easy to tap. */
+  .legal-details dd a, dd a { display: inline-flex; align-items: center; min-height: 2.75rem; }
   .legal-copy dl > div { grid-template-columns: 1fr; row-gap: .13rem; }
   .legal-copy dt { font-size: .9rem; }
   .legal-mark { width: 2rem; height: 1.6rem; }

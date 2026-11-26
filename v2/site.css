@@ -51,7 +51,7 @@ a { color: inherit; text-underline-offset: .23em; }
 .site-notice a { font-weight: 700; }
 .site-head { position: relative; background: var(--night-deep); color: var(--on-dark); border-bottom: 1px solid var(--line-dark); z-index: 20; }
 .head-row { min-height: 4.8rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.wordmark { display: inline-flex; flex: none; align-items: center; gap: .46rem; text-decoration: none; }
+.wordmark { display: inline-flex; flex: none; align-items: center; gap: .46rem; min-height: 2.75rem; text-decoration: none; }
 .wordmark img { width: 2.5rem; height: 2.05rem; object-fit: contain; }
 .wordmark [data-brand-name] { font-size: clamp(1.18rem, 1.7vw, 1.55rem); line-height: 1; font-weight: 880; font-stretch: 80%; font-style: italic; letter-spacing: -.035em; color: color-mix(in srgb, var(--accent-alt) 78%, white); }
 .topnav, .foot-row nav { display: flex; align-items: center; }

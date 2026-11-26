@@ -253,6 +253,7 @@
         estimate: [car ? 'Автомобиль — ' + car + '.' : '',
           ...lines.map(line => line.title + ' — ' + line.priceText + (line.condition ? '. ' + line.condition : ''))].filter(Boolean).join('\n'),
         vehicle: car,
+        body: config?.bodies.find(item => item.id === vehicle.body)?.title || '',
         model: [vehicle.brand && (pricing?.findBrand(config || { classes: [] }, vehicle.brand)?.name || vehicle.brand), vehicle.model].filter(Boolean).join(' ')
       };
       return { lines, min, max, partial, pendingCount, totalText, quote, vehicle: car };

@@ -518,9 +518,13 @@
       if (engine) {
         engine.setVehicle(vehicle);
         const zone = engine.zones.find(item => item.id === current.zone.id);
+        const all = zone?.groups.flatMap(group => group.choices) || [];
+        // The calculator numbers its options by the position of the tariff in the price list; titles may differ
+        // («Шумоизоляция металла наружных арок» is the tariff, «Обработка металла…» its row).
+        const index = (window.STUDIO_PRICES || []).indexOf(rate);
         const wanted = String(rate.title).toLocaleLowerCase('ru');
-        choice = zone?.groups.flatMap(group => group.choices).find(item => item.title.toLocaleLowerCase('ru') === wanted ||
-          item.rowTitle.toLocaleLowerCase('ru') === wanted);
+        choice = (index >= 0 && all.find(item => item.id.startsWith('estimate-' + index + '-'))) ||
+          all.find(item => item.title.toLocaleLowerCase('ru') === wanted || item.rowTitle.toLocaleLowerCase('ru') === wanted);
         if (choice) price = engine.price(choice.id)?.priceText || '';
       }
       const car = engine?.describeVehicle();
@@ -532,7 +536,7 @@
         const add = el('button', 'ly-add', 'Добавить в смету');
         add.type = 'button';
         add.addEventListener('click', () => window.dispatchEvent(new CustomEvent('studio:estimate-select', {
-          detail: { zone: current.zone.id, title: choice.title }
+          detail: { zone: current.zone.id, title: choice.title, id: choice.id }
         })));
         actions.append(add);
       }
