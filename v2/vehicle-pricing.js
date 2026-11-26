@@ -127,11 +127,32 @@
     return Object.hasOwn(body.zones, zoneId) ? body.zones[zoneId] : body.percent;
   }
 
-  function factor(config, vehicle, zoneId) {
-    const body = bodyPercent(config, vehicle?.body, zoneId);
+  // Brand markup of a car; vehicle.groupPercent picks a brand group directly (the price table does this).
+  function brandPercent(config, vehicle) {
+    if (typeof vehicle?.groupPercent === 'number' && Number.isFinite(vehicle.groupPercent)) return vehicle.groupPercent;
     const brand = vehicle?.brand ? findBrand(config, vehicle.brand) : null;
-    const group = brand ? brand.group.percent : 0;
-    return (1 + body / 100) * (1 + group / 100);
+    return brand ? brand.group.percent : 0;
+  }
+
+  // Price typed in the cabinet for a kit and a body: { base: list price of the kit, prices: { body: price } }.
+  function typedPrice(exact, bodyId) {
+    const value = Number(exact?.prices?.[bodyId]);
+    return bodyId && value > 0 && Number(exact.base) > 0 ? value : 0;
+  }
+
+  function factor(config, vehicle, zoneId, exact) {
+    const typed = typedPrice(exact, vehicle?.body);
+    const body = typed ? typed / exact.base : 1 + bodyPercent(config, vehicle?.body, zoneId) / 100;
+    return body * (1 + brandPercent(config, vehicle) / 100);
+  }
+
+  // Price of one list value for a car. A price typed for the body is used as typed; the brand markup comes on top.
+  function quote(config, vehicle, zoneId, value, exact) {
+    if (value == null || !Number.isFinite(value)) return value ?? null;
+    const typed = typedPrice(exact, vehicle?.body);
+    const brand = 1 + brandPercent(config, vehicle) / 100;
+    if (typed && value === exact.base) return adjust(typed, brand, config.rounding);
+    return adjust(value, factor(config, vehicle, zoneId, exact), config.rounding);
   }
 
   function adjust(value, multiplier, rounding) {
@@ -149,5 +170,5 @@
     return parts.filter(Boolean).join(', ');
   }
 
-  globalThis.StudioVehicles = { normalize, findBrand, suggest, factor, adjust, describe, bodyPercent, shapes, aliases };
+  globalThis.StudioVehicles = { normalize, findBrand, suggest, factor, quote, typedPrice, brandPercent, adjust, describe, bodyPercent, shapes, aliases };
 })();

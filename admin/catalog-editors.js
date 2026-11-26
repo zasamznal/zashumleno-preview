@@ -172,6 +172,25 @@
           const name = itemName(kind, item) || config.single;
           const enter = action(name, () => edit(item, true), "cat-name");
           info.append(enter);
+          // Works and zones are recognised by their photo: show it before the name.
+          if (kind === "works" || kind === "zones") {
+            const thumb = node("button", "cat-thumb");
+            thumb.type = "button";
+            thumb.tabIndex = -1;
+            thumb.setAttribute("aria-hidden", "true");
+            let source = item.image || "";
+            if (kind === "zones" && originalGroups[item.id] && (!source || source === "assets/zone-" + item.id + ".webp")) source = "v2/media/zone-" + item.id + ".webp";
+            if (source) {
+              const picture = node("img");
+              picture.alt = "";
+              picture.loading = "lazy";
+              try { picture.src = new URL(window.StudioKit?.mediaUrl(source) || source, window.StudioKit?.siteRoot?.() || location.href).href; } catch { /* No preview. */ }
+              thumb.append(picture);
+            } else thumb.classList.add("is-empty");
+            thumb.addEventListener("click", () => edit(item, true));
+            row.append(thumb);
+            row.classList.add("has-thumb");
+          }
           const money = item.rows?.[0]?.find(value => /₽|руб/i.test(value));
           const sub = kind === "prices" ? [item.group, money].filter(Boolean).join(" · ") :
             kind === "zones" ? "Тарифов в зоне: " + ctx.data.prices.filter(rate => rate.group === groupOf(item)).length : item.description;
@@ -391,7 +410,9 @@
       if (focus) head.firstChild.focus();
     }
 
-    redrawList();
+    // Another screen may ask to open a record directly (for example «Таблица и прайс-лист» on a kit in «Цены»).
+    const wanted = window.StudioAdmin.takeFocus?.(kind);
+    if (wanted != null && items[wanted]) edit(items[wanted], true); else redrawList();
     return () => {
       if (openRecord && pendingUploads.size) return "Дождитесь окончания загрузки файла.";
       return check(kind, items);
@@ -476,12 +497,14 @@
     return section;
   }
 
-  const placement = { prices: ["Цены", 10], zones: ["Цены", 30], works: ["Фото и работы", 20] };
+  // The full tariff table opens from «Цены» («Таблица и прайс-лист»), so it is not repeated in the menu.
+  const placement = { prices: ["Цены", 90, "price-table", "Таблицы прайса", true], zones: ["Цены", 30, "zones", "Зоны: фото и описание"],
+    works: ["Фото и работы", 20, "works", labels.works.title] };
   for (const kind of Object.keys(labels)) window.StudioAdmin.register({
-    id: kind, title: labels[kind].title, group: placement[kind][0], order: placement[kind][1],
+    id: placement[kind][2], title: placement[kind][3], group: placement[kind][0], order: placement[kind][1], hidden: Boolean(placement[kind][4]),
     description: {
-      prices: "Комплекты, стоимость, состав работ и оригиналы прайс-листов. Цены указаны для седана массовой марки.",
-      zones: "Группы в прайсе, фотографии и описания зон автомобиля.",
+      prices: "Полная таблица тарифа: столбцы, строки, условия и фото оригинального прайс-листа. Обычно цены удобнее менять в разделе «Цены».",
+      zones: "Название, фото и описание каждой зоны машины. Цены комплектов — в разделе «Цены».",
       works: "Автомобили, фотографии и видео готовых работ студии."
     }[kind],
     validateData: data => check(kind, data[kind]),

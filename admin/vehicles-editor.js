@@ -177,6 +177,8 @@
         tableHost.replaceChildren(K.el('p', 'k-empty', 'Для этой зоны нет тарифов с ценой.'));
         return;
       }
+      const typedNote = choices.some(choice => config.bodies.some(item => pricing.typedPrice(choice.exact, item.id)))
+        ? K.el('p', 'k-note', 'Цены с точкой вписаны вручную в разделе «Цены» — наценка за кузов к ним не применяется.') : null;
       const table = K.el('table', 'k-table');
       const head = table.createTHead().insertRow();
       head.append(K.el('th', '', 'Тариф'), ...config.bodies.map(item => K.el('th', '', item.title)));
@@ -187,13 +189,20 @@
         if (!choice.scalable) title.append(K.el('small', '', 'цена не зависит от машины'));
         row.append(title);
         for (const item of config.bodies) {
-          const factor = choice.scalable ? (1 + pricing.bodyPercent(config, item.id, choice.zoneId) / 100) * (1 + selectedGroup.percent / 100) : 1;
-          const min = pricing.adjust(choice.min, factor, step);
-          const max = choice.max == null ? null : pricing.adjust(choice.max, factor, step);
-          row.insertCell().textContent = (max == null ? 'от ' : '') + format.format(min) + (max != null && max !== min ? '–' + format.format(max) : '') + ' ₽';
+          const car = { body: item.id, groupPercent: selectedGroup.percent };
+          const quote = value => choice.scalable ? pricing.quote(config, car, choice.zoneId, value, choice.exact) : value;
+          const min = quote(choice.min);
+          const max = choice.max == null ? null : quote(choice.max);
+          const cell = row.insertCell();
+          cell.textContent = (max == null ? 'от ' : '') + format.format(min) + (max != null && max !== min ? '–' + format.format(max) : '') + ' ₽';
+          // A price typed in «Цены» for this body is marked: it does not follow the body markup.
+          if (choice.scalable && pricing.typedPrice(choice.exact, item.id)) {
+            cell.classList.add('k-typed');
+            cell.title = 'Цена вписана вручную в разделе «Цены»';
+          }
         }
       }
-      tableHost.replaceChildren(table);
+      tableHost.replaceChildren(...[typedNote, table].filter(Boolean));
     }
     const signed = value => (value > 0 ? '+' : '') + String(value).replace('.', ',') + '%';
 
@@ -212,8 +221,8 @@
   }
 
   window.StudioAdmin.register({
-    id: 'vehicles', title: 'Цены по автомобилю', group: 'Цены', order: 20,
-    description: 'Наценки за тип кузова и марку. Калькулятор и прайс пересчитывают цену для машины клиента.',
+    id: 'vehicles', title: 'Наценки за машину', group: 'Цены', order: 20,
+    description: 'Насколько дороже работа для большой машины или премиальной марки. Точную цену для кузова можно вписать в разделе «Цены».',
     validateData: check, render
   });
 })();

@@ -98,6 +98,20 @@
     return conditionalText(wording) ? 'verify' : '';
   }
 
+  // Prices typed in the cabinet for each body. They belong to the main price of the tariff (first row);
+  // other rows and columns of the same tariff change in the same proportion.
+  function typedPrices(rate, column) {
+    const prices = {};
+    if (rate.bodyPrices && typeof rate.bodyPrices === 'object' && !Array.isArray(rate.bodyPrices)) {
+      for (const [body, value] of Object.entries(rate.bodyPrices)) {
+        if (/^[a-z0-9][a-z0-9_-]{0,39}$/i.test(body) && Number.isFinite(value) && value > 0) prices[body] = value;
+      }
+    }
+    if (!Object.keys(prices).length || column < 0) return null;
+    const base = parsePrice(compact(rate.rows[0]?.[column])).min;
+    return base > 0 ? { base, prices } : null;
+  }
+
   function catalog(prices, configuredZones) {
     const zones = [];
     const byName = new Map();
@@ -123,6 +137,7 @@
       const notes = Array.isArray(rate.notes) ? rate.notes.map(compact).filter(Boolean) : [];
       const isAmbiguous = columns.length > 1 && !columns.every(i => /за\s/iu.test(rate.columns[i]));
       const shownColumns = isAmbiguous || !columns.length ? [-1] : columns;
+      const exact = typedPrices(rate, shownColumns[0]);
       for (const [rowIndex, row] of rate.rows.entries()) {
         if (!Array.isArray(row) || !row.length) continue;
         const rowName = compact(row[0]) || compact(rate.title);
@@ -155,7 +170,7 @@
           const scalable = typeof rate.carDependent === 'boolean' ? rate.carDependent
             : !['tyre-material', 'tyre-fitting', 'tyre-work', 'door-option'].includes(kind);
           const choice = {
-            id, zoneId: zone.id, groupId, title, rowTitle: rowName, priceText, unit, description, facts, scalable,
+            id, zoneId: zone.id, groupId, title, rowTitle: rowName, priceText, unit, description, facts, scalable, exact,
             notes: kind === 'door-option' ? [description].filter(Boolean) : notes,
             sheet: compact(rate.sheet), source: compact(rate.source), kind,
             fullTitle: join([zone.title, kind === 'package' ? '' : groupTitle, title]),
@@ -179,19 +194,14 @@
     const config = pricing && vehicles ? pricing.normalize(vehicles) : null;
     let vehicle = { body: '', brand: '', model: '' };
 
-    function multiplier(choice) {
-      return config && choice.scalable ? pricing.factor(config, vehicle, choice.zoneId) : 1;
-    }
-
     // The price of a choice for the selected car. Without a car the price list values stay untouched.
     function priced(choice) {
-      const factor = multiplier(choice);
-      if (Math.abs(factor - 1) < 1e-9 || choice.min == null) {
-        return { min: choice.min, max: choice.max, priceText: choice.priceText, adjusted: false, factor: 1 };
-      }
-      const min = pricing.adjust(choice.min, factor, config.rounding);
-      const max = choice.max == null ? null : pricing.adjust(choice.max, factor, config.rounding);
-      return { min, max, priceText: money(min, max), adjusted: true, factor };
+      const unchanged = { min: choice.min, max: choice.max, priceText: choice.priceText, adjusted: false, factor: 1 };
+      if (!config || !choice.scalable || choice.min == null) return unchanged;
+      const min = pricing.quote(config, vehicle, choice.zoneId, choice.min, choice.exact);
+      const max = choice.max == null ? null : pricing.quote(config, vehicle, choice.zoneId, choice.max, choice.exact);
+      if (min === choice.min && max === choice.max) return unchanged;
+      return { min, max, priceText: money(min, max), adjusted: true, factor: min / choice.min };
     }
 
     function evaluate(id) {
@@ -274,5 +284,5 @@
     };
   }
 
-  globalThis.StudioEstimate = { create };
+  globalThis.StudioEstimate = { create, parsePrice, money, priceColumns };
 })();

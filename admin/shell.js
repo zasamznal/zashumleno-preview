@@ -14,8 +14,17 @@
     get content() { return content; },
     get published() { return published; },
     navigate: id => navigate(id),
-    notify: message => notify(message)
+    notify: message => notify(message),
+    // Opens a section on a particular record: StudioAdmin.open('price-table', 'prices', 3).
+    open(id, kind, index) { focusRequest = { kind, index }; navigate(id); },
+    takeFocus(kind) {
+      const request = focusRequest;
+      focusRequest = null;
+      return request && request.kind === kind ? request.index : null;
+    }
   };
+  let focusRequest = null;
+  let quietSave = false;
 
   const byId = (id) => document.getElementById(id);
   const clone = (value) => structuredClone(value);
@@ -44,7 +53,8 @@
 
   const iconPaths = {
     overview: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
-    prices: 'M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h4',
+    prices: 'M3 12.5V5a2 2 0 0 1 2-2h7.5L21 11.5 12.5 20z M8 8.01V8',
+    'price-table': 'M4 4h16v16H4z M8 8h8 M8 12h8 M8 16h4',
     vehicles: 'M3 15l2-6h14l2 6v3H3z M6 18v2 M18 18v2 M7 13h.01 M17 13h.01',
     zones: 'M8 3h8l2 4v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7z M6 9h12 M6 15h12',
     media: 'M3 5h18v14H3z M3 15l5-5 4 4 3-3 6 6 M15 9h.01',
@@ -150,7 +160,7 @@
     byId('publish').disabled = locked || !unpublished;
     byId('save').hidden = !dirty;
     byId('save').disabled = locked;
-    byId('editor').inert = busy;
+    byId('editor').inert = busy && !quietSave;
     byId('logout').disabled = busy || uploads > 0;
     const state = byId('save-state');
     state.dataset.state = invalidMessage ? 'invalid' : dirty ? 'dirty' : unpublished ? 'draft' : 'saved';
@@ -311,11 +321,13 @@
     const problem = findProblem();
     invalidMessage = problem ? problem.message : '';
     if (problem) { syncActions(); return; }
+    // A background save must not take the field away from someone who is typing.
     busy = true;
+    quietSave = true;
     syncActions();
     try { await storeDraft(); }
     catch (error) { handleError(error); }
-    finally { busy = false; syncActions(); }
+    finally { busy = false; quietSave = false; syncActions(); }
   }
 
   async function perform(kind) {
@@ -332,6 +344,7 @@
         revision = response.revision;
         publishedRevision = response.publishedRevision;
         published = clone(content);
+        window.dispatchEvent(new CustomEvent('studio:published'));
         notify('Готово! Изменения опубликованы на сайте.');
       } else if (kind === 'save') { notify('Черновик сохранён.'); }
       return true;
@@ -354,7 +367,7 @@
     if (!same(page.contacts, before.contacts) || !same(page.route, before.route) || !same(page.legal, before.legal)) list.push(['page-contacts', 'Контакты, проезд и реквизиты']);
     if (!same(page.priceArchive, before.priceArchive) || !same(page.hidePriceArchive, before.hidePriceArchive)) list.push(['page-sections', 'Архив прайса']);
     const strip = rates => (rates || []).map(rate => ({ ...rate, layers: undefined }));
-    if (!same(strip(content.prices), strip(published.prices))) list.push(['prices', 'Прайс: цены и комплекты']);
+    if (!same(strip(content.prices), strip(published.prices))) list.push(['prices', 'Цены']);
     if (!same((content.prices || []).map(rate => rate.layers), (published.prices || []).map(rate => rate.layers)) ||
       !same(content.materials, published.materials)) list.push(['materials', 'Материалы и слои']);
     if (!same(content.zones, published.zones)) list.push(['zones', 'Зоны и фото работ по зонам']);
@@ -423,22 +436,25 @@
       const items = [...sections.values()].filter(section => (section.group || 'Редактор') === group)
         .sort((a, b) => (a.order ?? 50) - (b.order ?? 50));
       for (const section of items) {
-        nav.append(navigationButton(section.id, 'a-nav-button', section.title));
-        options.append(new Option(section.title, section.id));
+        const option = new Option(section.title, section.id);
+        if (section.hidden) option.hidden = true;
+        else nav.append(navigationButton(section.id, 'a-nav-button', section.title));
+        options.append(option);
       }
       select.append(options);
     }
   }
 
+  // Home screen tiles: the picture of the section, what it is for in plain words.
   const tasks = [
-    ['prices', 'Цены и комплекты', 'Стоимость, состав материалов и условия по каждой зоне.'],
-    ['vehicles', 'Цены по автомобилю', 'Наценки за тип кузова и марку — калькулятор пересчитает цену.'],
-    ['media', 'Фото и видео', 'Все картинки и ролики сайта в одном месте. Загрузите новые — старые заменятся.'],
-    ['works', 'Работы студии', 'Добавьте машину, фото и видео готовой работы.'],
-    ['materials', 'Материалы и слои', 'Какие листы и в каком порядке показывает анимация «Что внутри».'],
-    ['palette', 'Цвета и логотип', 'Фирменная палитра: вставьте коды цветов от дизайнера.'],
-    ['page-home', 'Обложка и тексты', 'Главный заголовок, фото первого экрана, тексты разделов.'],
-    ['page-contacts', 'Контакты и проезд', 'Телефон, адрес, шаги проезда, карта и реквизиты.']
+    ['prices', 'Цены', 'Поменять стоимость комплектов — для любой зоны и любого кузова.'],
+    ['media', 'Фото и видео', 'Заменить картинку или ролик в любом месте сайта.'],
+    ['works', 'Работы студии', 'Добавить готовую машину с фото и видео.'],
+    ['vehicles', 'Наценки за машину', 'Насколько дороже кроссовер, внедорожник или премиум-марка.'],
+    ['materials', 'Материалы и слои', 'Какие листы показывает анимация «Что внутри».'],
+    ['page-home', 'Обложка и тексты', 'Главный заголовок и фото первого экрана.'],
+    ['palette', 'Цвета и логотип', 'Фирменные цвета и логотип студии.'],
+    ['page-contacts', 'Контакты и проезд', 'Телефон, адрес, карта и шаги проезда.']
   ];
 
   function renderHome(host) {
@@ -476,25 +492,34 @@
       actions.append(reset);
     }
     status.append(actions);
-    const grid = node('div', 'a-tasks');
+    const ask = node('h2', 'a-tiles-title', 'Что хотите изменить?');
+    const grid = node('div', 'a-tiles');
     for (const [id, title, text] of tasks) {
       if (!sections.has(id)) continue;
-      const card = node('button', 'a-task');
+      const card = node('button', 'a-tile');
       card.type = 'button';
-      const mark = node('span', 'a-task-icon');
-      mark.append(icon(id));
-      card.append(mark, node('strong', '', title), node('span', '', text));
+      card.dataset.screen = id;
+      const art = window.StudioArt ? window.StudioArt.illustration(id, 'a-tile-art') : node('span', 'a-tile-art');
+      const go = node('span', 'a-tile-go', 'Открыть');
+      card.append(art, node('strong', '', title), node('span', 'a-tile-text', text), go);
       card.addEventListener('click', () => navigate(id));
       grid.append(card);
     }
-    const help = node('section', 'a-help');
-    help.append(node('h2', '', 'Как это работает'));
-    const steps = node('ol');
-    for (const text of ['Откройте нужный раздел и внесите правки — черновик сохранится сам через секунду.',
-      'Нажмите «Предпросмотр»: сайт с вашими правками откроется рядом. Клиенты его пока не видят.',
-      'Когда всё готово, нажмите «Опубликовать». Передумали — «Вернуть как на сайте».']) steps.append(node('li', '', text));
+    const help = node('section', 'a-help a-howto');
+    help.append(node('h2', '', 'Как изменить сайт — три шага'));
+    const steps = node('ol', 'a-howto-steps');
+    for (const [picture, title, text] of [
+      ['type', 'Измените', 'Откройте раздел и впишите новое. Черновик сохранится сам через секунду.'],
+      ['eye', 'Проверьте', 'Кнопка «Предпросмотр» покажет сайт с вашими правками. Клиенты его пока не видят.'],
+      ['publish', 'Опубликуйте', 'Нажмите «Опубликовать» внизу. Передумали — «Вернуть как на сайте».']]) {
+      const item = node('li');
+      const mark = node('span', 'a-howto-icon');
+      if (window.StudioArt) mark.append(window.StudioArt.stepIcon(picture));
+      item.append(mark, node('strong', '', title), node('span', '', text));
+      steps.append(item);
+    }
     help.append(steps);
-    dashboard.append(status, grid, help);
+    dashboard.append(status, ask, grid, help);
     host.replaceChildren(dashboard);
   }
 
@@ -517,6 +542,32 @@
     if (event.target instanceof HTMLDetailsElement && event.target.open) event.target.querySelectorAll('textarea').forEach(fitTextarea);
   }, true);
 
+  // The picture, the steps and the map of the site above each section. It can be folded away.
+  function showGuide(id) {
+    const host = byId('guide');
+    if (!host) return;
+    host.replaceChildren();
+    const siteRoot = document.querySelector('.a-top-link')?.href || location.origin + '/';
+    const guide = id !== 'overview' && window.StudioArt?.guide(id, siteRoot);
+    if (!guide) return;
+    let folded = false;
+    try { folded = localStorage.getItem('zs-admin-guide') === 'folded'; } catch { /* Private mode keeps it open. */ }
+    const toggle = node('button', 'k-guide-toggle');
+    toggle.type = 'button';
+    const draw = () => {
+      host.replaceChildren(...(folded ? [toggle] : [guide, toggle]));
+      toggle.textContent = folded ? 'Показать подсказку' : 'Скрыть подсказку';
+      toggle.setAttribute('aria-expanded', String(!folded));
+      host.dataset.folded = String(folded);
+    };
+    toggle.addEventListener('click', () => {
+      folded = !folded;
+      try { localStorage.setItem('zs-admin-guide', folded ? 'folded' : 'open'); } catch { /* Not remembered. */ }
+      draw();
+    });
+    draw();
+  }
+
   function navigate(id, push = true, focus = true) {
     if (!content || busy || uploads) { byId('section-select').value = active; return; }
     const next = sections.has(id) ? id : 'overview';
@@ -531,6 +582,7 @@
     byId('screen-title').textContent = section?.title || 'Кабинет студии';
     byId('screen-group').textContent = section?.group || 'Главная';
     byId('screen-description').textContent = section?.description || 'Что хотите обновить сегодня?';
+    showGuide(next);
     if (!conflict) banner('');
     const host = byId('editor');
     host.replaceChildren();

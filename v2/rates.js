@@ -262,9 +262,9 @@
     function paint() {
       for (const row of [...cells, ...compactCells]) {
         for (const { cell, choice, body: item, compact: short } of row) {
-          const factor = (1 + pricing.bodyPercent(config, item.id, choice.zoneId) / 100) * (1 + current.percent / 100);
-          const min = pricing.adjust(choice.min, factor, config.rounding);
-          const max = choice.max == null ? null : pricing.adjust(choice.max, factor, config.rounding);
+          const car = { body: item.id, groupPercent: current.percent };
+          const min = pricing.quote(config, car, choice.zoneId, choice.min, choice.exact);
+          const max = choice.max == null ? null : pricing.quote(config, car, choice.zoneId, choice.max, choice.exact);
           cell.textContent = short ? format.format(min)
             : (max == null ? 'от ' : '') + format.format(min) + (max != null && max !== min ? '–' + format.format(max) : '');
         }
