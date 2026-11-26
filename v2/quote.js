@@ -8,7 +8,7 @@
     const page = window.StudioPage.current;
     const telegram = window.StudioPage.contactUrl("telegram", page.contacts.telegram);
     host.innerHTML = `
-      <form class="zq-form" aria-label="Запрос расчёта" method="get" accept-charset="UTF-8" target="_blank" rel="noopener noreferrer" autocomplete="off">
+      <form class="zq-form" aria-label="Запрос расчёта" autocomplete="off">
         <div class="zq-field">
           <label for="zq-car">Марка и модель автомобиля</label>
           <input id="zq-car" type="text" placeholder="Например, Mitsubishi Pajero" list="zq-cars" maxlength="120" required>
@@ -22,7 +22,6 @@
           <div class="zq-estimate-head"><strong>Ваш выбор</strong><button type="button" class="zq-reset">Сбросить</button></div>
           <p class="zq-lines"></p><p class="zq-sum" hidden></p>
         </div>
-        <input type="hidden" name="text">
         <button type="submit" class="zq-send"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M21.4 3.2 18 20.5c-.1.8-.7 1.1-1.4.6l-5.1-3.8-2.5 2.5c-.3.3-.5.5-.9.5l.4-5.3L18.2 6c.4-.4-.1-.6-.5-.3L5.7 13.3l-5-1.6c-.9-.3-.9-1 .2-1.4L20 3c.8-.3 1.6.2 1.4.2Z"/></svg>Открыть в Telegram</button>
         <p class="zq-note">В Telegram откроется черновик сообщения. Вы сможете изменить его перед отправкой.</p>
         <div class="zq-links"><button type="button" class="zq-copy">Скопировать запрос</button><a class="zq-policy" href="privacy.html#request-form">Обработка персональных данных</a></div>
@@ -44,8 +43,7 @@
     let price = "";
     let body = "";
 
-    if (telegram) form.action = telegram;
-    else {
+    if (!telegram) {
       send.hidden = true;
       note.textContent = "Скопируйте запрос для консультации со студией.";
     }
@@ -107,12 +105,9 @@
       service.focus({ preventScroll: true });
     });
     form.addEventListener("submit", event => {
+      event.preventDefault();
       const text = compose();
-      if (!telegram || !text) {
-        event.preventDefault();
-        return;
-      }
-      form.elements.namedItem("text").value = text;
+      if (telegram && text) window.open(window.StudioPage.telegramDraftUrl(telegram, text), "_blank", "noopener,noreferrer");
     });
     copy.addEventListener("click", async () => {
       const text = compose();

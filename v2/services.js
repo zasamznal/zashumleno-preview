@@ -22,9 +22,7 @@
           window.dispatchEvent(new CustomEvent('studio:quote', { detail: { service: service.title } }));
         });
       } else {
-        const chat = new URL(telegram);
-        chat.searchParams.set('text', 'Здравствуйте! Хочу обсудить услугу «' + service.title + '».');
-        surface.href = chat.href;
+        surface.href = window.StudioPage.telegramDraftUrl(telegram, 'Здравствуйте! Хочу обсудить услугу «' + service.title + '».');
         surface.target = '_blank';
         surface.rel = 'noopener noreferrer';
       }

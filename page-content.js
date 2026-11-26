@@ -105,6 +105,12 @@
     } catch { return ''; }
   }
 
+  function telegramDraftUrl(telegram, text) {
+    // Telegram clients can display form-encoded spaces as literal plus signs.
+    const query = new URLSearchParams({ text }).toString().replace(/\+/g, '%20');
+    return telegram + '?' + query;
+  }
+
   // A Yandex Maps share link (yandex.ru/maps/-/CODE) or widget code becomes the address of an embeddable map.
   function mapWidget(contacts) {
     const raw = String(contacts?.mapEmbed || '').trim();
@@ -485,7 +491,7 @@
     return page;
   }
 
-  const api = { normalize, validate, mediaUrl, contactUrl, mapWidget, apply, palettes, colorKeys, current: normalize(defaults) };
+  const api = { normalize, validate, mediaUrl, contactUrl, telegramDraftUrl, mapWidget, apply, palettes, colorKeys, current: normalize(defaults) };
   window.STUDIO_PAGE_DEFAULTS = defaults;
   window.StudioPage = api;
 })();
