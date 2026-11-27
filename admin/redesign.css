@@ -23,7 +23,7 @@
 .a-brand { gap: .46rem; color: inherit; }
 .a-brand strong { letter-spacing: -.05em; font-stretch: 86%; font-weight: 880; }
 .a-brand-mark {
-  display: block; width: 2.5rem; height: 2.05rem; flex-shrink: 0; object-fit: contain;
+  display: block; width: auto; height: 3rem; flex-shrink: 0; object-fit: contain;
 }
 .a-header-title { padding-left: 1.05rem; border-color: #425250; color: #b7c0be; }
 .a-top-link { color: inherit; text-decoration: underline; text-decoration-color: #83918f; }

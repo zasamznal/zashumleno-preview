@@ -14,7 +14,7 @@
     get content() { return content; },
     get published() { return published; },
     navigate: id => navigate(id),
-    notify: message => notify(message),
+    notify: (message, problem) => notify(message, problem),
     // Opens a section on a particular record: StudioAdmin.open('price-table', 'prices', 3).
     open(id, kind, index) { focusRequest = { kind, index }; navigate(id); },
     takeFocus(kind) {
@@ -43,6 +43,14 @@
   let autosaveTimer;
   let savedAt = null;
   let invalidMessage = '';
+  // Section where the unsolved problem was first noticed, text of the last failed save, the site as JSON.
+  let problemWhere = '';
+  let failure = '';
+  let publishedText = '';
+  let publishedKnown = false;
+  let differs = false;
+  let expired = false;
+  let checkedAt = 0;
 
   function node(name, className, text) {
     const el = document.createElement(name);
@@ -79,10 +87,11 @@
     return svg;
   }
 
-  function notify(message) {
+  function notify(message, problem = false) {
     const toast = byId('toast');
     clearTimeout(toastTimer);
     toast.textContent = String(message);
+    toast.dataset.kind = problem ? 'problem' : 'done';
     toast.hidden = false;
     toastTimer = setTimeout(() => { toast.hidden = true; }, 4200);
   }
@@ -117,7 +126,10 @@
         503: 'Кабинет пока не подключён к серверу. Обратитесь к администратору сайта.'
       };
       const error = result?.error;
-      const message = typeof error === 'string' && /[А-Яа-яЁё]/.test(error) ? error : defaults[response.status];
+      let message = typeof error === 'string' && /[А-Яа-яЁё]/.test(error) ? error : defaults[response.status];
+      // After too many attempts even the right password is refused: say for how long.
+      const wait = Math.ceil(Number(response.headers.get('retry-after')) / 60);
+      if (response.status === 429 && wait > 0) message = 'Слишком много попыток входа. Сейчас не подойдёт даже верный пароль — попробуйте через ' + wait + ' мин.';
       throw new ApiError(response.status, message || 'Сервер кабинета не ответил. Повторите попытку.');
     }
     return result;
@@ -144,7 +156,12 @@
   }
 
   function changed() {
-    dirty = JSON.stringify(content) !== saved;
+    const text = JSON.stringify(content);
+    dirty = text !== saved;
+    differs = text !== publishedText;
+    // A problem reported earlier is checked again at once: the message must not outlive its cause.
+    if (invalidMessage) invalidMessage = dirty ? findProblem()?.message || '' : '';
+    if (!dirty) failure = '';
     syncActions();
     clearTimeout(autosaveTimer);
     if (dirty) autosaveTimer = setTimeout(autosave, 1400);
@@ -154,18 +171,25 @@
     return date ? date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
   }
 
+  // Only what differs from the published site waits for publication: a draft returned to it does not.
+  function pending() {
+    return (dirty || revision !== publishedRevision) && (differs || !publishedKnown);
+  }
+
   function syncActions() {
     const locked = busy || uploads > 0 || conflict;
-    const unpublished = dirty || revision !== publishedRevision;
+    const unpublished = pending();
+    const trouble = invalidMessage || failure;
     byId('publish').disabled = locked || !unpublished;
     byId('save').hidden = !dirty;
     byId('save').disabled = locked;
     byId('editor').inert = busy && !quietSave;
     byId('logout').disabled = busy || uploads > 0;
     const state = byId('save-state');
-    state.dataset.state = invalidMessage ? 'invalid' : dirty ? 'dirty' : unpublished ? 'draft' : 'saved';
+    state.dataset.state = trouble || conflict ? 'invalid' : dirty ? 'dirty' : unpublished ? 'draft' : 'saved';
     state.textContent = busy ? 'Сохраняем черновик…' : uploads ? 'Загружаем файл…' :
-      conflict ? 'Найдены изменения в другом окне.' : invalidMessage ? 'Черновик не сохранён: ' + invalidMessage :
+      conflict ? 'В другом окне сайт уже изменили. Загрузите свежую версию — кнопка в начале страницы.' :
+        trouble ? 'Черновик не сохранён: ' + trouble :
         dirty ? 'Изменения сохранятся автоматически…' :
           unpublished ? 'Черновик сохранён' + (savedAt ? ' в ' + timeLabel(savedAt) : '') + '. Клиенты увидят изменения после публикации.' :
             'На сайте опубликована текущая версия.';
@@ -196,6 +220,7 @@
 
   function handleError(error) {
     if (error.status === 401) {
+      expired = true;
       showLogin('Время сеанса истекло. Введите пароль, чтобы продолжить работу.');
       return;
     }
@@ -203,20 +228,28 @@
       conflict = true;
       banner('В другом окне уже обновили сайт. Ваши правки остаются на экране. Скопируйте нужные значения и загрузите свежую версию.', true);
     } else { banner(error.message); }
-    notify(error.message);
+    notify(error.message, true);
     syncActions();
+  }
+
+  // A failed save is named in the status line; a lost connection is tried again on its own.
+  function saveFailed(error, quiet) {
+    const again = !error.status || error.status >= 500;
+    if (!quiet || !again || failure !== error.message) handleError(error);
+    failure = dirty && ![401, 409].includes(error.status) ? error.message : '';
+    clearTimeout(autosaveTimer);
+    if (again && dirty) autosaveTimer = setTimeout(autosave, 8000);
   }
 
   async function loadPublished() {
     try {
       const response = await fetch('api/content', { credentials: 'same-origin', cache: 'no-store' });
       const result = response.ok ? await response.json() : null;
-      published = prepare(result?.content || null);
-    } catch { published = prepare(null); }
+      return { value: prepare(result?.content || null), known: response.ok };
+    } catch { return { value: prepare(null), known: false }; }
   }
 
-  async function loadContent() {
-    const response = await api('content');
+  function applyContent(response, site) {
     content = prepare(response.draft);
     saved = JSON.stringify(content);
     revision = response.revision;
@@ -225,10 +258,34 @@
     dirty = false;
     conflict = false;
     invalidMessage = '';
+    failure = '';
+    published = site.value;
+    publishedText = JSON.stringify(published);
+    publishedKnown = site.known;
+    differs = saved !== publishedText;
     banner('');
-    await loadPublished();
     showApp();
     navigate(location.hash.slice(1), false, false);
+  }
+
+  async function loadContent() {
+    const response = await api('content');
+    applyContent(response, await loadPublished());
+  }
+
+  // A tab left open catches up with what another tab or device has saved, unless it holds edits of its own.
+  async function catchUp() {
+    const idle = () => content && !byId('app').hidden && !dirty && !busy && !uploads && !conflict && !byId('publish-dialog').open;
+    if (document.hidden || !idle() || Date.now() - checkedAt < 20000) return;
+    checkedAt = Date.now();
+    try {
+      const response = await api('content');
+      if (response.revision === revision && response.publishedRevision === publishedRevision) return;
+      const site = await loadPublished();
+      if (!idle()) return;
+      applyContent(response, site);
+      notify('Загружена свежая версия: сайт изменили в другом окне.');
+    } catch (error) { if (error.status === 401 && idle()) handleError(error); }
   }
 
   // Photos straight from a phone are reduced in the browser: long side up to 2400 px, WebP or JPEG.
@@ -262,6 +319,7 @@
     const extension = String(file.name || '').split('.').pop().toLowerCase();
     const known = { jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', png: 'image/png', pdf: 'application/pdf', zip: 'application/zip', mp4: 'video/mp4' };
     uploads++;
+    if (!conflict) banner('');
     syncActions();
     try {
       if (/^image\//.test(file.type) || /\.(?:jpe?g|png|webp|heic|heif)$/i.test(file.name || '')) file = await prepareImage(file);
@@ -281,9 +339,10 @@
   }
 
   function findProblem() {
-    const localMessage = typeof validate === 'function' && validate();
-    let message = localMessage || window.StudioPage.validate(content.page);
+    let message = typeof validate === 'function' && validate();
     let where = active;
+    // The page check does not say which screen the field is on.
+    if (!message) { message = window.StudioPage.validate(content.page); where = ''; }
     if (!message) {
       for (const section of sections.values()) {
         if (typeof section.validateData !== 'function') continue;
@@ -297,9 +356,10 @@
   function checkEditor() {
     const problem = findProblem();
     if (!problem) return true;
-    if (active !== problem.where && sections.has(problem.where)) navigate(problem.where);
+    const where = problem.where || (problem.message === invalidMessage ? problemWhere : '');
+    if (where && active !== where && sections.has(where)) navigate(where);
     banner(problem.message);
-    notify(problem.message);
+    notify(problem.message, true);
     return false;
   }
 
@@ -312,6 +372,7 @@
     saved = JSON.stringify(snapshot);
     savedAt = new Date();
     dirty = JSON.stringify(content) !== saved;
+    failure = '';
     refreshPreview();
   }
 
@@ -320,14 +381,18 @@
     if (!content || !dirty) return;
     if (busy || uploads || conflict) { autosaveTimer = setTimeout(autosave, 1500); return; }
     const problem = findProblem();
+    if (problem && problem.message !== invalidMessage) problemWhere = problem.where || active;
     invalidMessage = problem ? problem.message : '';
-    if (problem) { syncActions(); return; }
+    // The problem may go away without another edit (the field leaves the screen): keep checking.
+    if (problem) { syncActions(); autosaveTimer = setTimeout(autosave, 3000); return; }
     // A background save must not take the field away from someone who is typing.
     busy = true;
     quietSave = true;
     syncActions();
-    try { await storeDraft(); }
-    catch (error) { handleError(error); }
+    try {
+      await storeDraft();
+      if (!conflict) banner('');
+    } catch (error) { saveFailed(error, true); }
     finally { busy = false; quietSave = false; syncActions(); }
   }
 
@@ -345,11 +410,14 @@
         revision = response.revision;
         publishedRevision = response.publishedRevision;
         published = clone(content);
+        publishedText = JSON.stringify(published);
+        publishedKnown = true;
+        differs = false;
         window.dispatchEvent(new CustomEvent('studio:published'));
         notify('Готово! Изменения опубликованы на сайте.');
       } else if (kind === 'save') { notify('Черновик сохранён.'); }
       return true;
-    } catch (error) { handleError(error); return false; }
+    } catch (error) { saveFailed(error, false); return false; }
     finally { busy = false; syncActions(); }
   }
 
@@ -373,7 +441,7 @@
       !same(content.materials, published.materials)) list.push(['materials', 'Материалы и слои']);
     if (!same(content.zones, published.zones)) list.push(['zones', 'Зоны и фото работ по зонам']);
     if (!same(content.works, published.works)) list.push(['works', 'Работы студии']);
-    if (!same(content.vehicles, published.vehicles)) list.push(['vehicles', 'Цены по автомобилю']);
+    if (!same(content.vehicles, published.vehicles)) list.push(['vehicles', 'Наценки за машину']);
     return list;
   }
 
@@ -401,12 +469,16 @@
   async function togglePreview(force) {
     const open = typeof force === 'boolean' ? force : !previewOpen();
     if (open && dirty && !await perform('preview')) return;
+    const focusInside = !open && byId('preview-pane').contains(document.activeElement);
     document.documentElement.classList.toggle('a-preview-open', open);
     byId('preview-pane').hidden = !open;
     byId('preview').setAttribute('aria-expanded', String(open));
     const frame = byId('preview-frame');
-    if (open) frame.src = byId('preview').href;
-    else frame.removeAttribute('src');
+    if (open) { frame.src = byId('preview').href; return; }
+    frame.removeAttribute('src');
+    // Nothing keeps running in the hidden pane, and the keyboard returns to the button that opened it.
+    try { frame.contentWindow.location.replace('about:blank'); } catch { /* The pane is already empty. */ }
+    if (focusInside) byId('preview').focus();
   }
 
   function navigationButton(id, className, label) {
@@ -460,7 +532,7 @@
     const dashboard = node('div', 'a-home');
     const status = node('section', 'a-status');
     const list = changeList();
-    const unpublished = dirty || revision !== publishedRevision;
+    const unpublished = pending();
     const statusText = node('div', 'a-status-text');
     statusText.append(node('h2', '', unpublished ? 'Есть неопубликованные изменения' : 'Сайт в актуальном состоянии'),
       node('p', '', unpublished ? 'Черновик сохраняется сам. Проверьте его в предпросмотре и нажмите «Опубликовать», чтобы клиенты увидели изменения.'
@@ -520,6 +592,8 @@
     help.append(steps);
     dashboard.append(status, ask, grid, help);
     host.replaceChildren(dashboard);
+    // «Готовность сайта»: what is still empty in the draft, right under the status (admin/readiness.js).
+    window.StudioReadiness?.mount(status);
   }
 
   // Long texts are easier to edit when the box grows with them instead of scrolling inside a small field.
@@ -568,7 +642,12 @@
   }
 
   function navigate(id, push = true, focus = true) {
-    if (!content || busy || uploads) { byId('section-select').value = active; return; }
+    // A background save does not need the screen; a file upload or a publication does.
+    if (!content || (busy && !quietSave) || uploads) {
+      byId('section-select').value = active;
+      if (content) notify(uploads ? 'Дождитесь окончания загрузки файла — потом раздел откроется.' : 'Секунду: сохраняем изменения.', true);
+      return;
+    }
     const next = sections.has(id) ? id : 'overview';
     active = next;
     validate = null;
@@ -616,8 +695,14 @@
       submit.disabled = true;
       try {
         await api('login', 'POST', { password: byId('password').value });
+        const resumed = expired;
+        expired = false;
         if (content && dirty) { showApp(); notify('Сеанс восстановлен. Ваши изменения сохранены в форме.'); changed(); }
-        else await loadContent();
+        else {
+          await loadContent();
+          // A publication or an upload cut off by the expired session has to be started again.
+          if (resumed) notify('Сеанс восстановлен. Последнее действие не выполнено — повторите его.', true);
+        }
       } catch (error) { showLogin(error.status === 401 ? 'Пароль не подошёл. Проверьте раскладку и попробуйте ещё раз.' : error.message); }
       finally { submit.disabled = false; }
     });
@@ -642,24 +727,51 @@
       dialog.returnValue = 'cancel';
       dialog.showModal();
     });
-    dialog.addEventListener('close', () => { if (dialog.returnValue === 'publish') perform('publish'); });
+    dialog.addEventListener('close', () => {
+      if (dialog.returnValue !== 'publish') return;
+      byId('screen-title').focus({ preventScroll: true });
+      perform('publish');
+    });
     byId('reload-snapshot').addEventListener('click', async () => {
       if (dirty && !window.confirm('Загрузить свежую версию? Несохранённые изменения в этом окне будут заменены.')) return;
       try { await loadContent(); } catch (error) { handleError(error); }
     });
+    const wide = matchMedia('(min-width: 80.01rem)');
+    wide.addEventListener('change', () => { if (!wide.matches && previewOpen()) togglePreview(false); });
+    byId('preview-frame').addEventListener('load', event => {
+      // «В кабинет» inside the preview would start a second cabinet in the pane: close the pane instead.
+      try {
+        const inside = event.target.contentWindow.location;
+        const folder = path => path.replace(/index\.html$/, '');
+        if (previewOpen() && inside.origin === location.origin && folder(inside.pathname) === folder(location.pathname)) togglePreview(false);
+      } catch { /* The preview shows another site. */ }
+    });
+    document.addEventListener('visibilitychange', catchUp);
+    window.addEventListener('focus', catchUp);
+    // A background save takes a moment: the click waits for it instead of being lost.
+    const settled = () => new Promise(resolve => {
+      const check = () => { if (busy && quietSave) setTimeout(check, 60); else resolve(); };
+      check();
+    });
     byId('preview').addEventListener('click', async event => {
-      if (busy || conflict || uploads) { event.preventDefault(); return; }
-      // Wide screens show the draft next to the editor, phones open it in a new tab.
-      if (matchMedia('(min-width: 80rem)').matches) {
+      if ((busy && !quietSave) || conflict || uploads) {
         event.preventDefault();
+        if (!busy) notify(conflict ? 'Сначала загрузите свежую версию — кнопка в начале страницы.' : 'Дождитесь окончания загрузки файла.', true);
+        return;
+      }
+      // Wide screens show the draft next to the editor, phones open it in a new tab.
+      if (wide.matches) {
+        event.preventDefault();
+        await settled();
         await togglePreview();
         return;
       }
-      if (!dirty) return;
+      if (!dirty && !busy) return;
       event.preventDefault();
       if (!checkEditor()) return;
       const tab = window.open('about:blank', '_blank');
       if (tab) { tab.opener = null; tab.document.title = 'Предпросмотр'; tab.document.body.textContent = 'Сохраняем черновик…'; }
+      await settled();
       if (await perform('preview')) {
         if (tab) tab.location.replace(byId('preview').href);
         else notify('Черновик сохранён. Нажмите «Предпросмотр», чтобы открыть его.');

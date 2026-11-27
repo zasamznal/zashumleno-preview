@@ -1,0 +1,187 @@
+/* New Year mode (v2/festive.js). The switch lives in the header; everything else is decoration that takes
+   neither room nor clicks. html.festive-ready — the switch is shown, html.festive-none — it is switched off
+   in the cabinet or out of season, html.festive — the mode is on. */
+
+/* ---- The switch ---- */
+.festive-toggle {
+  position: relative; flex: none; display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0;
+  color: var(--accent); background: transparent; border: 1px solid var(--line-dark-strong); border-radius: .2rem;
+  /* The place is kept from the first paint: the header does not move when the script shows the switch. */
+  visibility: hidden; opacity: 0;
+  transition: opacity .25s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+html.festive-ready .festive-toggle { visibility: visible; opacity: 1; }
+.festive-toggle svg { display: block; transition: transform .6s cubic-bezier(.22,.8,.3,1); }
+.festive-toggle[aria-pressed="true"] { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.festive-toggle[aria-pressed="true"] svg { transform: rotate(60deg); }
+@media (scripting: none) { .festive-toggle { display: none; } }
+@media (hover: hover) {
+  .festive-toggle:hover { background: var(--night-3); border-color: var(--accent); }
+  .festive-toggle[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--accent), var(--white) 22%); }
+}
+/* What a press will do: on hover and on keyboard focus. */
+.festive-toggle::after {
+  content: attr(data-tip); position: absolute; top: calc(100% + .6rem); right: 0; z-index: 3; width: max-content;
+  padding: .4rem .65rem; border: 1px solid var(--line-dark-strong); border-radius: .2rem; background: var(--night-3); color: var(--on-dark);
+  font-size: .8125rem; font-weight: 600; line-height: 1.3; white-space: nowrap; pointer-events: none;
+  opacity: 0; transform: translateY(-3px); transition: opacity .15s ease, transform .15s ease;
+}
+@media (hover: hover) { .festive-toggle:hover::after { opacity: 1; transform: none; } }
+.festive-toggle:focus-visible::after { opacity: 1; transform: none; }
+.festive-toggle.has-note::after { display: none; }
+/* The bubble under the switch: a one-time hint, and the greeting on a phone. */
+.festive-note {
+  position: absolute; top: calc(100% + .7rem); right: 0; z-index: 4; width: max-content; max-width: min(15rem, 72vw);
+  padding: .5rem .75rem; border-radius: .25rem; background: var(--accent); color: var(--on-accent);
+  font-size: .8125rem; font-weight: 700; line-height: 1.3; text-align: left; pointer-events: none;
+  visibility: hidden; opacity: 0; transform: translateY(-4px); transition: opacity .25s ease, transform .25s ease, visibility 0s .25s;
+}
+.festive-note::before { content: ''; position: absolute; right: 16px; bottom: 100%; border: 6px solid transparent; border-bottom-color: var(--accent); }
+.festive-note.is-shown { visibility: visible; opacity: 1; transform: none; transition: opacity .25s ease, transform .25s ease; }
+
+/* ---- The header row with the switch ---- */
+@media (min-width: 58.01rem) {
+  /* The menu takes the free room on both sides, as before; the switch stays next to the contact button. */
+  html:not(.festive-none) .head-row .topnav { margin-inline: auto; }
+  .head-row .festive-toggle { margin-left: -.4rem; }
+}
+/* Right above the menu breakpoint the row is full: the menu links and the contact button move closer. */
+@media (min-width: 58.01rem) and (max-width: 65rem) {
+  html:not(.festive-none) .head-row .topnav { gap: .7rem; }
+  html:not(.festive-none) .head-row .head-contact { padding-inline: .8rem; }
+  .head-row .festive-toggle { margin-left: -.5rem; }
+}
+@media (max-width: 680px) {
+  /* A phone: three icons in a row, the 44px touch areas stand close. */
+  .festive-toggle { border-color: transparent; margin-inline: -.35rem; }
+  .festive-toggle[aria-pressed="true"] { background: transparent; border-color: transparent; color: var(--accent); }
+  .festive-toggle[aria-pressed="true"] svg { color: var(--on-accent); background: var(--accent); border-radius: 50%; padding: 5px; width: 34px; height: 34px; }
+  /* The bubble stays between the header and the line above the title. */
+  .festive-note { top: calc(100% + .32rem); padding: .36rem .65rem; }
+}
+/* Narrow phones: the touch areas touch, then the name and the emblem give way a little. */
+@media (max-width: 23rem) { .festive-toggle { margin-inline: -.7rem; } }
+@media (max-width: 22.2rem) { html:not(.festive-none) .head-row .wordmark [data-brand-name] { font-size: 1.2rem; } }
+@media (max-width: 21.4rem) {
+  html:not(.festive-none) .head-row { gap: .4rem; }
+  .festive-toggle { margin-inline: -.4rem; }
+  html:not(.festive-none) .head-row .wordmark [data-brand-name] { font-size: 1.05rem; }
+  html:not(.festive-none) .head-row .wordmark img { height: 2.3rem; max-width: 2.9rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .festive-toggle.is-calling { animation: festive-call 1.7s ease-out 3; }
+  @keyframes festive-call {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+    70%, 100% { box-shadow: 0 0 0 11px transparent; }
+  }
+}
+
+/* ---- Snow ---- */
+.festive-snow {
+  position: fixed; inset: 0 0 auto; z-index: 26; width: 100%; height: 100vh; height: 100lvh; pointer-events: none;
+  opacity: 0; transition: opacity .8s ease;
+}
+html.festive .festive-snow { opacity: 1; }
+html.festive .festive-snow.is-asleep { opacity: 0; transition-duration: 1.4s; }
+
+/* ---- Garland under the header: a wire with one scallop per 44px and lights of four studio colours ---- */
+.festive-garland {
+  position: absolute; inset: 100% 0 auto; height: 26px; pointer-events: none;
+  visibility: hidden; opacity: 0; transition: opacity .5s ease, visibility 0s .5s;
+}
+html.festive .festive-garland { visibility: visible; opacity: 1; transition: opacity .5s ease; }
+.festive-garland::before {
+  content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--accent) 58%, var(--night));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 14'%3E%3Cpath d='M0 1Q22 12 44 1' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3Crect x='20.3' y='5.8' width='3.4' height='3.6' rx='.7'/%3E%3C/svg%3E") calc(50% + 22px) 0 / 44px 14px repeat-x;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 14'%3E%3Cpath d='M0 1Q22 12 44 1' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3Crect x='20.3' y='5.8' width='3.4' height='3.6' rx='.7'/%3E%3C/svg%3E") calc(50% + 22px) 0 / 44px 14px repeat-x;
+}
+.festive-garland i { position: absolute; inset: 0; background-repeat: repeat-x; background-position: 50% 0; background-size: 176px 26px; }
+.festive-garland i:first-of-type {
+  background-image:
+    radial-gradient(ellipse 3.6px 5px at 22px 13.6px, var(--sun) 0 78%, transparent 100%),
+    radial-gradient(circle 11px at 22px 13.6px, color-mix(in srgb, var(--sun) 42%, transparent), transparent 100%),
+    radial-gradient(ellipse 3.6px 5px at 110px 13.6px, var(--accent-alt) 0 78%, transparent 100%),
+    radial-gradient(circle 11px at 110px 13.6px, color-mix(in srgb, var(--accent-alt) 48%, transparent), transparent 100%);
+}
+.festive-garland i:last-of-type {
+  background-image:
+    radial-gradient(ellipse 3.6px 5px at 66px 13.6px, var(--spark) 0 78%, transparent 100%),
+    radial-gradient(circle 11px at 66px 13.6px, color-mix(in srgb, var(--spark) 48%, transparent), transparent 100%),
+    radial-gradient(ellipse 3.6px 5px at 154px 13.6px, var(--accent) 0 78%, transparent 100%),
+    radial-gradient(circle 11px at 154px 13.6px, color-mix(in srgb, var(--accent) 42%, transparent), transparent 100%);
+}
+/* The greeting hangs from the wire under the logo. */
+.festive-tag {
+  position: absolute; top: calc(100% + 27px); left: max(var(--gutter), calc((100% - var(--measure)) / 2)); z-index: 1;
+  padding: .32rem .7rem .36rem; border: 1px solid var(--line-dark-strong); border-radius: .2rem;
+  background: color-mix(in srgb, var(--night-3) 88%, transparent); color: var(--on-dark);
+  font-size: .8125rem; font-weight: 700; line-height: 1.25; letter-spacing: .01em; white-space: nowrap; pointer-events: none;
+  transform-origin: 1.4rem -20px; visibility: hidden; opacity: 0; transform: translateY(-8px);
+  transition: opacity .4s ease, transform .5s cubic-bezier(.22,.8,.3,1), visibility 0s .5s;
+}
+.festive-tag::before { content: ''; position: absolute; left: 1.4rem; bottom: 100%; width: 1px; height: 21px; background: color-mix(in srgb, var(--accent) 58%, var(--night)); }
+html.festive .festive-tag { visibility: visible; opacity: 1; transform: none; transition: opacity .4s ease .15s, transform .5s cubic-bezier(.22,.8,.3,1) .15s; }
+@media (max-width: 680px) { .festive-tag { display: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  html.festive .festive-garland i { animation: festive-twinkle 2.6s ease-in-out infinite alternate; }
+  html.festive .festive-garland i:last-of-type { animation-delay: -1.3s; animation-direction: alternate-reverse; }
+  @keyframes festive-twinkle { 0%, 30% { opacity: 1; } 100% { opacity: .3; } }
+}
+
+/* ---- A hat on the car of the studio mark in the header: festive.js seats it on the roof ---- */
+.site-head .wordmark { position: relative; }
+.festive-hat {
+  position: absolute; z-index: 1; pointer-events: none; transform: rotate(-7deg); transform-origin: 40% 86%;
+  opacity: 0; transition: opacity .4s ease;
+}
+.festive-hat svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.festive-hat-cap { fill: var(--spark); }
+.festive-hat-fur { fill: var(--white); }
+.festive-hat-cap, .festive-hat-fur { stroke: var(--night-deep); stroke-width: 3; stroke-linejoin: round; paint-order: stroke; }
+.festive-hat-fold { fill: none; stroke: color-mix(in srgb, var(--spark) 62%, var(--night)); stroke-width: 2.4; stroke-linecap: round; }
+html.festive .festive-hat { opacity: 1; }
+
+@supports ((mask-image: none) or (-webkit-mask-image: none)) {
+  /* ---- A snowbank along the bottom of the cover ---- */
+  .cover::after {
+    content: ''; position: absolute; inset: auto 0 0; z-index: 0; height: clamp(13px, 1.5vw, 22px); pointer-events: none;
+    background: linear-gradient(color-mix(in srgb, var(--white) 94%, var(--accent)), color-mix(in srgb, var(--white) 72%, var(--accent)));
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 24' preserveAspectRatio='none'%3E%3Cpath d='M0 24V13C36 3 72 17 112 9C150 2 184 15 218 8C252 2 286 16 320 13V24Z'/%3E%3C/svg%3E") 0 100% / 320px 100% repeat-x;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 24' preserveAspectRatio='none'%3E%3Cpath d='M0 24V13C36 3 72 17 112 9C150 2 184 15 218 8C252 2 286 16 320 13V24Z'/%3E%3C/svg%3E") 0 100% / 320px 100% repeat-x;
+    opacity: 0; transition: opacity .6s ease;
+  }
+  html.festive .cover::after { opacity: 1; }
+
+  /* ---- Snow on the upper edge of the footer ---- */
+  .footer { position: relative; }
+  .footer::before {
+    content: ''; position: absolute; inset: 0 0 auto; height: 15px; pointer-events: none;
+    background: color-mix(in srgb, var(--white) 92%, var(--accent));
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 16' preserveAspectRatio='none'%3E%3Cpath d='M0 0H240V7C222 15 204 5 186 9C166 14 150 4 128 8C106 13 92 3 70 8C46 14 26 5 0 7Z'/%3E%3C/svg%3E") 0 0 / 240px 100% repeat-x;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 16' preserveAspectRatio='none'%3E%3Cpath d='M0 0H240V7C222 15 204 5 186 9C166 14 150 4 128 8C106 13 92 3 70 8C46 14 26 5 0 7Z'/%3E%3C/svg%3E") 0 0 / 240px 100% repeat-x;
+    opacity: 0; transition: opacity .6s ease;
+  }
+  html.festive .footer::before { opacity: 1; }
+
+  /* ---- A cap of snow on the main button of the cover ---- */
+  .hero-primary { position: relative; }
+  .hero-primary::before {
+    content: ''; position: absolute; left: -3px; right: -3px; top: -6px; height: 12px; border-radius: 6px 6px 0 0; pointer-events: none;
+    background: color-mix(in srgb, var(--white) 96%, var(--accent));
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 12' preserveAspectRatio='none'%3E%3Cpath d='M0 0H60V7C55 12 50 6 44 8.5C38 11 34 5 28 7.5C21 10.5 16 5 9 8.5C5 10.5 2 9 0 7Z'/%3E%3C/svg%3E") 0 0 / 60px 100% repeat-x;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 12' preserveAspectRatio='none'%3E%3Cpath d='M0 0H60V7C55 12 50 6 44 8.5C38 11 34 5 28 7.5C21 10.5 16 5 9 8.5C5 10.5 2 9 0 7Z'/%3E%3C/svg%3E") 0 0 / 60px 100% repeat-x;
+    opacity: 0; transition: opacity .5s ease;
+  }
+  html.festive .hero-primary::before { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .festive-toggle, .festive-toggle svg, .festive-toggle::after, .festive-note, .festive-snow, .festive-garland, .festive-tag,
+  .festive-hat, .cover::after, .footer::before, .hero-primary::before { transition: none; }
+}
+@media (forced-colors: active) {
+  .festive-garland, .festive-tag, .festive-snow, .festive-hat, .cover::after, .footer::before, .hero-primary::before { display: none; }
+}
+@media print {
+  .festive-toggle, .festive-garland, .festive-tag, .festive-snow, .festive-hat, .cover::after, .footer::before, .hero-primary::before { display: none !important; }
+}

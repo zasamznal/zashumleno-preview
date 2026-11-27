@@ -6,6 +6,12 @@
     zones: { title: "Зоны работ", add: "Добавить зону", single: "Зона", search: "Поиск по зонам" },
     works: { title: "Работы студии", add: "Добавить работу", single: "Работа", search: "Поиск по модели или услуге" }
   };
+  // Fields that hold an address: the server accepts only https links and files of the site there.
+  const linkFields = {
+    prices: [["sheet", "Оригинальный прайс-лист"], ["source", "Ссылка на папку с оригиналом"]],
+    zones: [["image", "Фото зоны"], ["source", "Ссылка на материалы студии"]],
+    works: [["image", "Фотография работы"], ["video", "Видео работы"], ["url", "Ссылка на публикацию"]]
+  };
   const originalGroups = { doors: "Двери", arches: "Арки и шины", floor: "Пол", trunk: "Багажник", roof: "Потолок", dashboard: "Торпедо" };
   const groupOf = zone => zone.group || originalGroups[zone.id] || zone.title;
   const uniqueId = () => "zone-" + crypto.randomUUID().slice(0, 12);
@@ -90,6 +96,11 @@
       if (kind === "works" && !item.model.trim()) return prefix + "Укажите модель автомобиля.";
       if (kind === "works" && item.video && !window.StudioPage.mediaUrl(item.video)) {
         return prefix + "Проверьте адрес видео или выберите MP4 с компьютера.";
+      }
+      for (const [key, label] of linkFields[kind]) {
+        if (item[key] && !window.StudioKit.validLink(item[key])) {
+          return prefix + "Поле «" + label + "»: нужна ссылка, которая начинается с https://" + (key === "url" || key === "source" ? "." : ", или файл, выбранный кнопкой «Выбрать файл».");
+        }
       }
       if (kind === "prices") {
         if (!item.group.trim()) return prefix + "Выберите зону.";
@@ -341,7 +352,7 @@
         carInput.checked = typeof item.carDependent === "boolean" ? item.carDependent : sample ? sample.scalable : true;
         carInput.addEventListener("change", () => { item.carDependent = carInput.checked; ctx.change(); });
         carBox.append(carInput, node("span", "", "Цена зависит от машины"),
-          node("small", "", "Калькулятор добавит наценку за кузов и марку из раздела «Цены по автомобилю». Снимите галочку для фиксированных цен — например, наборов для шин."));
+          node("small", "", "Калькулятор добавит наценку за кузов и марку из раздела «Наценки за машину». Снимите галочку для фиксированных цен — например, наборов для шин."));
         fields.append(carBox);
         if (Array.isArray(item.layers)) {
           const layersNote = node("p", "cat-file-status", "Слои материалов этого комплекта настраиваются в разделе «Материалы и слои».");
@@ -354,20 +365,34 @@
         note.setAttribute("role", "status");
         fields.append(note, attachment("Оригинальный прайс-лист", "sheet", "sheet"), source);
       } else if (kind === "zones") {
-        fields.append(property("Название зоны", "title"));
+        const titleField = property("Название зоны", "title");
+        fields.append(titleField);
+        // A zone added in the cabinet starts with one name for the zone and for its group in the price list.
+        // They change together until the group gets a name of its own, so «Новая зона» does not reach the site.
+        let groupFollows = !originalGroups[item.id] && groupOf(item) === item.title;
         const groupField = field("Название группы в прайсе", groupOf(item), value => {
           const previous = groupOf(item);
           const next = value.trim();
           if (!next || ctx.data.zones.some(zone => zone !== item && groupOf(zone) === next)) {
             groupField.querySelector("input").value = previous;
-            ctx.notify("Укажите отдельное название группы.");
+            ctx.notify("Укажите отдельное название группы.", true);
             return;
           }
+          groupFollows = false;
           item.group = next;
           ctx.data.prices.filter(rate => rate.group === previous).forEach(rate => { rate.group = next; });
           ctx.change();
         }, { commit: true });
         groupField.append(node("small", "", "Это название показывается на кнопке фильтра. Привязанные тарифы перейдут в переименованную группу."));
+        titleField.querySelector("input").addEventListener("input", () => {
+          const previous = groupOf(item);
+          const next = item.title.trim();
+          if (!groupFollows || !next || next === previous || ctx.data.zones.some(zone => zone !== item && groupOf(zone) === next)) return;
+          item.group = next;
+          ctx.data.prices.filter(rate => rate.group === previous).forEach(rate => { rate.group = next; });
+          groupField.querySelector("input").value = next;
+          ctx.change();
+        });
         fields.append(groupField, property("Короткое описание", "description", { lines: 3 }), listProperty("Подробности зоны", "details"),
           attachment("Фото зоны", "image"), property("Ссылка на материалы студии", "source"));
         const galleryCount = Array.isArray(item.gallery) ? item.gallery.length : 0;
@@ -397,14 +422,16 @@
       }));
       bottom.append(action("Удалить", () => {
         if (kind === "zones" && ctx.data.prices.some(rate => rate.group === groupOf(item))) {
-          ctx.notify("Эта зона используется в прайсе. Перенесите её тарифы в другую зону или удалите их.");
+          ctx.notify("Эта зона используется в прайсе. Перенесите её тарифы в другую зону или удалите их.", true);
           return;
         }
         confirmRemove(root, "Удалить «" + itemName(kind, item) + "» из черновика?", () => {
-          items.splice(items.indexOf(item), 1);
+          const position = items.indexOf(item);
+          items.splice(position, 1);
           invalidateArchive();
           ctx.change();
-          redrawList();
+          redrawList(items[Math.min(position, items.length - 1)]);
+          if (!items.length) root.querySelector(".cat-primary")?.focus();
         });
       }, "cat-danger"));
       root.append(head, fields, bottom);

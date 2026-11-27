@@ -6,7 +6,13 @@
     if (!host || host.querySelector("form")) return;
 
     const page = window.StudioPage.current;
-    const telegram = window.StudioPage.contactUrl("telegram", page.contacts.telegram);
+    // Both messengers lead to the same person and receive the same draft.
+    const chats = {
+      telegram: window.StudioPage.contactUrl("telegram", page.contacts.telegram),
+      whatsapp: window.StudioPage.contactUrl("whatsapp", page.contacts.whatsapp)
+    };
+    const drafts = { telegram: window.StudioPage.telegramDraftUrl, whatsapp: window.StudioPage.whatsappDraftUrl };
+    const available = Object.keys(chats).filter(kind => chats[kind]);
     host.innerHTML = `
       <form class="zq-form" aria-label="Запрос расчёта" autocomplete="off">
         <div class="zq-field">
@@ -22,9 +28,12 @@
           <div class="zq-estimate-head"><strong>Ваш выбор</strong><button type="button" class="zq-reset">Сбросить</button></div>
           <p class="zq-lines"></p><p class="zq-sum" hidden></p>
         </div>
-        <button type="submit" class="zq-send"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M21.4 3.2 18 20.5c-.1.8-.7 1.1-1.4.6l-5.1-3.8-2.5 2.5c-.3.3-.5.5-.9.5l.4-5.3L18.2 6c.4-.4-.1-.6-.5-.3L5.7 13.3l-5-1.6c-.9-.3-.9-1 .2-1.4L20 3c.8-.3 1.6.2 1.4.2Z"/></svg>Открыть в Telegram</button>
-        <p class="zq-note">В Telegram откроется черновик сообщения. Вы сможете изменить его перед отправкой.</p>
-        <div class="zq-links"><button type="button" class="zq-copy">Скопировать запрос</button><a class="zq-policy" href="privacy.html#request-form">Обработка персональных данных</a></div>
+        <div class="zq-actions">
+          <button type="submit" class="zq-send" data-messenger="telegram"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M21.4 3.2 18 20.5c-.1.8-.7 1.1-1.4.6l-5.1-3.8-2.5 2.5c-.3.3-.5.5-.9.5l.4-5.3L18.2 6c.4-.4-.1-.6-.5-.3L5.7 13.3l-5-1.6c-.9-.3-.9-1 .2-1.4L20 3c.8-.3 1.6.2 1.4.2Z"/></svg>Открыть в Telegram</button>
+          <button type="submit" class="zq-send" data-messenger="whatsapp"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M12 2.5a9.3 9.3 0 0 0-8 14.1L2.6 21.4l5-1.3A9.3 9.3 0 1 0 12 2.5Zm0 1.9a7.4 7.4 0 1 1-3.9 13.7l-.4-.2-2.4.6.7-2.3-.3-.4A7.4 7.4 0 0 1 12 4.4Zm-3.6 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4Zm3.6 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4Zm3.6 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4Z"/></svg>Открыть в WhatsApp</button>
+        </div>
+        <p class="zq-note">Выберите мессенджер — в нём откроется черновик сообщения. Вы сможете изменить его перед отправкой.</p>
+        <div class="zq-links"><button type="button" class="zq-copy">Скопировать запрос</button><a class="zq-policy" href="privacy.html#request-form" target="_blank" rel="noopener">Обработка персональных данных</a></div>
         <p class="zq-status" role="status"></p>
         <textarea class="zq-manual" aria-label="Текст запроса для копирования" rows="5" readonly hidden></textarea>
       </form>`;
@@ -38,13 +47,19 @@
     const copy = form.querySelector(".zq-copy");
     const status = form.querySelector(".zq-status");
     const manual = form.querySelector(".zq-manual");
-    const send = form.querySelector(".zq-send");
     let transfer = null;
     let carWasPrefilled = false;
 
-    if (!telegram) {
-      send.hidden = true;
+    let clicked = "";
+    for (const button of form.querySelectorAll(".zq-send")) {
+      button.hidden = !chats[button.dataset.messenger];
+      button.addEventListener("click", () => { clicked = button.dataset.messenger; });
+    }
+    if (!available.length) {
+      form.querySelector(".zq-actions").hidden = true;
       note.textContent = "Скопируйте запрос для консультации со студией.";
+    } else if (available.length === 1) {
+      note.textContent = "В " + (available[0] === "telegram" ? "Telegram" : "WhatsApp") + " откроется черновик сообщения. Вы сможете изменить его перед отправкой.";
     }
     if (new URL(location.href).searchParams.get("preview") === "draft") {
       form.querySelector(".zq-policy").href = "privacy.html?preview=draft#request-form";
@@ -63,7 +78,7 @@
       service.append(group);
     }
     addOptions("Шумоизоляция", (window.STUDIO_ZONES || []).map(zone => zone.title && "Шумоизоляция — " + zone.title));
-    addOptions("Другие услуги", (page.services || []).map(item => item.title));
+    addOptions("Другие услуги", (page.services || []).map(item => item.title.trim()));
 
     function clearFeedback() {
       status.textContent = "";
@@ -128,8 +143,12 @@
     });
     form.addEventListener("submit", event => {
       event.preventDefault();
+      // Enter in a field acts as the first button; a messenger without an address falls back to the other one.
+      const pressed = event.submitter?.dataset.messenger || clicked;
+      const kind = chats[pressed] ? pressed : available[0];
+      clicked = "";
       const text = compose();
-      if (telegram && text) window.open(window.StudioPage.telegramDraftUrl(telegram, text), "_blank", "noopener,noreferrer");
+      if (kind && text) window.open(drafts[kind](chats[kind], text), "_blank", "noopener,noreferrer");
     });
     copy.addEventListener("click", async () => {
       const text = compose();

@@ -18,7 +18,7 @@
 .ly-zone[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--white); }
 .ly-body { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(16rem, .8fr); gap: clamp(1.4rem, 3.6vw, 4.2rem); align-items: start; }
 .ly-stage-box {
-  position: relative; display: grid; gap: .4rem; min-width: 0; padding: clamp(.8rem, 1.6vw, 1.2rem); overflow: hidden; border-radius: .65rem;
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: .4rem; min-width: 0; padding: clamp(.8rem, 1.6vw, 1.2rem); overflow: hidden; border-radius: .65rem;
   color: var(--on-dark);
   background: radial-gradient(110% 85% at 28% 18%, color-mix(in srgb, var(--accent) 26%, var(--night)) 0%, var(--night) 58%, var(--night-deep) 100%);
 }
@@ -27,45 +27,79 @@
   background: radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%);
 }
 .ly-packages { position: relative; z-index: 2; display: inline-flex; flex-wrap: wrap; justify-self: start; gap: .25rem; padding: .25rem; border-radius: 2rem; background: color-mix(in srgb, var(--night) 70%, transparent); border: 1px solid var(--line-dark); }
-.ly-package { min-height: 2.35rem; padding: .3rem .95rem; border: 0; border-radius: 2rem; background: transparent; color: var(--muted-on-dark); font-size: .9rem; font-weight: 620; }
+.ly-package { min-height: 2.35rem; max-width: 100%; padding: .3rem .95rem; border: 0; border-radius: 2rem; background: transparent; color: var(--muted-on-dark); font-size: .9rem; font-weight: 620; }
 .ly-package[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 .ly-stage { position: relative; z-index: 1; aspect-ratio: 4 / 3; perspective: 1500px; perspective-origin: 50% 32%; }
+/* The script measures the stage right after it changes its box: these two never animate (site.css gives every element a short transition when motion is reduced). */
+.ly-stage, .ly-scene { transition-property: none; }
 /* Each zone has its own angle. Sheets fan out sideways (doors, arches, panel) or upwards (floor, roof, trunk). */
-.ly-scene { position: absolute; inset: 15% 51% 17% 3%; transform-style: preserve-3d; transform: var(--ly-view); --dx: 20%; --dy: 0%; --dz: 22px; }
+.ly-scene { position: absolute; inset: 15% 51% 17% 3%; pointer-events: none; transform-style: preserve-3d; transform: translate(var(--ly-x, 0px), var(--ly-y, 0px)) var(--ly-view); --dx: 20%; --dy: 0%; --dz: 22px; --mid: 0; }
 .ly-scene[data-fan="up"] { inset: 33% 17% 5% 17%; }
 .ly-scene[data-shape="arch"] { inset: 6% 42% 10% 0%; }
 .ly-layer {
-  position: absolute; inset: 0; transform-style: preserve-3d; cursor: pointer; will-change: transform;
-  --lift: 0px; --rise: 0%;
-  transform: translate3d(calc(var(--i) * var(--dx) * var(--spread, 0)), calc(var(--i) * var(--dy) * var(--spread, 0) + var(--rise)),
-    calc(var(--i) * var(--dz) * var(--spread, 0) + var(--i) * 5px + var(--lift)));
+  position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; will-change: transform;
+  /* --p — place of the sheet in the opened stack: sheets keep close to the part of the body they are glued to.
+     --mid — the place that stays where the scene is: a sideways fan of body parts opens both ways from its middle. */
+  --at: calc(var(--p, var(--i)) - var(--mid));
+  transform: translate3d(calc(var(--at) * var(--dx) * var(--spread, 0)), calc(var(--at) * var(--dy) * var(--spread, 0)),
+    calc(var(--at) * var(--dz) * var(--spread, 0) + var(--i) * 5px));
   transition: transform .72s cubic-bezier(.2, .85, .25, 1.12);
   transition-delay: calc(var(--i) * 130ms);
 }
-.ly-art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; transition: opacity .45s ease, filter .3s ease; transition-delay: inherit; }
-.ly-stage[data-phase="fly"] .ly-layer { transform: translate3d(calc(var(--i) * var(--dx)), calc(var(--i) * var(--dy)), calc(180px + var(--i) * 30px)); transition: none; }
+.ly-art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; transition: opacity .3s ease, filter .3s ease; transition-delay: inherit; }
+/* Only the painted sheet answers the pointer, never the empty box around it. A chosen sheet does not move, so the mouse never loses it. */
+.ly-art > g { pointer-events: auto; cursor: pointer; }
+/* Under a finger the ghosts above the chosen sheet let the tap through to what is seen. A mouse looks at the sheets as they lie. */
+@media (hover: none) { .ly-scene.has-active .ly-layer.is-above .ly-art > g { pointer-events: none; } }
+.ly-stage[data-phase="fly"] .ly-layer { transform: translate3d(calc(var(--at) * var(--dx)), calc(var(--at) * var(--dy)), calc(180px + var(--i) * 30px)); transition: none; }
 .ly-stage[data-phase="fly"] :is(.ly-art, .ly-badge) { opacity: 0; transition: none; }
 .ly-stage[data-phase="closed"] { --spread: 0; }
 .ly-stage[data-phase="open"] { --spread: 1; }
 /* The stack opens from the top sheet down, so a lower sheet never slides over the ones above it. */
 .ly-stage[data-phase="open"] .ly-layer { transition-delay: calc((var(--n) - 1 - var(--i)) * 55ms); }
-.ly-layer[data-type="base"] .ly-art { filter: drop-shadow(0 18px 18px rgb(0 0 0 / .45)); }
+/* Every state of a sheet lists the same filters in the same order, so the change from one state to another is smooth. */
+.ly-layer[data-type="base"] .ly-art { filter: brightness(1) saturate(1) drop-shadow(0 18px 18px rgb(0 0 0 / .45)); }
 .ly-scene.has-active .ly-layer, .ly-scene.has-active .ly-art { transition-delay: 0s; }
-.ly-scene.has-active .ly-layer:not(.is-active) .ly-art { filter: brightness(.45) saturate(.55); }
-.ly-layer.is-active { --lift: 36px; --rise: -7%; }
-.ly-scene[data-fan="up"] .ly-layer.is-active { --rise: 0%; --lift: 30px; }
-.ly-layer.is-active .ly-art { filter: drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 80%, transparent)); }
+/* The shown sheet and the part it is glued to stay lit. Sheets below dim, everything laid above turns into a ghost;
+   trim over its own sheet stays half see-through, so the sheet is seen on its back. */
+.ly-scene.has-active .ly-layer:not(.is-active, .is-host) .ly-art { filter: brightness(.45) saturate(.55) drop-shadow(0 0 0 color-mix(in srgb, var(--accent) 0%, transparent)); }
+.ly-scene.has-active .ly-layer.is-above .ly-art { opacity: .13; }
+.ly-layer.is-active .ly-art { filter: brightness(1) saturate(1) drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 80%, transparent)); }
+.ly-layer.is-host .ly-art { filter: brightness(1) saturate(1) drop-shadow(0 0 1.5px var(--accent)) drop-shadow(0 0 1.5px var(--accent)) drop-shadow(0 0 12px color-mix(in srgb, var(--accent) 55%, transparent)); }
+.ly-scene.has-active .ly-layer.is-host.is-above .ly-art { opacity: .46; }
+/* Numbers: round for a sheet of material, square and plain for a part of the body or the trim — as in the list. */
 .ly-badge {
   position: absolute; display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: 50%;
-  transform: translate(-50%, -50%) var(--ly-billboard); color: var(--on-dark); background: var(--night);
+  transform: translate(-50%, -50%) var(--ly-billboard) translate3d(calc(var(--sx, 0px) + var(--ly-nx, 0px)), calc(var(--sy, 0px) + var(--ly-ny, 0px)), calc(var(--clear, 0px) + var(--ly-pop, 0px))); color: var(--on-dark); background: var(--night);
   border: 1.5px solid var(--accent); font-size: .8rem; font-weight: 760; box-shadow: 0 4px 10px rgb(0 0 0 / .4); pointer-events: none;
-  transition: opacity .3s ease;
+  transition: opacity .3s ease, transform .3s ease, background .2s, color .2s, box-shadow .2s;
 }
-.ly-stage[data-phase="closed"] .ly-badge { opacity: 0; }
+.ly-layer:is([data-type="base"], [data-type="cover"]) .ly-badge {
+  width: 1.5rem; height: 1.5rem; border-radius: .4rem; border-color: color-mix(in srgb, var(--on-dark) 46%, transparent);
+  background: color-mix(in srgb, var(--night) 82%, var(--on-dark)); color: color-mix(in srgb, var(--on-dark) 82%, transparent); font-size: .74rem; font-weight: 700;
+}
+.ly-stage[data-phase="closed"] .ly-badge { opacity: 0 !important; }
 /* Numbers appear once their sheet has moved apart from the others. */
-.ly-stage[data-phase="open"] .ly-badge { transition: opacity .3s ease calc(.42s + (var(--n) - 1 - var(--i)) * 55ms); }
+.ly-stage[data-phase="open"] .ly-badge { transition: opacity .3s ease calc(.42s + (var(--n) - 1 - var(--i)) * 55ms), transform .3s ease, background .2s, color .2s, box-shadow .2s; }
 .ly-scene.has-active .ly-badge { transition-delay: 0s; }
-.ly-layer.is-active .ly-badge { background: var(--accent); color: var(--on-accent); }
+.ly-stage[data-phase="open"] .ly-scene.has-active .ly-layer.is-above:not(.is-host) .ly-badge { opacity: .38; }
+/* The number of a sheet laid above would hang over the shown sheet: it hides. --sx and --sy move a number off its neighbour. */
+.ly-stage[data-phase="open"] .ly-scene.has-active .ly-layer.is-above.is-over:not(.is-host) .ly-badge { opacity: 0; }
+.ly-layer.is-active .ly-badge { --ly-pop: var(--pop, 0px); --ly-nx: var(--nx, 0px); --ly-ny: var(--ny, 0px); background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ly-layer.is-host .ly-badge { border-color: var(--accent); color: var(--on-dark); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 38%, transparent), 0 4px 10px rgb(0 0 0 / .4); }
+/* Names of the materials on the shown sheet. They face the viewer like the numbers; --nx and --ny move a name off its neighbours. */
+.ly-label {
+  position: absolute; display: inline-flex; align-items: center; gap: .34rem; padding: .16rem .52rem .16rem .4rem; border-radius: 1rem;
+  transform: translate(-50%, -50%) var(--ly-billboard) translate3d(var(--nx, 0px), var(--ny, 0px), calc(var(--clear, 0px) + var(--pop, 0px)));
+  color: var(--on-dark); background: color-mix(in srgb, var(--night-deep) 88%, transparent); border: 1px solid var(--line-dark-strong);
+  font-size: .72rem; font-weight: 640; line-height: 1.25; letter-spacing: .005em; white-space: nowrap; box-shadow: 0 4px 12px rgb(0 0 0 / .45);
+  pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s .2s;
+}
+.ly-layer.is-active .ly-label { opacity: 1; visibility: visible; transition: opacity .25s ease .1s, visibility 0s; }
+.ly-stage[data-phase="fly"] .ly-label { opacity: 0; }
+/* The colour of a sheet; the colour of its print sits in the middle. */
+.ly-swatch { flex: none; display: inline-block; width: .62rem; height: .62rem; border-radius: 50%; background: var(--ly-ink, var(--accent-dark)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--on-dark) 60%, transparent); }
+.ly-swatch[data-print] { background: radial-gradient(circle, var(--ly-print) 0 27%, var(--ly-ink, var(--accent-dark)) 34%); }
 .ly-controls { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .3rem 1rem; }
 .ly-toggle { min-height: 2.6rem; padding: .3rem .95rem; border: 1px solid var(--line-dark-strong); border-radius: 2rem; background: transparent; color: var(--on-dark); font-size: .88rem; font-weight: 620; }
 .ly-toggle:hover { border-color: var(--accent); color: var(--accent); }
@@ -75,12 +109,26 @@
 .ly-list { margin: 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }
 .ly-item { border-bottom: 1px solid var(--rule); }
 .ly-item-button {
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .75rem; width: 100%;
+  display: grid; grid-template-columns: 1.65rem minmax(0, 1fr) auto; align-items: center; gap: .22rem .75rem; width: 100%;
   padding: .78rem 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
 }
-.ly-num { display: grid; place-items: center; width: 1.65rem; height: 1.65rem; border-radius: 50%; border: 1.5px solid var(--accent-dark); color: var(--accent-dark); font-size: .78rem; font-weight: 760; transition: background .2s, color .2s; }
-.ly-item.is-active .ly-num { background: var(--accent-dark); color: var(--white); }
-.ly-item-name { font-size: clamp(1rem, 1.25vw, 1.14rem); font-weight: 660; letter-spacing: -.02em; line-height: 1.25; overflow-wrap: anywhere; }
+.ly-num { display: grid; place-items: center; justify-self: center; width: 1.65rem; height: 1.65rem; border-radius: 50%; border: 1.5px solid var(--accent-dark); color: var(--accent-dark); font-size: .78rem; font-weight: 760; transition: background .2s, color .2s, border-color .2s, box-shadow .2s; }
+.ly-item:is(.is-active, .is-peek) .ly-num { background: var(--accent-dark); color: var(--white); }
+.ly-item-name { font-size: clamp(1rem, 1.25vw, 1.14rem); font-weight: 660; letter-spacing: -.02em; line-height: 1.25; overflow-wrap: anywhere; transition: color .2s; }
+.ly-item.is-peek .ly-item-name { color: var(--accent-dark); }
+/* A part of the body or the trim is not a material: a square plain number and a calmer name, as on the drawing. */
+.ly-item:is([data-type="base"], [data-type="cover"]) .ly-item-button { padding-block: .56rem; }
+.ly-item:is([data-type="base"], [data-type="cover"]) .ly-num { width: 1.42rem; height: 1.42rem; border-radius: .38rem; border-color: color-mix(in srgb, var(--muted) 62%, transparent); color: var(--muted); font-size: .74rem; font-weight: 700; }
+.ly-item:is([data-type="base"], [data-type="cover"]):is(.is-active, .is-peek) .ly-num { background: var(--muted); border-color: var(--muted); color: var(--white); }
+.ly-item:is([data-type="base"], [data-type="cover"]) .ly-item-name { color: color-mix(in srgb, var(--ink) 70%, var(--paper)); font-size: .96rem; font-weight: 560; letter-spacing: -.01em; }
+.ly-item:is([data-type="base"], [data-type="cover"]):is(.is-active, .is-peek) .ly-item-name { color: var(--ink); }
+/* The part the shown sheet is glued to. */
+.ly-item.is-host .ly-num { border-color: var(--accent-dark); color: var(--accent-dark); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 70%, transparent); }
+.ly-item.is-host .ly-item-name { color: var(--ink); }
+.ly-item-where { grid-column: 2 / -1; display: grid; gap: .2rem; color: var(--muted); font-size: .86rem; font-weight: 400; line-height: 1.4; overflow-wrap: anywhere; }
+.ly-where.is-named { padding-left: 1.08rem; text-indent: -1.08rem; }
+.ly-where b { color: var(--ink); font-weight: 620; }
+.ly-where .ly-swatch { margin-right: .46rem; box-shadow: 0 0 0 1px var(--paper), 0 0 0 2px color-mix(in srgb, var(--ink) 34%, transparent); }
 .ly-tag { padding: .2rem .55rem; border-radius: 1rem; background: var(--paper-2); color: color-mix(in srgb, var(--ink) 75%, var(--accent-dark)); font-size: .74rem; font-weight: 600; white-space: nowrap; }
 .ly-tag[data-kind="damper"] { background: color-mix(in srgb, var(--accent) 45%, var(--paper)); }
 .ly-tag[data-kind="insulator"], .ly-tag[data-kind="membrane"] { background: color-mix(in srgb, var(--accent-alt) 20%, var(--paper)); }
@@ -149,9 +197,13 @@
   .ly-package { flex: 1 1 auto; min-width: 0; padding-inline: .25rem; font-size: .8rem; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ly-hint { display: none; }
   .ly-badge { width: 1.45rem; height: 1.45rem; font-size: .7rem; }
+  .ly-layer:is([data-type="base"], [data-type="cover"]) .ly-badge { width: 1.28rem; height: 1.28rem; border-radius: .34rem; font-size: .66rem; }
+  .ly-label { padding: .12rem .44rem .12rem .34rem; font-size: .66rem; }
 }
+/* On touch screens the kit switch and «Собрать слои» get a finger-sized height. */
+@media (pointer: coarse) { .ly-package, .ly-toggle { min-height: 2.75rem; } }
 @media (prefers-reduced-motion: reduce) {
-  .ly-layer, .ly-badge, .ly-photo img { transition: none !important; }
+  .ly-layer, .ly-art, .ly-badge, .ly-label, .ly-photo img { transition: none !important; }
   .ly-panel { animation: none; }
 }
 /* The narrowest phones: package names keep their whole words. */
@@ -159,3 +211,15 @@
   .ly-packages { display: flex; }
   .ly-package { padding-inline: .2rem; font-size: .74rem; letter-spacing: -.02em; }
 }
+/* door */
+/* The door opens as a cascade: every next sheet steps right and down along the stiffening beams of the outer skin, so the beams
+   show between the pieces of the first damper. The number in --dy is the slope of DOOR_BEAMS (layers.js) for a 4:3 box.
+   The cascade opens to both sides of the closed door (doorSpread in layers.js), so the box of the scene stands in the middle
+   of the stage; the depth of the fan is set in pixels and does not shrink with the stage, hence the pixels in the margins. */
+.ly-scene[data-shape="door"][data-fan="side"] { top: 28%; bottom: auto; aspect-ratio: 4 / 3; margin: 0 calc(24px - 18.2%) 0 calc(18.2% - 24px); --dy: calc(var(--dx) * .7467); }
+/* Only the drawing answers the pointer, so a sheet seen through an opening or beside the corner of the next one can be chosen
+   (the box of the scene itself would hide the sheets that stand behind its plane). */
+.ly-scene[data-shape="door"], .ly-scene[data-shape="door"] .ly-layer { pointer-events: none; }
+.ly-scene[data-shape="door"] .ly-art > g { pointer-events: visiblePainted; }
+/* A number sits on the corner of its own sheet and lies in its plane: turned to the viewer, it would be cut by the sheet. */
+.ly-scene[data-shape="door"][data-fan="side"] .ly-badge { transform: translate(-50%, -50%) translateZ(6px); }

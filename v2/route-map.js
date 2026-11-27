@@ -134,12 +134,14 @@
   ];
 
   const canonical = value => String(value || '').toLowerCase().replace(/ё/g, 'е').replace(/[^а-яa-z0-9]/gi, '');
+  // The scheme shows one place: the underground parking of Варшавское шоссе, 152А, level −1.
+  // The entrance text may name it in its own words — «паркинг» or «парковка», «этаж −1» or «минус первый этаж».
   function fits(contacts) {
     const address = canonical(contacts.address).replace(/^г(?:ород)?москва|^москва/, '');
-    const entrance = canonical(contacts.entrance);
+    const entrance = String(contacts.entrance || '').toLowerCase().replace(/ё/g, 'е');
     return /^варшавское(?:шоссе|ш)(?:дом|д)?152[аa]$/.test(address)
-      && /паркинг/.test(entrance) && /(?:этаж1|1этаж)/.test(entrance)
-      && /[−–-]\s*1|минус\s*(?:1|перв)/i.test(contacts.entrance || '');
+      && /паркинг|парковк/.test(entrance)
+      && /(?:^|[^\d.,])[−–-]\s*1(?![\d.,]*\d)|минус\s*(?:1(?!\d)|перв|один)/.test(entrance);
   }
 
   function element(tag, className, text) {
@@ -365,7 +367,8 @@
         const withVideo = typeof options.video === 'function';
         photo.disabled = !withVideo;
         photoLabel.textContent = withVideo ? 'Этот момент в видео' : 'Как выглядит на месте';
-        photo.setAttribute('aria-label', (withVideo ? 'Смотреть в видео: ' : 'Фото: ') + (step.title || ''));
+        // The spoken name starts with the words on the picture, then names the step.
+        photo.setAttribute('aria-label', photoLabel.textContent + (step.title ? ': ' + step.title : ''));
       }
     }
     photo.addEventListener('click', () => {

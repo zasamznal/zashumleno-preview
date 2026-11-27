@@ -1,0 +1,113 @@
+/* «Карта машины»: the zones of the estimate on a car drawing in the receipt, and a kit of one level for the whole car. */
+.car-map {
+  --cm-line: color-mix(in srgb, var(--ink) 34%, transparent);
+  --cm-in: var(--accent-dark);
+  container: car-map / inline-size;
+  margin-top: .9rem;
+  color: var(--ink);
+}
+.cm-car { display: block; width: 100%; height: auto; overflow: visible; }
+.cm-decor { pointer-events: none; }
+.cm-ground { fill: none; stroke: var(--cm-line); stroke-width: 1; stroke-dasharray: 2 4; }
+.cm-hull { fill: color-mix(in srgb, var(--paper) 62%, transparent); }
+/* The body line lies over the zones: a zone painted up to it keeps the car's outline. */
+.cm-outline { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.cm-glass { fill: color-mix(in srgb, var(--accent-dark) 15%, transparent); stroke: color-mix(in srgb, var(--ink) 55%, transparent); stroke-width: 1; stroke-linejoin: round; }
+.cm-details { fill: none; stroke: color-mix(in srgb, var(--ink) 60%, transparent); stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+.cm-rim { fill: var(--receipt-surface, var(--paper)); stroke: var(--ink); stroke-width: 1; }
+.cm-spokes { fill: none; stroke: var(--ink); stroke-width: 1.1; }
+.cm-hub { fill: var(--ink); }
+.cm-hatch { stroke: color-mix(in srgb, var(--ink) 50%, transparent); stroke-width: 1.4; }
+.cm-zone { cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
+.cm-shape { fill: transparent; stroke: var(--cm-line); stroke-width: 1; stroke-linejoin: round; transition: fill .22s ease, stroke .16s ease, stroke-width .16s ease; }
+.cm-tyre { fill: var(--ink); transition: fill .22s ease; }
+.cm-hit { fill: transparent; stroke: none; }
+.cm-zone.is-off { cursor: default; pointer-events: none; }
+.cm-zone.is-off .cm-shape { stroke-dasharray: 2 3; }
+/* In the estimate. */
+.cm-zone.is-in .cm-shape { fill: var(--cm-in); stroke: var(--cm-in); }
+.cm-zone.is-in .cm-tyre { fill: var(--cm-in); }
+/* The zone whose kits are open now. */
+.cm-zone[aria-pressed=true] .cm-shape { stroke: var(--ink); stroke-width: 2.2; }
+.cm-zone[aria-pressed=true]:not(.is-in) .cm-shape { fill: color-mix(in srgb, var(--ink) 9%, transparent); }
+/* Under the pointer or in focus: the caption below names it. */
+.cm-zone.is-shown:not([aria-pressed=true]) .cm-shape { stroke: var(--ink); stroke-width: 1.6; }
+.cm-zone.is-shown:not(.is-in) .cm-shape { fill: color-mix(in srgb, var(--ink) 15%, transparent); }
+.cm-zone:focus-visible .cm-shape { stroke: var(--ink); stroke-width: 3; }
+/* A level under the pointer shows on the car where its kit goes and where there is no such kit. */
+.cm-zone.is-pick:not(.is-in) .cm-shape { fill: color-mix(in srgb, var(--cm-in) 32%, transparent); stroke: var(--cm-in); stroke-width: 1.6; }
+.cm-zone.is-miss:not(.is-in) .cm-shape { fill: url(#car-map-hatch); }
+.cm-caption { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin: .55rem 0 0; font-size: .86rem; line-height: 1.35; color: var(--receipt-muted, var(--muted)); }
+.cm-zone-line { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-zone-name { color: var(--ink); font-weight: 650; }
+.cm-count { flex: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cm-whole { margin-top: .75rem; padding-top: .7rem; border-top: 1px solid var(--receipt-line, var(--rule)); }
+.cm-whole-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.6rem; }
+.cm-whole-title { color: var(--receipt-muted, var(--muted)); font-size: .74rem; font-weight: 700; line-height: 1.2; letter-spacing: .08em; text-transform: uppercase; }
+.car-map .cm-clear { flex: none; margin-left: auto; padding: .2rem 0; white-space: nowrap; border: 0; background: none; color: var(--accent-dark); font-size: .84rem; font-weight: 600; line-height: 1.2; text-decoration: underline; text-underline-offset: .18em; transition: color .16s ease; }
+.cm-levels { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .3rem; margin-top: .45rem; }
+.car-map .cm-level { min-width: 0; min-height: 2.25rem; padding: .3rem .35rem; border: 1px solid color-mix(in srgb, var(--accent-dark) 48%, transparent); border-radius: .35rem; background: transparent; color: var(--ink); font-size: .8rem; font-size: clamp(.72rem, 4.1cqi, .82rem); font-weight: 620; line-height: 1.15; transition: background .16s ease, color .16s ease, border-color .16s ease; }
+.car-map .cm-level[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: var(--on-dark); }
+.cm-note { display: grid; margin-top: .45rem; color: var(--receipt-muted, var(--muted)); font-size: .8rem; line-height: 1.4; }
+.cm-note > * { grid-area: 1 / 1; margin: 0; text-wrap: pretty; }
+.cm-note-sizer { visibility: hidden; pointer-events: none; }
+.cm-note[data-level=true] .cm-note-text { color: var(--ink); }
+/* In a narrow receipt the levels stand one under another. */
+@container car-map (max-width: 15.5rem) {
+  .cm-levels { display: flex; flex-wrap: wrap; }
+  .car-map .cm-level { flex: 1 1 5.6rem; }
+  .cm-caption { font-size: .8rem; gap: .5rem; }
+  .cm-whole-title { font-size: .68rem; letter-spacing: .05em; }
+  .car-map .cm-clear { font-size: .78rem; }
+}
+@media (pointer: coarse) {
+  .car-map .cm-level { min-height: 2.75rem; }
+  .car-map .cm-clear { min-height: 2.75rem; }
+}
+@media (hover: hover) {
+  .car-map .cm-level:not([aria-pressed=true]):hover { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  .car-map .cm-clear:hover { color: var(--ink); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cm-zone.is-new .cm-shape, .cm-zone.is-new .cm-tyre { animation: cm-fill .45s ease-out; }
+  @keyframes cm-fill { from { fill-opacity: .15; } to { fill-opacity: 1; } }
+}
+@media (forced-colors: active) {
+  .cm-zone.is-in .cm-shape, .cm-zone.is-in .cm-tyre { fill: Highlight; stroke: Highlight; }
+  .cm-zone:focus-visible .cm-shape, .cm-zone[aria-pressed=true] .cm-shape { stroke: CanvasText; }
+  .car-map .cm-level[aria-pressed=true] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+/* With the car inside, a long estimate still fits the screen while the receipt follows the page:
+   the list of works scrolls between the drawing and the total, with a soft shade at the edge that hides more of it. */
+@media (min-width: 44.01rem) {
+  .est-receipt.has-car-map { max-height: calc(100vh - 2.4rem); max-height: calc(100dvh - 2.4rem); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .est-receipt.has-car-map > * { flex: none; }
+  .est-receipt.has-car-map .est-items {
+    --cm-shade: color-mix(in srgb, var(--ink) 30%, transparent);
+    flex: 0 1 auto; min-height: 4.4rem; overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--accent-dark) 45%, transparent) transparent;
+  }
+  .est-receipt.has-car-map .est-items.is-cut-top { box-shadow: inset 0 .7rem .6rem -.7rem var(--cm-shade); }
+  .est-receipt.has-car-map .est-items.is-cut-bottom { box-shadow: inset 0 -.7rem .6rem -.7rem var(--cm-shade); }
+  .est-receipt.has-car-map .est-items.is-cut-top.is-cut-bottom { box-shadow: inset 0 .7rem .6rem -.7rem var(--cm-shade), inset 0 -.7rem .6rem -.7rem var(--cm-shade); }
+  /* On a low screen the car stands beside its caption, and the note takes its place only while a level is on. */
+  @media (max-height: 56rem) {
+    @container car-map (min-width: 15.51rem) {
+      .cm-view { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: center; column-gap: .9rem; }
+      .cm-caption { flex-direction: column; align-items: flex-start; gap: .2rem; margin: 0; }
+      .cm-zone-line { max-width: 100%; }
+      .cm-count { white-space: normal; }
+    }
+    .cm-whole { margin-top: .55rem; padding-top: .5rem; }
+    .cm-note:not([data-on=true]) { display: none; }
+  }
+  /* A very low screen (a small laptop): every row a little tighter, so two lines of the estimate stay in sight. */
+  @media (max-height: 44rem) {
+    .car-map { margin-top: .6rem; }
+    .cm-view { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+    .cm-whole { margin-top: .4rem; padding-top: 0; border-top: 0; }
+    .cm-note { margin-top: .3rem; }
+    .est-receipt.has-car-map .est-items { min-height: 3.9rem; }
+    @media (pointer: fine) { .car-map .cm-level { min-height: 1.9rem; } }
+  }
+}

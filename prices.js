@@ -25,13 +25,16 @@ window.STUDIO_PRICES = [
     "sheet": "sheets/doors-budget.jpg",
     "layers": [
       {
-        "material": "bronze2"
+        "material": "bronze2",
+        "on": ["outer"]
       },
       {
-        "material": "bronze2"
+        "material": "bronze2",
+        "on": ["inner"]
       },
       {
-        "material": "volna"
+        "material": "volna",
+        "on": ["card"]
       }
     ]
   },
@@ -61,13 +64,16 @@ window.STUDIO_PRICES = [
     "sheet": "sheets/doors-standard.jpg",
     "layers": [
       {
-        "material": "bronze2"
+        "material": "bronze2",
+        "on": ["outer"]
       },
       {
-        "material": "bronze2"
+        "material": "bronze2",
+        "on": ["inner"]
       },
       {
-        "material": "softwave"
+        "material": "softwave",
+        "on": ["card"]
       }
     ]
   },
@@ -98,16 +104,20 @@ window.STUDIO_PRICES = [
     "sheet": "sheets/doors-premium.jpg",
     "layers": [
       {
-        "material": "cobra"
+        "material": "cobra",
+        "on": ["outer"]
       },
       {
-        "material": "integra"
+        "material": "integra",
+        "on": ["outer"]
       },
       {
-        "material": "cobra"
+        "material": "cobra",
+        "on": ["inner"]
       },
       {
-        "material": "softwave"
+        "material": "softwave",
+        "on": ["card"]
       }
     ]
   },
@@ -263,7 +273,8 @@ window.STUDIO_PRICES = [
     "sheet": "sheets/floor-budget.jpg",
     "layers": [
       {
-        "material": "bronze3"
+        "material": "bronze3",
+        "on": ["main", "seat", "arches"]
       }
     ]
   },
@@ -292,10 +303,12 @@ window.STUDIO_PRICES = [
     "sheet": "sheets/floor-standard.jpg",
     "layers": [
       {
-        "material": "bronze3"
+        "material": "bronze3",
+        "on": ["main", "seat", "arches"]
       },
       {
-        "material": "ranger"
+        "material": "ranger",
+        "on": ["main", "seat", "arches"]
       }
     ]
   },
@@ -325,12 +338,14 @@ window.STUDIO_PRICES = [
     "sheet": "sheets/floor-premium.jpg",
     "layers": [
       {
-        "material": "viper"
+        "material": "viper",
+        "on": ["main", "seat", "arches"]
       },
       {
         "material": "blockshot",
         "alt": "raptor",
-        "note": "Blockshot и Raptor — в разных частях пола"
+        "on": ["main", "arches"],
+        "altOn": ["seat"]
       }
     ]
   },
@@ -361,7 +376,8 @@ window.STUDIO_PRICES = [
       {
         "material": "bronze3",
         "alt": "bronze2",
-        "note": "Bronze 3 — на пол багажника, Bronze 2 — на крышку"
+        "on": ["floor", "arches"],
+        "altOn": ["wings", "lid"]
       }
     ]
   },
@@ -392,10 +408,12 @@ window.STUDIO_PRICES = [
       {
         "material": "bronze3",
         "alt": "bronze2",
-        "note": "Bronze 3 — на пол, Bronze 2 — на крышку"
+        "on": ["floor", "arches"],
+        "altOn": ["wings", "lid"]
       },
       {
-        "material": "ranger"
+        "material": "ranger",
+        "on": ["floor", "arches", "wings"]
       }
     ]
   },
@@ -426,16 +444,18 @@ window.STUDIO_PRICES = [
       {
         "material": "viper",
         "alt": "cobra",
-        "note": "Viper и Cobra — в разных частях багажника"
+        "on": ["floor", "arches"],
+        "altOn": ["wings", "lid"]
       },
       {
         "material": "raptor",
         "alt": "blockshot",
-        "note": "Raptor и Blockshot — вторым слоем"
+        "on": ["floor", "wings"],
+        "altOn": ["arches"]
       },
       {
         "material": "softwave",
-        "note": "Soft Wave — на обшивке крышки"
+        "on": ["lidTrim"]
       }
     ]
   },

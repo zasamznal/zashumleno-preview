@@ -136,6 +136,8 @@
           sessionStorage.setItem(storageKey, zone.id);
           drawTiles();
           drawZone();
+          // The tiles are drawn again: the keyboard focus stays on the chosen zone.
+          tileViews.get(zone)?.tile.focus({ preventScroll: true });
           panel.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
         });
         tileViews.set(zone, { tile, meta });
@@ -208,9 +210,16 @@
       if (options.tiles) refreshTile(active);
     }
 
-    function markUnpublished(card, rate, index) {
-      const before = window.StudioAdmin.published?.prices?.[index];
-      card.querySelector('.pz-badge').hidden = Boolean(before) && JSON.stringify(before) === JSON.stringify(rate);
+    // The mark follows the kit itself: a copy or a removal above it shifts the places, not the kits.
+    let publishedList = null;
+    let publishedKits = new Set();
+    function markUnpublished(card, rate) {
+      const list = window.StudioAdmin.published?.prices || [];
+      if (list !== publishedList) {
+        publishedList = list;
+        publishedKits = new Set(list.map(item => JSON.stringify(item)));
+      }
+      card.querySelector('.pz-badge').hidden = publishedKits.has(JSON.stringify(rate));
     }
 
     function kitCard(index) {
@@ -414,8 +423,17 @@
       free.setAttribute('aria-label', label + ': текст цены');
       const site = el('small', 'pz-site');
       const error = el('small', 'pz-error');
+      error.id = id + '-error';
+      for (const input of [min, max, free]) input.setAttribute('aria-describedby', error.id);
       line.append(mode, min, dash, max, ruble, free);
       box.append(name, line, site, error);
+      function flag(message) {
+        error.textContent = message;
+        box.classList.toggle('is-invalid', Boolean(message));
+        for (const input of [min, max, free]) {
+          if (message) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid');
+        }
+      }
 
       function show() {
         const numbers = state.mode === 'from' || state.mode === 'fixed' || state.mode === 'range';
@@ -429,21 +447,17 @@
         site.textContent = 'На сайте: ' + String(row[column] ?? '').replace(/ /g, ' ');
       }
       function commit() {
-        error.textContent = '';
-        box.classList.remove('is-invalid');
+        flag('');
         if ((state.mode === 'from' || state.mode === 'fixed' || state.mode === 'range') && !(state.min > 0)) {
-          error.textContent = 'Впишите целую цену от 1 до 999 999 999 ₽.';
-          box.classList.add('is-invalid');
+          flag('Впишите целую цену от 1 до 999 999 999 ₽.');
           return;
         }
-        if (state.mode === 'range' && !(state.max >= state.min)) {
-          error.textContent = 'Вторая цена должна быть больше первой';
-          box.classList.add('is-invalid');
+        if (state.mode === 'range' && !(state.max > state.min)) {
+          flag('Вторая цена должна быть больше первой.');
           return;
         }
         if (state.mode === 'text' && !compact(state.text)) {
-          error.textContent = 'Впишите текст, например «1 500 ₽ за шт.»';
-          box.classList.add('is-invalid');
+          flag('Впишите текст, например «1 500 ₽ за шт.»');
           return;
         }
         const text = writePrice(state);
@@ -454,7 +468,7 @@
       }
       mode.addEventListener('change', () => {
         const next = mode.value;
-        if (next === 'range' && state.min != null && (state.max == null || state.max <= state.min)) state.max = Math.round(state.min * 1.25 / 500) * 500 || state.min;
+        if (next === 'range' && state.min != null && (state.max == null || state.max <= state.min)) state.max = Math.max(Math.round(state.min * 1.25 / 500) * 500, state.min + 500);
         if ((next === 'from' || next === 'fixed') && state.min == null) state.min = null;
         if (next === 'text' && !state.text) state.text = writePrice(state.min != null ? state : { mode: 'ask' });
         state.mode = next;
@@ -475,7 +489,7 @@
         input.addEventListener('blur', show);
       }
       show();
-      return { box, get value() { return state.min; } };
+      return { box, get value() { return state.mode === 'ask' || state.mode === 'text' ? readPrice(row[column]).min : state.min; } };
     }
 
     // Prices for each body type: grey numbers come from the markups, a typed number is used exactly.

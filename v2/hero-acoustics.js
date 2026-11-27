@@ -1,6 +1,97 @@
 (() => {
   'use strict';
 
+  const duration = 6200;
+  const ease = v => { v = Math.min(1, Math.max(0, v)); return v * v * (3 - 2 * v); };
+  // The story of the cover by second t of the animation: its caption, the loudness meter and the sound.
+  const phaseAt = t => t < 2.1 ? 'Шум от дороги' : t < 3.7 ? 'Слои гасят вибрации' : 'В салоне тише';
+  const loudnessAt = t => 1 - .8 * ease((t - 2.5) / 2.7);
+  // The roar of the road gets quieter with the meter and duller as the lining is laid; the low rumble gives way last.
+  function soundAt(t) {
+    const start = ease(t / .35);
+    const loudness = loudnessAt(t);
+    const calm = (1 - loudness) / .8;
+    const muffled = .6 * ease((t - 2) / 1.4) + .4 * calm;
+    return {
+      cutoff: Math.round(3000 * .25 ** muffled),
+      roar: start * .6 * loudness,
+      rumble: start * .26 * (1 - .4 * calm)
+    };
+  }
+  // One seamless loop of pink noise, the same on every visit: the tail is folded into the head.
+  function noiseLoop(context) {
+    const rate = context.sampleRate;
+    const size = Math.round(rate * 3.2);
+    const lap = Math.round(rate * .3);
+    const raw = new Float32Array(size + lap);
+    let seed = 0x2f6e2b1, b0 = 0, b1 = 0, b2 = 0;
+    for (let i = 0; i < raw.length; i++) {
+      seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+      const white = (seed >>> 0) / 2147483648 - 1;
+      b0 = .99765 * b0 + white * .099046;
+      b1 = .963 * b1 + white * .2965164;
+      b2 = .57 * b2 + white * 1.0526913;
+      raw[i] = b0 + b1 + b2 + white * .1848;
+    }
+    const buffer = context.createBuffer(1, size, rate);
+    const data = buffer.getChannelData(0);
+    let peak = 0;
+    for (let i = 0; i < size; i++) {
+      const turn = i / lap * Math.PI / 2;
+      data[i] = i < lap ? raw[i] * Math.sin(turn) + raw[size + i] * Math.cos(turn) : raw[i];
+      peak = Math.max(peak, Math.abs(data[i]));
+    }
+    for (let i = 0; i < size; i++) data[i] /= peak;
+    return buffer;
+  }
+  // Road noise without audio files: the noise behind a low-pass filter is the roar, its low band is the rolling rumble.
+  function soundGraph(context) {
+    const filter = (type, frequency, q) => {
+      const node = context.createBiquadFilter();
+      node.type = type;
+      node.frequency.value = frequency;
+      node.Q.value = q;
+      return node;
+    };
+    const silent = () => {
+      const node = context.createGain();
+      node.gain.value = 0;
+      return node;
+    };
+    const noise = context.createBufferSource();
+    noise.buffer = noiseLoop(context);
+    noise.loop = true;
+    // The Q of these filters is in decibels: -3 gives a smooth slope without a ringing peak at the cutoff.
+    const thin = filter('highpass', 140, -3);
+    const tone = [filter('lowpass', 3000, -3), filter('lowpass', 3000, -3)];
+    const low = filter('bandpass', 110, 1);
+    const roar = silent(), rumble = silent(), master = silent();
+    noise.connect(thin);
+    thin.connect(tone[0]);
+    tone[0].connect(tone[1]);
+    tone[1].connect(roar);
+    noise.connect(low);
+    low.connect(rumble);
+    roar.connect(master);
+    rumble.connect(master);
+    master.connect(context.destination);
+    noise.start();
+    return {
+      // Every value glides to its target, so neither a new frame nor a replay can click.
+      set(state, when = context.currentTime, glide = .07) {
+        for (const node of tone) node.frequency.setTargetAtTime(state.cutoff, when, glide);
+        roar.gain.setTargetAtTime(state.roar, when, glide);
+        rumble.gain.setTargetAtTime(state.rumble, when, glide);
+      },
+      fade(on, when = context.currentTime) {
+        master.gain.setTargetAtTime(on ? 1 : 0, when, on ? .08 : .1);
+      }
+    };
+  }
+  // The sound model is open to the tests and to an offline render; without a page there is nothing more to do.
+  window.StudioHeroSound = { duration, phaseAt, loudnessAt, soundAt, graph: soundGraph };
+  if (typeof document === 'undefined') return;
+
   const hero = document.querySelector('#top');
   const photo = hero?.querySelector('[data-hero-image]');
   if (!photo || hero.querySelector('.acoustics-demo')) return;
@@ -50,6 +141,17 @@
   const glyph = control.querySelector('path');
   const phaseLabel = caption.querySelector('.acoustics-phase');
   const bars = [...caption.querySelectorAll('.acoustics-meter i')];
+  // The animation can be heard: a toggle beside the caption plays the road noise it shows. Set soundEnabled to false to remove it.
+  const soundEnabled = true;
+  const AudioEngine = soundEnabled && (window.AudioContext || window.webkitAudioContext);
+  if (AudioEngine) {
+    const caveat = 'Условная иллюстрация: результат зависит от автомобиля и комплекта';
+    caption.insertAdjacentHTML('afterbegin', '<button type="button" class="acoustics-sound" aria-pressed="false" aria-label="Звук анимации" aria-describedby="acoustics-caveat"><svg viewBox="0 0 20 20" aria-hidden="true"><path/></svg></button>');
+    // The caption has room for two words: the whole sentence is the hint of the line and the description of the toggle.
+    phaseLabel.insertAdjacentHTML('afterend', `<span class="acoustics-note" title="${caveat}" hidden>Условная иллюстрация<span id="acoustics-caveat" hidden>${caveat}</span></span>`);
+  }
+  let speaker = caption.querySelector('.acoustics-sound');
+  const note = caption.querySelector('.acoustics-note');
   const svg = scene.querySelector('svg');
   const mount = svg.querySelector('[data-mounted]');
   const hot = svg.querySelector('[data-hot]');
@@ -78,7 +180,6 @@
   // Road noise spreads over the floor from the tyre; once the arch is lined the rings are weak, slow and short.
   const loudRings = [.1, .5, .9, 1.3, 1.7].map(start => ({ start, life: 1.5, reach: 380, amp: 1, width: 2.8, path: ring('acoustics-ring') }));
   const calmRings = [3.35, 3.95, 4.55].map((start, i) => ({ start, life: 1.7, reach: [250, 205, 165][i], amp: [.75, .5, .3][i], width: 2.2, path: ring('acoustics-ring acoustics-ring-calm') }));
-  const duration = 6200;
   let elapsed = 0;
   let paused = false;
   let onScreen = false;
@@ -87,7 +188,6 @@
   let lastTick;
   let lastPaint = -99;
   let length = 0;
-  const ease = v => { v = Math.min(1, Math.max(0, v)); return v * v * (3 - 2 * v); };
 
   function ripple(item, t) {
     const p = (t - item.start) / item.life;
@@ -135,13 +235,14 @@
     const beat = .5 + .5 * Math.sin(t * 9);
     hot.setAttribute('opacity', ((1 - ease((t - 2) / 1.2)) * (.5 + .5 * beat) * ease(t / .3)).toFixed(3));
     calmGlow.setAttribute('opacity', (ease((t - 3) / 1) * (.55 - .25 * ease((t - 5) / 1.2))).toFixed(3));
-    const loud = 1 - .8 * ease((t - 2.5) / 2.7);
+    const loud = loudnessAt(t);
     bars.forEach((bar, i) => {
       const flutter = time >= duration ? .62 : .55 + .45 * Math.abs(Math.sin(t * (6.5 + i * 2.1) + i * 1.7));
       bar.style.setProperty('--level', Math.max(.14, loud * flutter * (1 - Math.abs(i - 2) * .12)).toFixed(3));
     });
-    const label = t < 2.1 ? 'Шум от дороги' : t < 3.7 ? 'Слои гасят вибрации' : 'В салоне тише';
+    const label = phaseAt(t);
     if (phaseLabel.textContent !== label) phaseLabel.textContent = label;
+    if (sounding && !still.matches) voice(t);
   }
 
   function syncControl() {
@@ -152,6 +253,96 @@
     glyph.setAttribute('d', ended ? 'M4 8a6.5 6.5 0 1 1-.2 3.4M4 3.5V8h4.5' : paused ? 'm6.5 4.7 8 5.3-8 5.3Z' : 'M7 4.5v11M13 4.5v11');
     control.hidden = still.matches;
   }
+
+  // The audio context and its graph are made by the first press of the toggle.
+  let audio = null;
+  let sounding = false;
+  // A paused animation is silent while the toggle stays on.
+  let heard = false;
+  let restTimer = 0;
+  let wakeTimer = 0;
+  let endTimer = 0;
+  let stillClock = 0;
+  // The quiet cabin is heard for a moment after the animation, then the sound leaves by itself.
+  const tail = 1700;
+  // Every drawn frame sets the sound of its moment, so the sound cannot drift from the picture. A failure costs only the toggle, never the animation.
+  function voice(t) {
+    try { audio.graph.set(soundAt(t)); } catch { setTimeout(dropSound); }
+  }
+  function hear(value) {
+    if (heard === value) return;
+    heard = value;
+    const { context, graph } = audio;
+    clearTimeout(restTimer);
+    clearTimeout(wakeTimer);
+    graph.fade(value);
+    if (value) {
+      // A phone wakes the context only inside the tap.
+      const awake = () => { if (heard && context.state !== 'running') dropSound(); };
+      Promise.resolve(context.resume()).then(awake, dropSound);
+      wakeTimer = setTimeout(awake, 3000);
+    } else restTimer = setTimeout(() => Promise.resolve(context.suspend()).catch(() => {}), 800);
+  }
+  // A browser that cannot start the sound keeps the cover as it was, without the toggle.
+  function dropSound() {
+    if (!speaker) return;
+    for (const timer of [restTimer, wakeTimer, endTimer, stillClock]) clearTimeout(timer);
+    sounding = heard = false;
+    speaker.remove();
+    note.remove();
+    speaker = null;
+    try { Promise.resolve(audio?.context.close()).catch(() => {}); } catch { /* Nothing was opened. */ }
+    playback();
+  }
+  // With reduced motion the picture stays still, so the sound plays on its own clock and the caption names what is heard.
+  function stillDemo() {
+    const from = performance.now();
+    stillClock = setInterval(() => {
+      const time = performance.now() - from;
+      voice(time / 1000);
+      const label = phaseAt(time / 1000);
+      if (phaseLabel.textContent !== label) phaseLabel.textContent = label;
+      if (time >= duration + tail) setSound(false);
+    }, 60);
+  }
+  function setSound(value) {
+    if (!speaker || sounding === value) return;
+    clearTimeout(endTimer);
+    clearInterval(stillClock);
+    endTimer = stillClock = 0;
+    sounding = value;
+    if (value) {
+      try {
+        if (!audio) {
+          audio = { context: new AudioEngine() };
+          audio.graph = soundGraph(audio.context);
+        }
+        // The sound always starts with the story: the loud road first.
+        audio.graph.set(soundAt(0), audio.context.currentTime, .03);
+        hear(true);
+      } catch {
+        dropSound();
+        return;
+      }
+      if (still.matches) stillDemo();
+      else { elapsed = 0; paused = false; }
+    } else hear(false);
+    playback();
+  }
+  function syncSound() {
+    if (!speaker) return;
+    if (sounding && (!supported || !onScreen || document.hidden)) { setSound(false); return; }
+    if (sounding && !still.matches) {
+      hear(!paused);
+      if (elapsed < duration) { clearTimeout(endTimer); endTimer = 0; }
+      else if (!endTimer) endTimer = setTimeout(() => setSound(false), tail);
+    }
+    speaker.setAttribute('aria-pressed', String(sounding));
+    speaker.title = sounding ? 'Выключить звук' : 'Включить звук';
+    speaker.querySelector('path').setAttribute('d', 'M3.5 8v4h2.8l4 3.3V4.7l-4 3.3Z' +
+      (sounding ? 'M13.3 7.7a3.3 3.3 0 0 1 0 4.6M15.6 5.5a6.4 6.4 0 0 1 0 9' : 'M13.4 8l3.8 4m0-4l-3.8 4'));
+    note.hidden = !sounding;
+  }
   function tick(now) {
     frame = 0;
     if (lastTick !== undefined) elapsed = Math.min(duration, elapsed + now - lastTick);
@@ -161,7 +352,7 @@
       lastPaint = now;
     }
     if (elapsed < duration) frame = requestAnimationFrame(tick);
-    else syncControl();
+    else { syncControl(); syncSound(); }
   }
   function playback() {
     if (frame) cancelAnimationFrame(frame);
@@ -170,6 +361,7 @@
     if (still.matches) draw(duration);
     else if (supported && onScreen && !paused && !document.hidden && elapsed < duration) frame = requestAnimationFrame(tick);
     syncControl();
+    syncSound();
   }
   function layout() {
     const source = photo.currentSrc || photo.src;
@@ -196,12 +388,13 @@
     else paused = !paused;
     playback();
   });
+  speaker?.addEventListener('click', () => setSound(!sounding));
   hero.append(scene, caption);
   new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; playback(); }).observe(hero);
   new ResizeObserver(layout).observe(hero);
   new MutationObserver(layout).observe(photo, { attributes: true, attributeFilter: ['src', 'hidden'] });
   photo.addEventListener('load', layout);
-  still.addEventListener('change', () => { draw(still.matches ? duration : elapsed); playback(); });
+  still.addEventListener('change', () => { setSound(false); draw(still.matches ? duration : elapsed); playback(); });
   document.addEventListener('visibilitychange', playback);
   layout();
 })();

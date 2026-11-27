@@ -24,6 +24,7 @@
     const add = K.button('Добавить фото', () => input.click(), 'k-primary');
     const status = K.el('small', 'k-media-status');
     status.setAttribute('role', 'status');
+    const say = (message, failed = false) => { status.textContent = message; status.dataset.state = failed ? 'error' : ''; };
     head.append(add, status, input);
     const list = K.el('div', 'k-gallery-list');
     box.append(head, list);
@@ -47,7 +48,15 @@
         right.setAttribute('aria-label', 'Фото ' + (index + 1) + ' — позже');
         left.disabled = index === 0;
         right.disabled = index === owner.gallery.length - 1;
-        tools.append(left, right, K.button('Удалить', () => { owner.gallery.splice(index, 1); ctx.change(); draw(); }, 'k-danger'));
+        tools.append(left, right, K.button('Удалить', () => {
+          // The photo and its caption cannot be put back with one click.
+          if (!window.confirm('Удалить это фото из галереи «' + label + '»?')) return;
+          owner.gallery.splice(index, 1);
+          ctx.change();
+          draw();
+          const next = list.querySelectorAll('.k-gallery-item .k-danger')[Math.min(index, owner.gallery.length - 1)];
+          (next || add).focus();
+        }, 'k-danger'));
         item.append(preview, caption, tools);
         list.append(item);
       });
@@ -58,13 +67,15 @@
       input.value = '';
       const unsupported = files.find(file => !K.acceptsFile(file, input.accept));
       if (unsupported) {
-        status.textContent = 'Для галереи нужно фото. Проверьте формат файла «' + unsupported.name + '».';
+        say('Для галереи нужно фото JPG, PNG или WebP. Файл «' + unsupported.name + '» не подходит — ничего не загружено.', true);
         return;
       }
       add.disabled = true;
       let done = 0;
-      for (const file of files) {
-        status.textContent = 'Загружаем ' + (done + 1) + ' из ' + files.length + '…';
+      // One bad photo must not stop the rest: they are loaded and the failures are named at the end.
+      const failed = [];
+      for (const [position, file] of files.entries()) {
+        say('Загружаем ' + (position + 1) + ' из ' + files.length + '…');
         try {
           const url = await ctx.upload(file);
           owner.gallery.push({ image: url, caption: '' });
@@ -72,12 +83,15 @@
           done++;
           draw();
         } catch (error) {
-          status.textContent = (error.message || 'Не удалось загрузить') + ' (' + file.name + ')';
-          add.disabled = false;
-          return;
+          failed.push('«' + file.name + '» — ' + (error.message || 'не удалось загрузить'));
+          // Without a connection or a session the other files would fail the same way.
+          if (error.status === 0 || error.status === 401) {
+            if (files.length - position > 1) failed.push('остальные файлы (' + (files.length - position - 1) + ') не загружались');
+            break;
+          }
         }
       }
-      status.textContent = done ? 'Добавлено фото: ' + done + '. Допишите подписи.' : '';
+      say((done ? 'Добавлено фото: ' + done + '. Допишите подписи. ' : '') + (failed.length ? 'Не загружено: ' + failed.join('; ') : ''), failed.length > 0);
       add.disabled = false;
     });
     draw();
@@ -94,7 +108,7 @@
     const cover = group(host, 'Первый экран');
     K.media(ctx, cover, page.hero, 'image', 'Обложка сайта', { removable: false, reset: window.STUDIO_PAGE_DEFAULTS?.hero?.image,
       note: 'Широкое фото, лучше 1920 px по ширине. На телефоне показывается та же картинка.' });
-    K.media(ctx, cover, page.brand, 'logo', 'Логотип', { removable: false, reset: 'assets/mark.svg' });
+    K.media(ctx, cover, page.brand, 'logo', 'Логотип', { removable: false, contain: true, reset: 'assets/mark.svg' });
 
     const zonesGrid = group(host, 'Фото зон', 'Показываются в прайсе. В калькуляторе вместо стандартного фото — оформленная картинка; загрузите своё фото, и оно появится и там.');
     for (const zone of data.zones || []) K.media(ctx, zonesGrid, zone, 'image', zone.title, { compact: true });

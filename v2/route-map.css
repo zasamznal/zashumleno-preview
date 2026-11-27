@@ -183,6 +183,8 @@
   .visit-route .visit-film:hover { background: var(--paper-2); border-color: color-mix(in srgb, var(--accent-dark) 35%, var(--paper)); }
   .visit-route .visit-film:hover .visit-still { transform: none; }
 }
+/* On touch screens the «Схема / Яндекс Карта» switch gets a finger-sized height. */
+@media (pointer: coarse) { .route-tab { min-height: 2.75rem; } }
 @media (max-width: 33rem) {
   .route-header { padding-inline: .8rem .4rem; }
   .route-heading-text { flex-basis: 100%; }

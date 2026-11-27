@@ -103,7 +103,7 @@ a { color: var(--a-teal); text-underline-offset: .2em; }
 @media (max-width: 40rem) {
   .a-header { gap: .65rem; min-height: 3.8rem; }
   .a-header-title { display: none; }
-  .a-brand img { width: 1.8rem; }
+  .a-brand img { width: auto; height: 2.5rem; }
   .a-brand strong { font-size: 1.05rem; }
   .a-entry { display: flex; flex-direction: column; min-height: auto; }
   .a-entry-cover { height: clamp(8rem,27vw,11rem); }

@@ -110,15 +110,41 @@
     return control;
   }
 
+  // «#BCB9D9», «BCB9D9» and, when asked, the short «#ABC»; anything else is not a colour.
+  function hexColor(text, short = false) {
+    let value = String(text ?? '').trim();
+    if (/^(?:[0-9a-f]{6}|[0-9a-f]{3})$/i.test(value)) value = '#' + value;
+    if (short && /^#[0-9a-f]{3}$/i.test(value)) value = '#' + value.slice(1).replace(/./g, '$&$&');
+    return /^#[0-9a-f]{6}$/i.test(value) ? value : '';
+  }
+
+  // The same rule as on the server: a file of the site or an https address.
+  function validLink(value) {
+    if (!value) return true;
+    if (typeof value !== 'string' || value.trim() !== value || /[\\\x00-\x1f\x7f]/.test(value) || value.startsWith('//')) return false;
+    if (/^\/?(?:assets|sheets|media|v2\/media)\//.test(value)) {
+      try {
+        const path = decodeURIComponent(value.split(/[?#]/)[0]);
+        return !path.includes('\\') && !path.split('/').includes('..');
+      } catch { return false; }
+    }
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' && !url.username && !url.password;
+    } catch { return false; }
+  }
+
   function color(ctx, parent, target, key, label, options = {}) {
     const picker = el('input', 'k-color');
     picker.type = 'color';
     const hex = el('input', 'k-hex');
     hex.type = 'text';
-    hex.maxLength = 7;
+    hex.maxLength = 12;
     hex.spellcheck = false;
     hex.autocomplete = 'off';
     hex.setAttribute('aria-label', label + ' — код HEX');
+    const problem = el('small', 'k-field-error');
+    problem.setAttribute('role', 'status');
     const set = (value, from) => {
       target[key] = value.toLowerCase();
       if (from !== picker) picker.value = value;
@@ -130,15 +156,22 @@
     hex.value = (target[key] || '').toUpperCase();
     picker.addEventListener('input', () => set(picker.value, picker));
     hex.addEventListener('input', () => {
-      let value = hex.value.trim();
-      if (/^[0-9a-f]{6}$/i.test(value)) value = '#' + value;
-      if (/^#[0-9a-f]{3}$/i.test(value)) value = '#' + value.slice(1).split('').map(c => c + c).join('');
-      if (/^#[0-9a-f]{6}$/i.test(value)) set(value, hex);
+      const value = hexColor(hex.value);
+      problem.textContent = '';
+      if (value) set(value, hex);
     });
-    hex.addEventListener('blur', () => { hex.value = (target[key] || '').toUpperCase(); });
+    // The three-digit form counts only when the field is left: while typing it is the start of a longer code.
+    hex.addEventListener('blur', () => {
+      const typed = hex.value.trim();
+      const value = hexColor(typed, true);
+      if (value && value.toLowerCase() !== target[key]) set(value, hex);
+      problem.textContent = typed && !value ? 'Код «' + typed + '» не похож на цвет — оставили прежний. Нужны 6 знаков, например #BCB9D9.' : '';
+      hex.value = (target[key] || '').toUpperCase();
+    });
     const box = wrap(parent, label, picker, { ...options, inline: [hex] });
     box.classList.add('k-color-field');
-    return { picker, hex, update(value) { picker.value = value; hex.value = value.toUpperCase(); } };
+    box.append(problem);
+    return { picker, hex, update(value) { picker.value = value; hex.value = value.toUpperCase(); problem.textContent = ''; } };
   }
 
   function check(ctx, parent, target, key, label, options = {}) {
@@ -216,13 +249,14 @@
   // A media slot: preview, «Заменить», optional «Убрать» and a field for a direct link.
   function media(ctx, parent, target, key, label, options = {}) {
     const kind = options.kind || 'image';
-    const box = el('div', 'k-media' + (options.compact ? ' k-media-compact' : ''));
+    const box = el('div', 'k-media' + (options.compact ? ' k-media-compact' : '') + (options.contain ? ' k-media-contain' : ''));
     const preview = el('div', 'k-media-preview');
     const info = el('div', 'k-media-info');
     info.append(el('strong', '', label));
     if (options.note) info.append(el('small', 'k-note', options.note));
     const status = el('small', 'k-media-status');
     status.setAttribute('role', 'status');
+    const say = (message, failed = false) => { status.textContent = message; status.dataset.state = failed ? 'error' : ''; };
     const input = el('input', 'k-file');
     input.type = 'file';
     input.tabIndex = -1;
@@ -234,9 +268,12 @@
     tools.append(pick);
     if (options.removable !== false) {
       tools.append(button('Убрать', () => {
+        // The file cannot be put back with one click, so a stray tap must not remove it.
+        if (!window.confirm('Убрать файл из поля «' + label + '»? После публикации он пропадёт с сайта.')) return;
         target[key] = '';
         ctx.change();
         draw();
+        say('');
         options.onInput?.('');
       }, 'k-ghost'));
     }
@@ -245,6 +282,7 @@
         target[key] = options.reset;
         ctx.change();
         draw();
+        say('');
         options.onInput?.(options.reset);
       }, 'k-ghost'));
     }
@@ -255,9 +293,17 @@
     linkInput.placeholder = 'https://… или путь к файлу на сайте';
     linkInput.value = target[key] || '';
     linkInput.addEventListener('change', () => {
-      target[key] = linkInput.value.trim();
+      const address = linkInput.value.trim();
+      // A wrong address would stop the whole draft from being saved: it is refused here, next to the field.
+      if (!validLink(address)) {
+        say('Ссылка не подходит: нужен адрес, который начинается с https://, или загрузите файл кнопкой «' + pick.textContent + '».', true);
+        linkInput.value = target[key] || '';
+        return;
+      }
+      target[key] = address;
       ctx.change();
       draw();
+      say('');
       options.onInput?.(target[key]);
     });
     linkInput.setAttribute('aria-label', label + ' — ссылка');
@@ -275,21 +321,24 @@
       const file = input.files?.[0];
       if (!file) return;
       if (!acceptsFile(file, input.accept)) {
-        status.textContent = 'Этот формат файла не подходит для поля «' + label + '».';
+        const wanted = kind === 'video' ? 'видео MP4 (ролик MOV с айфона сначала сохраните как MP4)'
+          : kind !== 'file' ? 'фото JPG, PNG или WebP'
+            : 'файл ' + [['pdf', 'PDF'], ['zip', 'ZIP'], ['jpeg', 'JPG'], ['png', 'PNG'], ['webp', 'WebP']].filter(([type]) => input.accept.includes(type)).map(([, name]) => name).join(', ');
+        say('Файл «' + file.name + '» не подходит: сюда можно загрузить только ' + wanted + '.', true);
         input.value = '';
         return;
       }
       pick.disabled = true;
-      status.textContent = 'Загружаем «' + file.name + '»…';
+      say('Загружаем «' + file.name + '»…');
       try {
         const url = await ctx.upload(file);
         target[key] = url;
         ctx.change();
         draw();
-        status.textContent = 'Готово: файл загружен.';
+        say('Готово: файл загружен.');
         options.onInput?.(url);
       } catch (error) {
-        status.textContent = error.message || 'Не удалось загрузить файл.';
+        say(error.message || 'Не удалось загрузить файл.', true);
       } finally {
         pick.disabled = false;
         input.value = '';
@@ -319,5 +368,5 @@
     } catch { return 21; }
   }
 
-  window.StudioKit = { el, button, card, wrap, text, number, select, color, check, media, mediaUrl, acceptsFile, previewOf, siteRoot, move, uid, contrast };
+  window.StudioKit = { el, button, card, wrap, text, number, select, color, check, media, mediaUrl, acceptsFile, previewOf, siteRoot, move, uid, contrast, hexColor, validLink };
 })();

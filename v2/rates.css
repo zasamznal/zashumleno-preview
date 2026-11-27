@@ -178,59 +178,6 @@
 }
 .rates-inquiry { color: var(--rate-signal); }
 .rates-table .rates-inquiry { min-height: 2.75rem; display: inline-flex; align-items: center; }
-.rates-bodies { margin-top: 1.8rem; padding: clamp(1rem, 2vw, 1.5rem); background: var(--white); border: 1px solid var(--rule); border-radius: .45rem; }
-.rates-bodies-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .7rem 1.2rem; margin-bottom: 1rem; }
-.rates-bodies-head h4 { margin: 0; font-size: clamp(1.15rem, 1.6vw, 1.45rem); font-weight: 680; letter-spacing: -.03em; }
-.rates-classes { display: inline-flex; flex-wrap: wrap; gap: .25rem; padding: .25rem; background: var(--paper-2); border-radius: 2rem; }
-.rates-classes .rates-class { min-height: 2.25rem; padding: .3rem .9rem; border: 0; border-radius: 2rem; background: transparent; color: var(--rate-muted); font-size: .88rem; font-weight: 600; }
-.rates-classes .rates-class[aria-pressed="true"] { background: var(--ink); color: var(--white); }
-.rates-bodies-scroll { overflow-x: auto; margin-inline: -.25rem; padding-inline: .25rem; }
-.rates-bodies-scroll:focus-visible { outline: 3px solid var(--rate-signal); outline-offset: 2px; }
-.rates-bodies-table { width: 100%; min-width: 40rem; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-.rates-bodies-table th, .rates-bodies-table td { padding: .55rem .5rem; text-align: center; border-bottom: 1px solid var(--rate-line); white-space: nowrap; }
-.rates-bodies-table thead th { vertical-align: bottom; color: var(--rate-muted); font-size: .8rem; font-weight: 600; }
-.rates-bodies-table thead th span { display: block; margin-top: .2rem; }
-.rates-bodies-table .rates-car { width: 4.3rem; margin-inline: auto; color: var(--accent-dark); }
-.rates-bodies-table .rates-car .car-glass { fill: color-mix(in srgb, var(--accent) 55%, transparent); }
-.rates-bodies-table .rates-car .car-ground { opacity: .45; }
-.rates-car :is(.car-hull, .car-wheel) { vector-effect: non-scaling-stroke; stroke-width: 1.5px; }
-.rates-car .car-hub { vector-effect: non-scaling-stroke; stroke-width: 1px; }
-.rates-bodies-table .rates-car .car-hull, .rates-bodies-compact .rates-car .car-hull { fill: color-mix(in srgb, currentColor 14%, transparent); }
-.rates-bodies-table .rates-car .car-wheel { fill: var(--white); }
-.rates-bodies-table tbody th { position: sticky; left: 0; z-index: 1; text-align: left; background: var(--white); font-size: .93rem; font-weight: 640; white-space: normal; min-width: 9.5rem; }
-.rates-bodies-table tbody th small { display: block; color: var(--rate-muted); font-size: .78rem; font-weight: 450; }
-.rates-bodies-table td { font-size: .95rem; font-weight: 560; }
-.rates-bodies-table thead th:first-child { text-align: left; }
-.rates-bodies-table .is-current { background: color-mix(in srgb, var(--accent) 26%, var(--white)); color: var(--ink); }
-.rates-bodies-table thead .is-current { color: var(--accent-dark); }
-.rates-bodies-table thead .is-current .rates-car { color: var(--accent-dark); }
-.rates-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.rates-bodies-compact { display: none; width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-.rates-bodies-compact th, .rates-bodies-compact td { padding: .5rem .3rem; border-bottom: 1px solid var(--rate-line); text-align: right; font-size: .86rem; }
-.rates-bodies-compact thead th { color: var(--rate-muted); font-size: .74rem; font-weight: 600; line-height: 1.2; vertical-align: bottom; }
-.rates-bodies-compact th:first-child { text-align: left; padding-left: 0; }
-.rates-bodies-compact td:last-child, .rates-bodies-compact thead th:last-child { padding-right: 0; }
-.rates-bodies-compact tbody th { font-weight: 640; }
-.rates-body-name { display: flex; align-items: center; gap: .45rem; }
-.rates-bodies-compact tbody th .rates-car { flex: none; width: 2.3rem; color: var(--accent-dark); }
-.rates-bodies-compact .rates-car .car-glass { fill: color-mix(in srgb, var(--accent) 55%, transparent); }
-.rates-bodies-compact .rates-car .car-wheel { fill: var(--white); }
-.rates-bodies-compact td { font-weight: 560; white-space: nowrap; }
-.rates-bodies-compact tr.is-current { background: color-mix(in srgb, var(--accent) 26%, var(--white)); }
-.rates-bodies-compact tr.is-current th:first-child { box-shadow: inset 3px 0 0 var(--accent-dark); }
-.rates-bodies-compact tr.is-current .rates-body-name { padding-left: .4rem; }
-@media (max-width: 24rem) {
-  .rates-bodies-compact th, .rates-bodies-compact td { padding-inline: .15rem; font-size: .78rem; }
-  .rates-bodies-compact tbody th .rates-car { display: none; }
-  .rates-bodies-compact thead th { font-size: .68rem; }
-}
-@media (max-width: 40rem) {
-  .rates-bodies-scroll { display: none; }
-  .rates-bodies-compact { display: table; }
-  .rates-classes { display: flex; width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .rates-classes .rates-class { flex: 1 0 auto; padding-inline: .45rem; font-size: .8rem; white-space: nowrap; }
-}
-.rates-bodies-note { margin: .8rem 0 0; color: var(--rate-muted); font-size: .86rem; line-height: 1.45; }
 .rates-more { margin-top: .6rem; }
 .rates-more > summary { display: list-item; list-style-position: inside; line-height: 2.75rem; color: var(--rate-muted); }
 .rates-more .rates-notes { margin-top: 0; }
@@ -286,11 +233,4 @@
 @media (prefers-reduced-motion: reduce) {
   .rates-current { animation: none; }
   .rates-zone, .rates-plus, .rates-plus::after { transition: none; }
-}
-
-/* Narrow phones (320–384 px): the brand groups no longer fit in one scrolling row,
-   so they become equal columns and long names wrap onto two lines. */
-@media (max-width: 24rem) {
-  .rates-classes { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.75rem, 1fr)); overflow: visible; border-radius: 1.1rem; }
-  .rates-classes .rates-class { white-space: normal; line-height: 1.15; padding: .35rem .3rem; border-radius: .85rem; }
 }

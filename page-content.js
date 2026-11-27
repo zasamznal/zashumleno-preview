@@ -9,7 +9,10 @@
       telegramLabel: 'Написать в Telegram', tagline: 'Создай свою атмосферу',
       // The studio palette is taken from its logo: lilac, logo blue, neon pink and a deep night tone.
       accent: '#bcb9d9', darkAccent: '#5246a6', altAccent: '#0a97c7', sparkColor: '#d81b7a',
-      nightColor: '#13111c', paperColor: '#f1eff8'
+      nightColor: '#13111c', paperColor: '#f1eff8',
+      // New Year mode (v2/festive.js): the switch in the header, shown only in the season, and whether the mode
+      // is on until the visitor chooses.
+      festiveButton: true, festiveSeasonal: true, festiveOn: false
     },
     hero: {
       kicker: 'Автомобильная студия', city: 'Москва', title: 'Тишина\nв движении.',
@@ -31,10 +34,12 @@
       { title: 'Кузов и стёкла', description: 'Полиуретановая бронеплёнка, полировка и керамика. Тонировка и атермальная плёнка.', image: 'v2/media/service-film.webp', alt: 'Нанесение защитной плёнки на крыло автомобиля', action: 'Обсудить покрытие' }
     ],
     contacts: {
-      phone: '+7 910 005-77-05', telegram: 'https://t.me/Zashumleno', telegramChannel: 'https://t.me/ZaShumlenoAvto',
-      vk: 'https://vk.com/arkanin', map: 'https://yandex.ru/maps/-/CPvAZGoj', mapEmbed: '',
+      phone: '+7 910 005-77-05', whatsapp: '+7 910 005-77-05', telegram: 'https://t.me/Zashumleno', telegramChannel: 'https://t.me/ZaShumlenoAvto',
+      vk: 'https://vk.com/arkanin', youtube: '', map: 'https://yandex.ru/maps/-/CPvAZGoj', mapEmbed: '',
       address: 'Москва, Варшавское шоссе, 152А', entrance: 'Подземный паркинг, этаж −1.', shortAddress: 'Варшавское шоссе, 152А',
       metro: 'Рядом метро «Улица Академика Янгеля»',
+      // «Сейчас открыто» under the working hours; a snapshot saved before this switch gets it turned on.
+      openStatus: true,
       person: 'Никита', role: 'руководитель студии', routeVideo: 'assets/studio-film.mp4', routePoster: 'assets/studio-film.webp',
       routeCaption: 'Видео проезда'
     },
@@ -51,7 +56,7 @@
       registeringAuthority: 'Управление Федеральной налоговой службы по Тульской области', legalAddress: '', email: '',
       registryEmail: 'arkanin5x5@gmail.com', sourceUrl: 'https://egrul.nalog.ru/index.html', hours: 'Ежедневно 11:00–20:00, московское время',
       hoursSourceUrl: 'https://yandex.ru/maps/org/zashumleno/61005116584/',
-      payment: '', timing: '', warranty: '', policyText: '', policyDate: '26.11.2026', siteOwnerName: '', siteOwnerAddress: '', siteOwnerEmail: ''
+      payment: '', timing: '', warranty: '', policyText: '', policyDate: '27.11.2026', siteOwnerName: '', siteOwnerAddress: '', siteOwnerEmail: ''
     }
   };
   const keys = defaults.sections.map(section => section.id);
@@ -89,6 +94,7 @@
   function contactUrl(type, value) {
     let address = typeof value === 'string' ? value.trim() : '';
     if (!address || /[\\\u0000-\u001f\u007f]/.test(address)) return '';
+    if (type === 'whatsapp') return whatsappUrl(address);
     if ((type === 'telegram' || type === 'telegramChannel') && /^@?[a-z][a-z\d_]{3,31}$/i.test(address)) {
       address = 'https://t.me/' + address.replace(/^@/, '');
     }
@@ -100,15 +106,31 @@
         return 'https://t.me/' + url.pathname.split('/')[1];
       }
       const hosts = type === 'vk' ? ['vk.com', 'vk.ru', 'www.vk.com', 'www.vk.ru'] :
+        type === 'youtube' ? ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'] :
         ['yandex.ru', 'yandex.com', 'maps.yandex.ru', 'yandex.by', 'yandex.kz', '2gis.ru', 'go.2gis.com', 'yandex.eu'];
       return hosts.includes(url.hostname) ? url.href : '';
     } catch { return ''; }
+  }
+
+  // WhatsApp opens a chat by a phone number in the international format: +7 910 005-77-05 → https://wa.me/79100057705.
+  function whatsappUrl(address) {
+    const link = /^https:\/\/wa\.me\/\+?(\d+)\/?$/i.exec(address);
+    if (!link && !/^\+?[\d ()−–.-]+$/.test(address)) return '';
+    let number = link ? link[1] : address.replace(/\D/g, '');
+    // A Russian number written the domestic way: 8 910 …
+    if (!link && !address.startsWith('+') && /^8\d{10}$/.test(number)) number = '7' + number.slice(1);
+    return /^\d{9,15}$/.test(number) ? 'https://wa.me/' + number : '';
   }
 
   function telegramDraftUrl(telegram, text) {
     // Telegram clients can display form-encoded spaces as literal plus signs.
     const query = new URLSearchParams({ text }).toString().replace(/\+/g, '%20');
     return telegram + '?' + query;
+  }
+
+  // wa.me takes the prepared message the same way: https://wa.me/79100057705?text=…
+  function whatsappDraftUrl(whatsapp, text) {
+    return telegramDraftUrl(whatsapp, text);
   }
 
   // A Yandex Maps share link (yandex.ru/maps/-/CODE) or widget code becomes the address of an embeddable map.
@@ -287,10 +309,14 @@
       if (!/^#[0-9a-f]{6}$/i.test(page.brand[key])) return 'Укажите каждый фирменный цвет в формате #RRGGBB.';
     }
     if (page.contacts.mapEmbed && !mapWidget(page.contacts)) return 'Проверьте ссылку на виджет Яндекс Карт.';
-    for (const [key, label] of [['telegram', 'Telegram для заявок'], ['telegramChannel', 'канал Telegram'], ['vk', 'ВКонтакте'], ['map', 'карты']]) {
-      if ((page.contacts[key] || key === 'telegram') && !contactUrl(key, page.contacts[key])) return 'Проверьте ссылку в поле «' + label + '».';
+    // The labels are the ones of the cabinet fields; the hint shows the form the link must have.
+    for (const [key, label, form] of [['telegram', 'Telegram для заявок', 'https://t.me/имя или @имя'], ['telegramChannel', 'Telegram-канал студии', 'https://t.me/имя или @имя'],
+      ['vk', 'Страница ВКонтакте', 'https://vk.com/имя'], ['youtube', 'YouTube', 'адрес канала или видео, который начинается с https://www.youtube.com/ или https://youtu.be/'],
+      ['map', 'Ссылка на Яндекс Карты или 2ГИС', 'адрес из Яндекс Карт или 2ГИС, который начинается с https://']]) {
+      if ((page.contacts[key] || key === 'telegram') && !contactUrl(key, page.contacts[key])) return 'Проверьте ссылку в поле «' + label + '». Подойдёт: ' + form + '.';
     }
     if (page.contacts.phone && !phoneHref(page.contacts.phone)) return 'Проверьте номер телефона.';
+    if (page.contacts.whatsapp && !contactUrl('whatsapp', page.contacts.whatsapp)) return 'Укажите номер WhatsApp в международном формате, например +7 910 005-77-05.';
     if (page.sections.some(section => section.enabled && !section.title.trim())) return 'У каждого видимого раздела должен быть заголовок.';
     if (page.services.some(service => !service.title.trim())) return 'Укажите название каждой услуги.';
     const media = [page.brand.logo, page.hero.image, page.contacts.routeVideo, page.contacts.routePoster, page.priceArchive,
@@ -332,7 +358,7 @@
     const time = /ежедневно[^\d]*(\d{1,2}[:.]\d{2})\s*[–—-]\s*(\d{1,2}[:.]\d{2})/i.exec(legal?.hours || '');
     if (time) data.openingHours = 'Mo-Su ' + time[1].replace('.', ':').padStart(5, '0') + '-' + time[2].replace('.', ':').padStart(5, '0');
     else delete data.openingHours;
-    data.sameAs = ['telegram', 'telegramChannel', 'vk'].map(key => contactUrl(key, contacts[key])).filter(Boolean);
+    data.sameAs = ['telegram', 'telegramChannel', 'vk', 'youtube'].map(key => contactUrl(key, contacts[key])).filter(Boolean);
     if (legal?.name) data.legalName = legal.name; else delete data.legalName;
     if (legal?.inn) data.taxID = legal.inn; else delete data.taxID;
     script.textContent = JSON.stringify(data);
@@ -347,7 +373,11 @@
     const { brand, hero, contacts, legal } = page;
     const each = (selector, change, parent = doc) => parent.querySelectorAll(selector).forEach(change);
     const copy = (selector, value, parent) => each(selector, el => setText(el, value), parent);
-    const applyLink = (selector, url) => each(selector, el => setLink(el, url));
+    const applyLink = (selector, url) => each(selector, el => {
+      setLink(el, url);
+      // A contact link that leaves the site opens in a new tab, like the buttons of the contacts block.
+      if (/^https:/i.test(url) && !el.target) { el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+    });
     const enabled = new Set(page.sections.filter(s => s.enabled).map(s => s.id));
 
     if (brand.siteTitle.trim()) doc.title = brand.siteTitle;
@@ -453,6 +483,7 @@
     applyLink('[data-channel]', contactUrl('telegramChannel', contacts.telegramChannel));
     applyLink('[data-map]', contactUrl('map', contacts.map));
     applyLink('[data-vk]', contactUrl('vk', contacts.vk));
+    applyLink('[data-youtube]', contactUrl('youtube', contacts.youtube));
     each('[data-phone]', el => {
       const tel = phoneHref(contacts.phone);
       if (el.matches('a')) setLink(el, tel);
@@ -491,7 +522,7 @@
     return page;
   }
 
-  const api = { normalize, validate, mediaUrl, contactUrl, telegramDraftUrl, mapWidget, apply, palettes, colorKeys, current: normalize(defaults) };
+  const api = { normalize, validate, mediaUrl, contactUrl, telegramDraftUrl, whatsappDraftUrl, mapWidget, apply, palettes, colorKeys, current: normalize(defaults) };
   window.STUDIO_PAGE_DEFAULTS = defaults;
   window.StudioPage = api;
 })();

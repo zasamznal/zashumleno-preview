@@ -93,7 +93,8 @@ async function api(request, path) {
   if (path === '/api/admin/session') return json({ authenticated: Boolean(await read('state', 'auth')) });
   if (path === '/api/admin/login') {
     const body = await request.json().catch(() => ({}));
-    if (!String(body.password || '').trim()) return json({ error: 'Введите любой пароль — это демо.', code: 'wrong_password' }, 401);
+    // «Any password» is taken literally: the cabinet words every refusal as a wrong password.
+    if (!String(body.password ?? '')) return json({ error: 'Введите любой пароль — это демо.', code: 'wrong_password' }, 401);
     await write('state', 'auth', true);
     return json({ authenticated: true });
   }
@@ -132,10 +133,19 @@ async function api(request, path) {
   return json({ revision: current.revision, publishedRevision: current.publishedRevision, updatedAt: current.updatedAt });
 }
 
-async function media(key) {
-  const item = await read('media', decodeURIComponent(key)).catch(() => null);
+// Видео перематывается и открывается в Safari, только если сервер умеет отдавать файл по частям.
+async function media(key, request) {
+  const item = await Promise.resolve().then(() => read('media', decodeURIComponent(key))).catch(() => null);
   if (!item) return new Response('Файл не найден', { status: 404 });
-  return new Response(item.blob, { headers: { 'content-type': item.type, 'cache-control': 'no-store' } });
+  const headers = { 'content-type': item.type, 'cache-control': 'no-store', 'accept-ranges': 'bytes' };
+  const match = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') || '');
+  if (!match || (!match[1] && !match[2])) return new Response(item.blob, { headers });
+  const size = item.blob.size;
+  const start = match[1] ? Number(match[1]) : Math.max(0, size - Number(match[2]));
+  const end = match[1] && match[2] ? Math.min(Number(match[2]), size - 1) : size - 1;
+  if (start > end) return new Response(null, { status: 416, headers: { 'content-range': 'bytes */' + size } });
+  return new Response(item.blob.slice(start, end + 1, item.type), { status: 206,
+    headers: { ...headers, 'content-range': 'bytes ' + start + '-' + end + '/' + size } });
 }
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -149,7 +159,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(serial(() => api(event.request, path)).catch(() =>
       json({ error: 'Демо-хранилище браузера недоступно.', code: 'storage_error' }, 503)));
   } else if (path.startsWith('/media/')) {
-    event.respondWith(media(path.slice('/media/'.length)));
+    event.respondWith(media(path.slice('/media/'.length), event.request));
   } else {
     const clip = /^\/v2\/media\/works\/(\d+)\.mp4$/.exec(path);
     if (clip && clips[clip[1]]) event.respondWith(Response.redirect(clips[clip[1]], 302));

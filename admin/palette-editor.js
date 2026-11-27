@@ -18,7 +18,7 @@
     const local = { ...ctx, change() { ctx.change(); paint(); } };
 
     const logoCard = K.card(host, 'Логотип', 'Показывается в шапке, подвале и на вкладке браузера. Подойдёт PNG с прозрачным фоном или JPG/WebP. «Как было» вернёт знак студии.');
-    K.media(local, logoCard, brand, 'logo', 'Файл логотипа', { removable: false, reset: 'assets/mark.svg' });
+    K.media(local, logoCard, brand, 'logo', 'Файл логотипа', { removable: false, contain: true, reset: 'assets/mark.svg' });
     K.text(local, logoCard, brand, 'name', 'Название студии', { max: 80 });
     K.text(local, logoCard, brand, 'tagline', 'Подпись под логотипом в подвале', { max: 80, placeholder: 'Создай свою атмосферу' });
 

@@ -1,0 +1,72 @@
+/* «Готовность сайта» on the cabinet home (admin/readiness.js). */
+.rd {
+  container-type: inline-size;
+  display: grid; gap: 1.1rem; padding: clamp(1.1rem, 2.4vw, 1.7rem);
+  border: 1px solid var(--a-line); border-radius: .8rem; background: #fff;
+}
+.rd-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1rem 1.4rem; }
+.rd-summary { display: grid; gap: .3rem; }
+.rd-summary h2 { font-size: clamp(1.35rem, 2.2vw, 1.8rem); letter-spacing: -.035em; line-height: 1.12; }
+.rd-lead { max-width: 46rem; color: var(--a-muted); }
+.rd-waiting { justify-self: start; padding: .2rem .7rem; border-radius: 2rem; background: #fdf1dc; color: #7a5313; font-size: .88rem; font-weight: 600; }
+
+/* The ring: how much of the checklist is filled. */
+.rd-ring { position: relative; display: grid; place-content: center; justify-items: center; width: 6.2rem; height: 6.2rem; line-height: 1; }
+.rd-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.rd-ring circle { fill: none; stroke-width: 6; }
+.rd-ring-track { stroke: var(--a-soft); }
+.rd-ring-fill { stroke: var(--a-teal); stroke-linecap: round; }
+.rd-ring[data-full=true] .rd-ring-fill { stroke: #12a05f; }
+.rd-ring strong { font-size: 1.9rem; font-weight: 800; letter-spacing: -.04em; }
+.rd-ring span { margin-top: .2rem; color: var(--a-muted); font-size: .8rem; font-weight: 600; }
+
+.rd-list { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--a-line); }
+.rd-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .5rem .9rem; padding: .85rem 0; border-bottom: 1px solid var(--a-line); }
+.rd-mark { align-self: start; width: 1.25rem; height: 1.25rem; margin-top: .15rem; border: 2px solid var(--a-accent); border-radius: 50%; }
+.rd-text { display: grid; gap: .15rem; }
+.rd-text strong { font-size: 1.02rem; line-height: 1.3; overflow-wrap: anywhere; }
+.rd-text span { color: var(--a-muted); font-size: .93rem; line-height: 1.42; }
+.rd-text small { color: var(--a-teal); font-size: .82rem; font-weight: 600; }
+.rd-text .rd-note { color: #7a5313; font-size: .85rem; font-style: normal; line-height: 1.4; }
+.rd-actions { display: flex; align-items: center; gap: .3rem .5rem; }
+.rd-open { min-height: 2.5rem; padding: .4rem .9rem; white-space: nowrap; }
+.rd-skip { min-height: 2.5rem; padding: .3rem .5rem; border: 0; border-radius: .35rem; background: none; color: var(--a-muted); font-size: .88rem; text-decoration: underline; text-underline-offset: .2em; }
+.rd-skip:hover { color: var(--a-teal); background: var(--a-soft); }
+.rd-all { justify-self: start; min-height: 2.5rem; padding: .4rem .9rem; }
+
+/* Filled and hidden items stay one click away. */
+.rd-more summary { width: fit-content; padding: .35rem .2rem; color: var(--a-ink); font-weight: 650; cursor: pointer; }
+.rd-more summary::marker { color: var(--a-teal); }
+.rd-more ul { display: grid; gap: .1rem .9rem; margin: .4rem 0 0; padding: 0; list-style: none; }
+.rd-done ul { grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); }
+.rd-done li { position: relative; padding: .22rem 0 .22rem 1.65rem; color: var(--a-ink); font-size: .93rem; line-height: 1.35; }
+.rd-done li::before {
+  content: ''; position: absolute; left: 0; top: .28rem; width: 1.1rem; height: 1.1rem; border-radius: 50%;
+  background: #12a05f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / .72rem no-repeat;
+}
+.rd-done small { display: block; color: #7a5313; font-size: .8rem; }
+.rd-skipped li { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .1rem 0; border-bottom: 1px solid var(--a-line); color: var(--a-muted); font-size: .93rem; }
+.rd-skipped li span { overflow-wrap: anywhere; }
+
+/* The field a check has led to is pointed out for a moment. */
+.rd-spot { border-radius: .5rem; animation: rd-spot 1.8s ease-out 1; }
+@keyframes rd-spot {
+  0%, 55% { box-shadow: 0 0 0 .3rem color-mix(in srgb, var(--a-teal) 26%, transparent); background-color: color-mix(in srgb, var(--a-accent) 22%, transparent); }
+  100% { box-shadow: 0 0 0 .3rem transparent; background-color: transparent; }
+}
+
+/* The block is laid out by its own width: with the side preview open the editor is as narrow as a phone. */
+@container (max-width: 38rem) {
+  .rd-head { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: .7rem; }
+  .rd-ring { width: 5.2rem; height: 5.2rem; }
+  .rd-ring strong { font-size: 1.6rem; }
+  .rd-item { grid-template-columns: auto minmax(0, 1fr); }
+  .rd-actions { grid-column: 2; }
+}
+@media (pointer: coarse) {
+  .rd-open, .rd-skip { min-height: 2.75rem; }
+  .rd-more summary { padding-block: .65rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rd-spot { animation: none; outline: 3px solid var(--a-teal); outline-offset: 3px; }
+}

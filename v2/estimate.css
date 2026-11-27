@@ -32,11 +32,43 @@
 .est-zone[aria-pressed=true] > svg { color: var(--accent); }
 .est-zone-mark { width: .92rem; height: .92rem; position: absolute; right: .42rem; top: .42rem; display: grid; place-items: center; border-radius: 50%; background: var(--accent); color: var(--dark); }
 .est-zone-mark svg { width: .69rem; height: .69rem; stroke-width: 2; }
+/* «Что шумит?»: a noise picked above the tiles opens its zone and marks the tile. */
+.est-finder { container: estimate-finder / inline-size; display: grid; grid-template-columns: minmax(0, 1fr); gap: .65rem; margin-top: .8rem; }
+.est-finder-note { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .65rem; align-items: center; color: var(--muted-on-dark); font-size: .93rem; line-height: 1.45; }
+.est-finder-note > svg { width: 1.4rem; height: 1.4rem; color: var(--accent); }
+/* The question and every answer share one cell: the tallest of them keeps its height, so the chips and the tiles never move. */
+.est-finder-text, .est-finder-sizer { grid-area: 1 / 2; margin: 0; text-wrap: pretty; }
+.est-finder-sizer { visibility: hidden; pointer-events: none; }
+.est-finder-note strong { display: block; font-weight: 650; }
+.est-finder-text strong { color: var(--on-dark); }
+.est-finder[data-active=true] .est-finder-text strong { color: var(--accent); }
+.est-finder-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.est-finder-chip { min-height: 2.25rem; padding: .3rem .85rem; border: 1px solid var(--line-dark); border-radius: 2rem; color: var(--muted-on-dark); background: transparent; font-size: .87rem; font-weight: 560; line-height: 1.2; transition: color .16s ease, background .16s ease, border-color .16s ease; }
+.est-finder-chip[aria-pressed=true] { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.est-zone.is-suggested { box-shadow: 0 0 0 2px var(--accent), 0 14px 30px -18px var(--accent); }
+.est-zone-tip { position: absolute; left: .47rem; top: .47rem; max-width: calc(100% - 2.7rem); padding: .2rem .56rem; border: 1px solid transparent; border-radius: .8rem; color: var(--on-accent); background: var(--accent); font-size: .74rem; font-weight: 700; line-height: 1.2; box-shadow: 0 1px 6px color-mix(in srgb, var(--night-deep) 55%, transparent); pointer-events: none; }
+/* In a narrow column the line runs on without the icon. */
+@container estimate-finder (max-width: 40rem) {
+  .est-finder-note { grid-template-columns: minmax(0, 1fr); }
+  .est-finder-note > svg { display: none; }
+  .est-finder-text, .est-finder-sizer { grid-column: 1; }
+  .est-finder-note strong { display: inline; }
+  /* Under a finger, and on a phone-wide screen as the car brands do, the chips become one row that scrolls sideways. */
+  @media (pointer: coarse), (max-width: 44rem) {
+    .est-finder-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: -.4rem; padding: .4rem; }
+    .est-finder-chips::-webkit-scrollbar { display: none; }
+    .est-finder-chip { flex: none; }
+  }
+}
+@media (pointer: coarse) { .est-finder-chip { min-height: 2.75rem; } }
+@media (forced-colors: active) { .est-finder-chip[aria-pressed=true] { outline: 2px solid Highlight; outline-offset: -2px; } }
 .est-packages { border-top: 1px solid var(--est-line); padding-top: 1.25rem; }
 .est-work-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .75rem 1.25rem; margin-bottom: 1.05rem; }
 .est-work-select { display: grid; grid-template-columns: 1fr; position: relative; min-width: 0; max-width: 100%; gap: .2rem; color: var(--muted-on-dark); }
 .est-work-select > span { font-size: .8rem; }
 .est-work-select select { min-height: 2.6rem; max-width: min(100%, 17.5rem); width: 100%; border: 1px solid var(--est-line); border-radius: .3rem; appearance: none; color-scheme: dark; background: var(--est-card); padding: .45rem 2rem .45rem .75rem; color: var(--on-dark); font-size: .9rem; text-overflow: ellipsis; }
+/* Touch screens: a finger-sized height, and 16 px text so that iOS Safari does not zoom the page on focus. */
+@media (pointer: coarse) { .est-work-select select { min-height: 2.75rem; font-size: 1rem; } }
 .est-work-select svg { position: absolute; bottom: .72rem; right: .7rem; width: 1.1rem; height: 1.1rem; color: var(--on-dark); pointer-events: none; }
 .est-choices { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .55rem; align-items: stretch; }
 .est-choices[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
@@ -92,11 +124,16 @@
   .est-option:nth-child(2) { animation-delay: .035s; }
   .est-option:nth-child(3) { animation-delay: .065s; }
   .est-line-enter { animation: est-line-enter .28s ease-out backwards; }
+  .est-zone.is-suggested { animation: est-suggest .9s ease-out 2; }
+  .est-zone-tip { animation: est-tip-enter .22s ease-out backwards; }
+  @keyframes est-suggest { from { box-shadow: 0 0 0 2px var(--accent), 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent); } to { box-shadow: 0 0 0 2px var(--accent), 0 0 0 .85rem transparent; } }
+  @keyframes est-tip-enter { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes est-option-enter { from { opacity: .45; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes est-line-enter { from { opacity: .25; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
 }
 @media (hover:hover) {
   .est-zone:hover, .est-option:hover { border-color: var(--line-dark-strong); }
+  .est-finder-chip:not([aria-pressed=true]):hover { color: var(--on-dark); border-color: var(--line-dark-strong); }
   .est-zone:hover > svg { transform: translateY(-2px); }
   .est-zone[aria-pressed=true]:hover, .est-option[aria-pressed=true]:hover { border-color: var(--accent); }
   .est-request:not(:disabled):hover { background: var(--accent-dark); }
@@ -130,6 +167,10 @@
   .est-zone { min-height: 3.5rem; padding: .65rem .5rem; gap: .5rem; }
   .est-zone-label { font-size: .87rem; }
   .est-zones { margin: .75rem 0 1.15rem; }
+  .est-finder { gap: .5rem; margin-top: .6rem; }
+  /* The row of chips runs to the edges of the screen, as the car brands above do. */
+  .est-finder-chips { margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
+  .est-finder-chip { min-height: 2.75rem; padding-inline: 1rem; }
   .est-work-head { align-items: center; }
   .est-receipt { position: relative; top: auto; padding: 1.25rem; }
   .est-total-heading { justify-content: start; gap: 1rem; }
@@ -148,6 +189,7 @@
 }
 @media (max-width: 24rem) {
   .est-zone { min-height: 4.1rem; flex-direction: column; align-items: flex-start; gap: .25rem; }
+  .est-finder-note { font-size: .875rem; }
   .est-option { gap: .2rem .5rem; }
   .est-option-amount { font-size: 1.08rem; }
 }

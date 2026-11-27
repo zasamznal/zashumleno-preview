@@ -300,3 +300,32 @@
   content: ''; flex: none; width: 1.4rem; height: 1.4rem; border-radius: 50%;
   background: #12b76a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / .95rem no-repeat;
 }
+/* A message about a problem must not carry the «done» tick. */
+.a-toast[data-kind=problem]::before {
+  background: #f79009 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 6.5v7M12 17.3v.2' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center / .95rem no-repeat;
+}
+.k-media-status[data-state=error], .k-field-error { color: #b42318; font-weight: 600; }
+.k-field-error { font-size: .82rem; }
+.k-field-error:empty { display: none; }
+
+/* Side preview on a laptop takes almost half of the window: the menu folds into the «Раздел кабинета» list
+   and the editor falls back to its tablet layout instead of squeezing the desktop one. */
+@media (min-width: 80.01rem) and (max-width: 135rem) {
+  .a-preview-open .a-app { display: block; }
+  .a-preview-open .a-sidebar { display: none; }
+  .a-preview-open .a-mobile-nav { display: block; margin-bottom: 1.4rem; }
+  .a-preview-open .a-mobile-nav select { width: 100%; padding: .6rem; border: 1px solid #aaa9a1; border-radius: .25rem; background: #fff; color: var(--a-ink); }
+  .a-preview-open .a-main { padding-top: 1.3rem; }
+  .a-preview-open .pz-zones { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .a-preview-open .k-guide { grid-template-columns: 7rem minmax(0, 1fr); }
+  .a-preview-open .k-guide-art { width: 7rem; }
+  .a-preview-open .k-guide-map { grid-column: 1 / -1; max-width: none; justify-self: start; }
+}
+@media (min-width: 80.01rem) and (max-width: 100rem) {
+  .a-preview-open .k-guide-steps { grid-template-columns: minmax(0, 1fr); gap: .55rem; }
+  .a-preview-open .k-guide-steps li:not(:last-child)::after { display: none; }
+}
+/* Keyboard: the sticky save bar must not cover the field that has just received the focus,
+   and a price for a body type shows where the cursor is. */
+html { scroll-padding-bottom: 7rem; }
+#editor .pz-body-input:focus-visible { outline: 2px solid var(--v-violet); outline-offset: 2px; }

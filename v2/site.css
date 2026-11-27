@@ -49,10 +49,15 @@ a { color: inherit; text-underline-offset: .23em; }
 .skip:focus { transform: none; }
 .site-notice { background: var(--paper-3); color: var(--ink); padding: .55rem var(--gutter); display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1rem; font-size: .9rem; }
 .site-notice a { font-weight: 700; }
+/* The published content did not load (the notice above says so): sections drawn from it step aside together with
+   the links to them, so the page is not a row of bare headings. The phone, Telegram and the address stay. */
+.content-failed :is(#calculator, #layers, #works, #prices, #services),
+.content-failed a:is([href="#calculator"], [href="#layers"], [href="#works"], [href="#prices"], [href="#services"]) { display: none; }
 .site-head { position: relative; background: var(--night-deep); color: var(--on-dark); border-bottom: 1px solid var(--line-dark); z-index: 20; }
 .head-row { min-height: 4.8rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .wordmark { display: inline-flex; flex: none; align-items: center; gap: .46rem; min-height: 2.75rem; text-decoration: none; }
-.wordmark img { width: 2.5rem; height: 2.05rem; object-fit: contain; }
+/* The studio emblem is not square: the height is fixed, the width follows the picture. A logo from the cabinet fits the same place. */
+.wordmark img { width: auto; max-width: 3.6rem; height: 3.25rem; object-fit: contain; }
 .wordmark [data-brand-name] { font-size: clamp(1.18rem, 1.7vw, 1.55rem); line-height: 1; font-weight: 880; font-stretch: 80%; font-style: italic; letter-spacing: -.035em; color: color-mix(in srgb, var(--accent-alt) 78%, white); }
 .topnav, .foot-row nav { display: flex; align-items: center; }
 .topnav { gap: clamp(1rem,2.6vw,3rem); }
@@ -90,6 +95,120 @@ a { color: inherit; text-underline-offset: .23em; }
 .intro-aside p:empty, [data-section-desc]:empty, [data-section-kicker]:empty { display: none; }
 .v2-paper,#works,#studio { background: var(--paper); }
 .estimate-section,.services-section,.brief-section { background: var(--dark); color: var(--on-dark); }
+/* Until the calculator draws itself its place is held: otherwise the next section shows up right under the cover
+   on a tall screen and jumps away a moment later. */
+@media (scripting: enabled) {
+  html:not(.content-failed) .estimate-section [data-estimate]:empty { min-height: 100vh; min-height: 100svh; }
+}
+/* What waits in the held place: outlines of the heading, of the car and zone tiles and of the estimate card, roughly where
+   the calculator puts them. CSS alone: the element stays :empty, and the drawing never changes the height of the place.
+   --wait-h is the heading size, --wait-top is where the two columns start, --wait-side is the estimate card. */
+@media (scripting: enabled) {
+  html:not(.content-failed) .estimate-section [data-estimate]:empty {
+    --wait-bar: color-mix(in srgb, var(--accent) 19%, var(--night));
+    --wait-tile: color-mix(in srgb, var(--accent) 9%, var(--night));
+    --wait-h: clamp(2.65rem, 5.25vw, 5.85rem);
+    --wait-gap: clamp(1.5rem, 3.5vw, 4rem);
+    --wait-side: calc((100% - var(--wait-gap)) * .315);
+    --wait-top: calc(2.3rem + var(--wait-h) * 1.96 + clamp(2rem, 4vw, 4rem));
+    --wait-zones: 3;
+    position: relative;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 6rem), #0000);
+    mask-image: linear-gradient(#000 calc(100% - 6rem), #0000);
+    /* The kicker, two lines of the heading, three lines of the note on the right. */
+    background:
+      linear-gradient(var(--wait-bar) 0 0) 0 .7rem / 8.75rem .6rem no-repeat,
+      linear-gradient(var(--wait-bar) 0 0) 0 calc(2.3rem + var(--wait-h) * .15) / min(100%, var(--wait-h) * 5.3) calc(var(--wait-h) * .68) no-repeat,
+      linear-gradient(var(--wait-bar) 0 0) 0 calc(2.3rem + var(--wait-h) * 1.13) / min(100%, var(--wait-h) * 6.65) calc(var(--wait-h) * .68) no-repeat,
+      linear-gradient(var(--wait-tile) 0 0) right 0 top calc(2.3rem + var(--wait-h) * 1.96 - 4.55rem) / 21.75rem .6rem no-repeat,
+      linear-gradient(var(--wait-tile) 0 0) right 1.75rem top calc(2.3rem + var(--wait-h) * 1.96 - 2.95rem) / 20rem .6rem no-repeat,
+      linear-gradient(var(--wait-tile) 0 0) right 7.25rem top calc(2.3rem + var(--wait-h) * 1.96 - 1.3rem) / 14.5rem .6rem no-repeat;
+  }
+  html:not(.content-failed) .estimate-section [data-estimate]:empty::before,
+  html:not(.content-failed) .estimate-section [data-estimate]:empty::after { content: ''; position: absolute; top: var(--wait-top); }
+  /* The builder: a question, six body types, two fields, a rule, a question, the zone tiles. */
+  html:not(.content-failed) .estimate-section [data-estimate]:empty::before {
+    left: 0; bottom: 0; width: calc(100% - var(--wait-side) - var(--wait-gap));
+    background:
+      linear-gradient(var(--wait-bar) 0 0) 0 .45rem / 14.6rem 1rem no-repeat,
+      linear-gradient(90deg, var(--wait-tile) calc(100% - .45rem), #0000 0) 0 4.1rem / calc((100% + .45rem) / 6) 5.4rem repeat-x,
+      linear-gradient(var(--wait-tile) 0 0) 0 12.25rem / calc((100% - .7rem) * .556) 2.9rem no-repeat,
+      linear-gradient(var(--wait-tile) 0 0) 100% 12.25rem / calc((100% - .7rem) * .444) 2.9rem no-repeat,
+      linear-gradient(var(--line-dark) 0 0) 0 16.75rem / 100% 1px no-repeat,
+      linear-gradient(var(--wait-bar) 0 0) 0 18.55rem / 11rem 1rem no-repeat,
+      linear-gradient(90deg, var(--wait-tile) calc(100% - .75rem), #0000 0) 0 21.6rem / calc((100% + .75rem) / var(--wait-zones)) 13.4rem repeat-x,
+      linear-gradient(90deg, var(--wait-tile) calc(100% - .75rem), #0000 0) 0 35.75rem / calc((100% + .75rem) / var(--wait-zones)) 13.4rem repeat-x;
+  }
+  /* The estimate card. */
+  html:not(.content-failed) .estimate-section [data-estimate]:empty::after {
+    right: 0; width: var(--wait-side); height: 27.5rem; border-radius: .4rem;
+    background: color-mix(in srgb, var(--accent) 62%, var(--paper)); opacity: .17;
+  }
+  @media (max-width: 66rem) {
+    html:not(.content-failed) .estimate-section [data-estimate]:empty { --wait-gap: 1.5rem; --wait-side: calc((100% - var(--wait-gap)) * .37); }
+    /* Body types in two rows of three; smaller zone tiles. */
+    html:not(.content-failed) .estimate-section [data-estimate]:empty::before {
+      background:
+        linear-gradient(var(--wait-bar) 0 0) 0 .3rem / 11.6rem .95rem no-repeat,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .45rem), #0000 0) 0 5.5rem / calc((100% + .45rem) / 3) 5.4rem repeat-x,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .45rem), #0000 0) 0 11.4rem / calc((100% + .45rem) / 3) 5.4rem repeat-x,
+        linear-gradient(var(--wait-tile) 0 0) 0 19.5rem / calc((100% - .7rem) * .556) 2.9rem no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 100% 19.5rem / calc((100% - .7rem) * .444) 2.9rem no-repeat,
+        linear-gradient(var(--line-dark) 0 0) 0 24rem / 100% 1px no-repeat,
+        linear-gradient(var(--wait-bar) 0 0) 0 25.8rem / 9.5rem .95rem no-repeat,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .5rem), #0000 0) 0 28.8rem / calc((100% + .5rem) / var(--wait-zones)) 9.8rem repeat-x,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .5rem), #0000 0) 0 39.1rem / calc((100% + .5rem) / var(--wait-zones)) 9.8rem repeat-x,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .5rem), #0000 0) 0 49.4rem / calc((100% + .5rem) / var(--wait-zones)) 9.8rem repeat-x;
+    }
+    html:not(.content-failed) .estimate-section [data-estimate]:empty::after { height: 25.5rem; }
+  }
+  @media (max-width: 57rem) {
+    /* The note moves under the heading, which fits one line. */
+    html:not(.content-failed) .estimate-section [data-estimate]:empty {
+      --wait-gap: 1.1rem; --wait-side: calc((100% - var(--wait-gap)) * .422); --wait-zones: 2;
+      --wait-top: calc(2.3rem + var(--wait-h) * .98 + 6.1rem);
+      background:
+        linear-gradient(var(--wait-bar) 0 0) 0 .7rem / 8.75rem .6rem no-repeat,
+        linear-gradient(var(--wait-bar) 0 0) 0 calc(2.3rem + var(--wait-h) * .15) / min(100%, var(--wait-h) * 12.1) calc(var(--wait-h) * .68) no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 0 calc(3.75rem + var(--wait-h) * .98) / min(100%, 45rem) .6rem no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 0 calc(5.3rem + var(--wait-h) * .98) / min(72%, 32rem) .6rem no-repeat;
+    }
+  }
+  @media (max-width: 44rem) {
+    /* One column: the estimate card is far below the first screen. Two lines of the heading, three of the note. */
+    html:not(.content-failed) .estimate-section [data-estimate]:empty {
+      --wait-h: clamp(2.5rem, 9.6vw, 3.8rem); --wait-gap: 0rem; --wait-side: 0rem;
+      --wait-top: calc(2.3rem + var(--wait-h) * 1.96 + 7.65rem);
+      background:
+        linear-gradient(var(--wait-bar) 0 0) 0 .7rem / 8.75rem .6rem no-repeat,
+        linear-gradient(var(--wait-bar) 0 0) 0 calc(2.3rem + var(--wait-h) * .15) / min(100%, var(--wait-h) * 5.75) calc(var(--wait-h) * .68) no-repeat,
+        linear-gradient(var(--wait-bar) 0 0) 0 calc(2.3rem + var(--wait-h) * 1.13) / min(100%, var(--wait-h) * 6.7) calc(var(--wait-h) * .68) no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 0 calc(3.75rem + var(--wait-h) * 1.96) / 100% .6rem no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 0 calc(5.3rem + var(--wait-h) * 1.96) / 100% .6rem no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 0 calc(6.85rem + var(--wait-h) * 1.96) / 70% .6rem no-repeat;
+    }
+    html:not(.content-failed) .estimate-section [data-estimate]:empty::before {
+      background:
+        linear-gradient(var(--wait-bar) 0 0) 0 .3rem / 11.6rem .95rem no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 0 2.2rem / 100% .55rem no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 0 3.55rem / 62% .55rem no-repeat,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .45rem), #0000 0) 0 5.5rem / calc((100% + .45rem) / 3) 4.9rem repeat-x,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .45rem), #0000 0) 0 10.8rem / calc((100% + .45rem) / 3) 4.9rem repeat-x,
+        linear-gradient(var(--wait-tile) 0 0) 0 18.4rem / 100% 2.9rem no-repeat,
+        linear-gradient(var(--wait-tile) 0 0) 0 23.7rem / 100% 2.9rem no-repeat,
+        linear-gradient(var(--line-dark) 0 0) 0 28.2rem / 100% 1px no-repeat,
+        linear-gradient(var(--wait-bar) 0 0) 0 30rem / 9.5rem .95rem no-repeat,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .5rem), #0000 0) 0 33rem / calc((100% + .5rem) / 2) 9rem repeat-x,
+        linear-gradient(90deg, var(--wait-tile) calc(100% - .5rem), #0000 0) 0 42.5rem / calc((100% + .5rem) / 2) 9rem repeat-x;
+    }
+    html:not(.content-failed) .estimate-section [data-estimate]:empty::after { display: none; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.content-failed) .estimate-section [data-estimate]:empty { animation: estimate-wait 1.5s ease-in-out infinite alternate; }
+    @keyframes estimate-wait { from { opacity: 1; } to { opacity: .55; } }
+  }
+}
 .services-section .eyebrow,.brief-section .eyebrow { color: var(--accent); }
 .services-section .section-intro > p,.brief-intro > p { color: var(--muted-on-dark); }
 .brief-layout { display: grid; grid-template-columns: minmax(0,.86fr) minmax(0,1.14fr); gap: clamp(2rem,7.3vw,9rem); align-items: start; }
@@ -102,7 +221,7 @@ a { color: inherit; text-underline-offset: .23em; }
 .footer { background: var(--night-deep); color: var(--on-dark); }
 .foot-row { padding-block: 1.8rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .foot-row nav { flex-wrap: wrap; gap: .5rem 1.7rem; }
-.foot-row nav a { font-size: .93rem; padding-block: .5rem; text-decoration: none; color: color-mix(in srgb, var(--on-dark) 88%, var(--accent)); }
+.foot-row nav a { display: inline-flex; align-items: center; min-height: 2.75rem; font-size: .93rem; text-decoration: none; color: color-mix(in srgb, var(--on-dark) 88%, var(--accent)); }
 .foot-brand { display: grid; gap: .45rem; }
 .foot-tagline { color: var(--muted-on-dark); font-size: .78rem; font-weight: 700; font-stretch: 80%; letter-spacing: .16em; text-transform: uppercase; }
 .foot-tagline:empty { display: none; }
@@ -119,6 +238,8 @@ a { color: inherit; text-underline-offset: .23em; }
   .hero-primary:hover { background: color-mix(in srgb, var(--accent), white 22%); }
   .hero-secondary:hover, .foot-row nav a:hover { text-decoration: underline; }
 }
+/* Right above the menu breakpoint the full navigation leaves no spare room: the emblem keeps the width of the former mark. */
+@media (min-width: 58.01rem) and (max-width: 60rem) { .head-row .wordmark img { max-width: 2.5rem; height: 2.25rem; } }
 @media (max-width: 58rem) {
   .head-row { min-height: 4.2rem; gap: .7rem; }
   .head-contact { margin-left: auto; }
@@ -141,7 +262,7 @@ a { color: inherit; text-underline-offset: .23em; }
 @media (max-width: 680px) {
   :root { --gutter: clamp(1.1rem,5.4vw,2.1rem); }
   .wordmark [data-brand-name] { font-size: 1.33rem; }
-  .wordmark img { width: 2rem; height: 1.85rem; }
+  .wordmark img { height: 2.75rem; }
   .head-row { min-height: 3.65rem; }
   .head-contact { padding: .4rem; color: var(--accent); background: transparent; min-width: 44px; border-color: transparent; }
   .head-contact svg { width: 22px; height: 22px; }

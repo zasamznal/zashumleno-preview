@@ -89,6 +89,13 @@
       image.hidden = !custom;
       document.querySelector(".legal-mark").hidden = custom;
       if (custom) image.src = logo;
+      // The tab icon follows a logo from the cabinet, as on the home page.
+      for (const icon of document.querySelectorAll('link[rel="icon"]')) {
+        icon.dataset.studioIcon ??= icon.getAttribute("href");
+        icon.setAttribute("href", custom ? logo : icon.dataset.studioIcon);
+        if (custom) icon.removeAttribute("type");
+        else icon.setAttribute("type", "image/svg+xml");
+      }
     }
     fillFields(contacts, legal, brand);
     const info = document.getElementById("studio-info");
@@ -149,6 +156,8 @@
     verifiedLink("Источник режима работы", "Карточка мастерской", legal.hoursSourceUrl, ["yandex.ru", "yandex.com", "2gis.ru"]);
     const chat = window.StudioPage ? window.StudioPage.contactUrl("telegram", contacts.telegram) : fallback.contacts.telegram;
     if (chat) row(info, "Telegram студии", chat, chat);
+    const whatsapp = window.StudioPage ? window.StudioPage.contactUrl("whatsapp", contacts.whatsapp) : "";
+    if (whatsapp) row(info, "WhatsApp студии", whatsapp, whatsapp);
   }
 
   async function loadPage() {

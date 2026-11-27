@@ -3,7 +3,37 @@
 
   const picturedZones = new Set(["doors", "arches", "floor", "trunk", "roof", "dashboard"]);
 
+  // «Что шумит?» — a hint above the zone tiles for a visitor who does not know where to start.
+  // A noise points at one zone by its id; the reason repeats what the studio already says about that zone.
+  // All its wording lives here. Set enabled to false to remove the hint from the calculator.
+  const noiseFinder = {
+    enabled: true,
+    label: "Что мешает больше всего",
+    prompt: ["Не знаете, с чего начать?", "Выберите, что мешает больше всего."],
+    lead: "Начните с зоны",
+    mark: "Начните отсюда",
+    hints: [
+      { zone: "arches", noise: "Гул колёс на скорости", reason: "Арка принимает удары песка, камней и воды из-под колёс — отсюда гул на скорости." },
+      { zone: "doors", noise: "Шум улицы и соседних машин", reason: "Через двери в салон проходит шум улицы, а их широкие панели вибрируют на ходу и от работы динамика." },
+      { zone: "floor", noise: "Гул дороги снизу", reason: "Пол передаёт в салон гул дороги и вибрации от колёс." },
+      { zone: "roof", noise: "Дождь и ветер по крыше", reason: "Тонкая крыша резонирует от дождя и встречного ветра." },
+      { zone: "dashboard", noise: "Шум двигателя", reason: "Через моторный щит в салон проходит шум двигателя и передних колёс." },
+      { zone: "trunk", noise: "Гул сзади, из багажника", reason: "Пол багажника и задние арки усиливают гул от задних колёс." }
+    ]
+  };
+
+  // Hints whose zone the calculator really offers, with the current title of the zone.
+  // Advice between fewer than two zones is no advice: the hint is not shown then.
+  function noiseHints(zones, config = noiseFinder) {
+    if (!config?.enabled || !Array.isArray(config.hints) || !Array.isArray(zones)) return [];
+    const titles = new Map(zones.filter(zone => zone?.id && zone.title).map(zone => [zone.id, zone.title]));
+    const hints = config.hints.filter(hint => hint?.noise && hint.reason && titles.has(hint.zone))
+      .map(hint => ({ zone: hint.zone, noise: hint.noise, reason: hint.reason, title: titles.get(hint.zone) }));
+    return new Set(hints.map(hint => hint.zone)).size < 2 ? [] : hints;
+  }
+
   const controlPaths = {
+    sound: '<path d="M4 10v4h3l4 4V6l-4 4H4Zm11.5-1.2a4.5 4.5 0 0 1 0 6.4M18 6a8.5 8.5 0 0 1 0 12"/>',
     receipt: '<path d="M6 3h12v18l-3-1.8-3 1.8-3-1.8L6 21V3Zm3 5h6m-6 4h6"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     check: '<path d="m5 12 4.3 4.3L19 7"/>',
@@ -91,6 +121,10 @@
           <div class="est-block est-car"></div>
           <div class="est-block">
             <h3 class="est-question">Что обработать?</h3>
+            <div class="est-finder" role="group" hidden>
+              <div class="est-finder-note"><p class="est-finder-text"></p></div>
+              <div class="est-finder-chips"></div>
+            </div>
             <div class="est-zones" aria-label="Зоны обработки" role="group"></div>
           </div>
           <div class="est-block est-packages">
@@ -136,6 +170,10 @@
     const zoneButtons = new Map();
     const choiceButtons = new Map();
     const chosenGroup = new Map();
+    const finderChips = new Map();
+    const finderTip = element("span", "est-zone-tip", noiseFinder.mark);
+    let finderHint = null;
+    let carMap = null;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const totalNode = get(".est-total-amount");
     let activeZone = zones[0];
@@ -257,6 +295,7 @@
         view.btn.dataset.inEstimate = String(hasItems);
         view.mark.hidden = !hasItems;
       }
+      carMap?.sync(summary.lines, activeZone.id);
     }
 
     function updateCart(message) {
@@ -388,8 +427,29 @@
       renderChoices();
     }
 
+    // The line of the hint: the question, or why the picked noise points at this zone.
+    function finderLine(hint) {
+      return hint ? [element("strong", "", noiseFinder.lead + " «" + hint.title + "»."), " " + hint.reason]
+        : [element("strong", "", noiseFinder.prompt[0]), " " + noiseFinder.prompt[1]];
+    }
+
+    function showHint(hint) {
+      finderHint = hint;
+      for (const [item, chip] of finderChips) chip.setAttribute("aria-pressed", String(item === hint));
+      for (const [id, view] of zoneButtons) view.btn.classList.toggle("is-suggested", id === hint?.zone);
+      if (hint) zoneButtons.get(hint.zone).btn.append(finderTip);
+      else finderTip.remove();
+      get(".est-finder").dataset.active = String(Boolean(hint));
+      const line = get(".est-finder-text");
+      line.replaceChildren(...finderLine(hint));
+      // Only the reason is read aloud; the question coming back is no news, and an emptied line lets the same reason be read again.
+      get(".est-announcement").textContent = hint ? line.textContent : "";
+    }
+
     function selectZone(zone) {
       activeZone = zone;
+      // The hint lives only while its zone is open: any other way to another zone removes it.
+      if (finderHint && finderHint.zone !== zone.id) showHint(null);
       for (const [id, view] of zoneButtons) view.btn.setAttribute("aria-pressed", String(id === zone.id));
       const groups = zone.groups.filter(group => group.choices.length);
       groupSelect.replaceChildren(...groups.map(group => new Option(group.title, group.id)));
@@ -409,6 +469,46 @@
       zoneButtons.set(zone.id, {btn, mark});
       zoneNav.append(btn);
     }
+    // «Что шумит?»: a picked noise opens its zone the same way its tile does and marks that tile.
+    const finder = get(".est-finder");
+    const finderNote = get(".est-finder-note");
+    const hints = noiseHints(zones);
+    finder.hidden = !hints.length;
+    finder.setAttribute("aria-label", noiseFinder.label);
+    finderNote.prepend(icon("sound"));
+    // Every possible line lies unseen in the cell of the visible one, so the tallest keeps the height: nothing below ever moves.
+    for (const hint of [null, ...hints]) {
+      const sizer = element("span", "est-finder-sizer");
+      sizer.setAttribute("aria-hidden", "true");
+      sizer.append(...finderLine(hint));
+      finderNote.append(sizer);
+    }
+    const finderRow = get(".est-finder-chips");
+    for (const hint of hints) {
+      const chip = button("est-finder-chip");
+      chip.textContent = hint.noise;
+      chip.addEventListener("click", () => {
+        if (finderHint === hint) { showHint(null); return; }
+        if (activeZone.id !== hint.zone) selectZone(zones.find(zone => zone.id === hint.zone));
+        showHint(hint);
+        // Where the chips are one row that scrolls sideways, a chip cut by its edge comes fully into sight.
+        const row = finderRow.getBoundingClientRect();
+        const own = chip.getBoundingClientRect();
+        const inset = parseFloat(getComputedStyle(finderRow).paddingLeft) || 0;
+        const shift = Math.min(0, own.left - row.left - inset) || Math.max(0, own.right - row.right + inset);
+        if (shift) finderRow.scrollBy({ left: shift, behavior: reduced.matches ? "auto" : "smooth" });
+      });
+      finderChips.set(hint, chip);
+      finderRow.append(chip);
+    }
+    showHint(null);
+    // «Карта машины» (car-map.js): the zones of the estimate on a car drawing in the receipt. A zone opens there as its
+    // tile does; the kits stand above the receipt on a phone, so they come into sight.
+    carMap = window.StudioCarMap?.create({ zones, engine, apply: updateCart, open(zone) {
+      selectZone(zone);
+      get(".est-packages").scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
+    } }) || null;
+    if (carMap) get(".est-vehicle").after(carMap.element);
     groupSelect.addEventListener("change", () => selectGroup(groupSelect.value));
     // Other sections (materials, price list) can put a package into the estimate.
     window.addEventListener("studio:estimate-select", event => {
@@ -432,12 +532,15 @@
       if (!summary.lines.length) return;
       window.dispatchEvent(new CustomEvent("studio:quote", {detail: summary.quote}));
       location.hash = "request";
+      // The address may already end with #request (a second estimate): the browser does not scroll again then.
+      document.getElementById("request")?.scrollIntoView();
       document.querySelector("#request input:not([type=hidden]), #request textarea")?.focus({preventScroll:true});
     });
     selectZone(activeZone);
     updateCart();
   }
 
+  window.StudioNoiseFinder = { config: noiseFinder, hints: noiseHints };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount, {once:true});
   else mount();
 })();

@@ -94,6 +94,12 @@
     upload.addEventListener('change', async () => {
       if (!upload.files?.[0]) return;
       const file = upload.files[0];
+      // The file dialog only suggests the kind: a dragged file or «all files» can be anything.
+      if (window.StudioKit && !window.StudioKit.acceptsFile(file, upload.accept)) {
+        busy.textContent = 'Файл «' + file.name + '» не подходит: здесь нужен файл ' + summary.replace(/, до .*/, '') + '.';
+        upload.value = '';
+        return;
+      }
       upload.disabled = true;
       busy.textContent = 'Загружаем «' + file.name + '»…';
       try {
@@ -150,6 +156,20 @@
     const brand = card(host, 'Шапка сайта', 'Логотип, название и фирменные цвета — в разделе «Цвета и логотип».');
     field(ctx, brand, page.brand, 'telegramLabel', 'Кнопка связи в шапке', { limit: 80 });
     brand.append(button('Открыть «Цвета и логотип»', () => window.StudioAdmin.navigate('palette')));
+    // New Year mode: the visitor switches it on and off in the header, the studio decides whether the switch is there.
+    const festive = card(host, 'Новогодний режим', 'Кнопка со снежинкой в шапке сайта, справа. Посетитель сам включает и выключает снег, гирлянду и праздничные детали; его выбор запоминается в его браузере. Тексты, цены и разделы режим не меняет.');
+    const festiveCheck = (key, caption, update) => {
+      check(ctx, festive, page.brand, key, caption, update);
+      festive.lastElementChild.classList.add('pe-wide');
+      return festive.lastElementChild.querySelector('input');
+    };
+    // Without the switch the two rules below have nothing to rule.
+    const festiveSync = () => { for (const input of festiveRules) input.disabled = !page.brand.festiveButton; };
+    festiveCheck('festiveButton', 'Показывать кнопку на сайте', () => festiveSync());
+    const festiveRules = [festiveCheck('festiveSeasonal', 'Только в сезон: с 15 ноября по 31 января'),
+      festiveCheck('festiveOn', 'Включать режим сразу, пока посетитель не выбрал сам')];
+    festiveSync();
+    festive.append(el('p', 'pe-note pe-wide', 'Вне сезона кнопка и оформление скрываются сами — выключать их после праздников не нужно. Без галочки «Только в сезон» кнопка видна круглый год.'));
     const hero = card(host, 'Первый экран');
     field(ctx, hero, page.hero, 'kicker', 'Подпись над заголовком');
     field(ctx, hero, page.hero, 'city', 'Город');
@@ -214,10 +234,11 @@
         const name = field(ctx, grid, item, 'title', 'Название услуги', { wide: true, limit: 180, update: text => {
           summary.querySelector('span').textContent = text || 'Услуга без названия';
         } });
-        field(ctx, grid, item, 'description', 'Описание услуги', { multiline: true, wide: true });
+        field(ctx, grid, item, 'description', 'Описание услуги', { multiline: true, wide: true,
+          note: 'Одно-два коротких предложения: карточки в одном ряду выравниваются по самой длинной.' });
         media(ctx, grid, item, 'image', 'Фото услуги');
         field(ctx, grid, item, 'alt', 'Описание изображения', { note: 'Этот текст прочитает экранный диктор.' });
-        field(ctx, grid, item, 'action', 'Надпись на кнопке', { note: 'Оставьте пустым, чтобы скрыть кнопку консультации.' });
+        field(ctx, grid, item, 'action', 'Надпись на кнопке', { note: 'Кнопка ведёт в заявку с уже выбранной услугой. Пустое поле — на кнопке будет «Обсудить услугу».' });
         const tools = el('div', 'pe-item-actions');
         orderControls(ctx, tools, page.services, i, item.title, render);
         const remove = button('Удалить карточку', () => {
@@ -242,17 +263,21 @@
 
   function contacts(ctx, page) {
     const c = page.contacts;
-    const contact = card(ctx.host, 'Связь со студией');
+    const contact = card(ctx.host, 'Связь со студией', 'В заявке посетитель выбирает мессенджер: «Открыть в Telegram» или «Открыть в WhatsApp». Оба ведут в личный чат и получают один и тот же текст запроса.');
     field(ctx, contact, c, 'phone', 'Телефон студии', { type: 'tel' });
     field(ctx, contact, c, 'telegram', 'Telegram для заявок', { hint: '@имя или https://t.me/имя' });
+    field(ctx, contact, c, 'whatsapp', 'WhatsApp для заявок', { type: 'tel', hint: '+7 910 005-77-05',
+      note: 'Номер в международном формате, к которому привязан WhatsApp, или ссылка https://wa.me/… Пустое поле убирает кнопку WhatsApp из заявки.' });
     field(ctx, contact, c, 'person', 'Кому адресован запрос');
     field(ctx, contact, c, 'role', 'Должность или подпись');
-    field(ctx, contact, c, 'telegramChannel', 'Канал портфолио в Telegram');
-    field(ctx, contact, c, 'vk', 'Страница ВКонтакте');
+    const social = card(ctx.host, 'Мы в социальных сетях', 'Блок с иконками рядом с контактами и ссылки в подвале сайта. Пустое поле убирает свою ссылку, без всех трёх блок скрывается.');
+    field(ctx, social, c, 'telegramChannel', 'Telegram-канал студии', { hint: '@имя или https://t.me/имя', note: 'Подпись на сайте: «новости и работы».' });
+    field(ctx, social, c, 'youtube', 'YouTube', { hint: 'https://www.youtube.com/@канал', note: 'Подпись на сайте: «короткие видео».' });
+    field(ctx, social, c, 'vk', 'Страница ВКонтакте', { hint: 'https://vk.com/…', note: 'Подпись на сайте: «видео работ».' });
     const address = card(ctx.host, 'Адрес и карта');
     field(ctx, address, c, 'shortAddress', 'Короткий адрес');
     field(ctx, address, c, 'address', 'Полный адрес студии', { note: 'Схема проезда нарисована для адреса «Варшавское шоссе, 152А, паркинг −1». При другом адресе на сайте останется только карта.' });
-    field(ctx, address, c, 'entrance', 'Как найти вход', { wide: true });
+    field(ctx, address, c, 'entrance', 'Как найти вход', { wide: true, note: 'Схема проезда показывается, пока здесь названы паркинг (или парковка) и этаж −1. Без этих слов на сайте останется только карта.' });
     field(ctx, address, c, 'metro', 'Ближайшее метро', { wide: true, hint: 'Рядом метро «…»' });
     field(ctx, address, c, 'map', 'Ссылка на Яндекс Карты или 2ГИС', { wide: true, note: 'Кнопка «Построить маршрут». Из короткой ссылки Яндекс Карт (yandex.ru/maps/-/…) сайт сам соберёт интерактивную карту.' });
     field(ctx, address, c, 'mapEmbed', 'Код карты для вкладки «Яндекс Карта» (необязательно)', { multiline: true, rows: 3, wide: true, limit: 2000,
@@ -287,7 +312,12 @@
     field(ctx, legal, l, 'sourceUrl', 'Ссылка на официальный реестр', { wide: true });
     field(ctx, legal, l, 'legalAddress', 'Адрес исполнителя для публикации', { wide: true });
     field(ctx, legal, l, 'email', 'Электронная почта для обращений', { type: 'email' });
-    field(ctx, legal, l, 'hours', 'Режим работы');
+    // The switch of «сейчас открыто» stays in one cell with the hours it reads.
+    const hours = el('div', 'pe-field');
+    field(ctx, hours, l, 'hours', 'Режим работы', { note: 'Статус «сейчас открыто» сайт показывает, когда часы записаны так: «Ежедневно 11:00–20:00» или «Ежедневно с 11:00 до 20:00». Запись по дням недели, с перерывом или «по записи» остаётся обычным текстом.' });
+    check(ctx, hours, c, 'openStatus', 'Показывать статус «сейчас открыто»');
+    hours.append(el('small', 'pe-note', 'В контактах под часами работы: «Сейчас открыто · до 20:00» или «Сейчас закрыто · откроемся в 11:00», по московскому времени. Праздников сайт не знает — на нерабочие дни галочку можно снять.'));
+    legal.append(hours);
     field(ctx, legal, l, 'hoursSourceUrl', 'Ссылка на источник расписания', { wide: true });
     const terms = card(ctx.host, 'Условия оказания услуг');
     for (const [key, label] of [['payment', 'Порядок и способы оплаты'], ['timing', 'Сроки работ'], ['warranty', 'Условия гарантии']]) {

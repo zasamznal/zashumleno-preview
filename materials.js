@@ -1,13 +1,14 @@
-// Materials of the studio. Colours and print imitate the real sheets in the section «Что внутри».
+// Materials of the studio. Colours and print imitate the real sheets in the section «Что внутри»:
+// they are taken from the photos of the studio and the swatches on its price sheets (public/sheets).
 // texture: foil — embossed foil, print — sheet with a printed name, felt — fibrous membrane,
 // wave — wave-profile foam, eggcrate — cellular foam, membrane — dense film, gloss — mastic.
 window.STUDIO_MATERIALS = [
   {
-    id: 'bronze2', name: 'ComfortMat Bronze 2', label: 'BRONZE 2', kind: 'damper', texture: 'foil', color: '#b79b6c', print: '#5b3b17',
+    id: 'bronze2', name: 'ComfortMat Bronze 2', label: 'BRONZE 2', kind: 'damper', texture: 'foil', color: '#d94a0e', print: '#fff1e6',
     text: 'Битумный вибродемпфер. Прикатывается к металлу и уменьшает его резонанс.', note: '350 ₽ за лист'
   },
   {
-    id: 'bronze3', name: 'ComfortMat Bronze 3', label: 'BRONZE 3', kind: 'damper', texture: 'foil', color: '#a98a5a', print: '#4d3214',
+    id: 'bronze3', name: 'ComfortMat Bronze 3', label: 'BRONZE 3', kind: 'damper', texture: 'foil', color: '#0b84cf', print: '#eaf6ff',
     text: 'Более толстый битумный вибродемпфер для пола и багажника. Тяжелее премиальных аналогов.', note: '460 ₽ за лист'
   },
   {
@@ -23,15 +24,15 @@ window.STUDIO_MATERIALS = [
     text: 'Звукоизолятор с акустической мембраной. Работает между слоями вибродемпфера и отражает шум улицы.', note: '825 ₽ за лист'
   },
   {
-    id: 'blockshot', name: 'ComfortMat Blockshot Gen.2', label: 'BLOCKSHOT', kind: 'insulator', texture: 'print', color: '#2f6ed8', print: '#e7efff',
+    id: 'blockshot', name: 'ComfortMat Blockshot Gen.2', label: 'BLOCKSHOT', kind: 'insulator', texture: 'print', color: '#1467d6', print: '#dcebff',
     text: 'Звукоизолятор с акустической мембраной для пола, арок и моторного щита.', note: '975 ₽ за лист'
   },
   {
-    id: 'raptor', name: 'ComfortMat Raptor', label: 'RAPTOR', kind: 'insulator', texture: 'print', color: '#c8a679', print: '#43301b',
+    id: 'raptor', name: 'ComfortMat Raptor', label: 'RAPTOR', kind: 'insulator', texture: 'print', color: '#dc953d', print: '#3f2a12',
     text: 'Звукоизолятор с акустической мембраной. Укладывается вторым слоем на пол и в багажник.', note: '829 ₽ за лист'
   },
   {
-    id: 'ranger', name: 'ComfortMat Ranger', label: 'RANGER', kind: 'insulator', texture: 'felt', color: '#55555c', print: '#c4c4cc',
+    id: 'ranger', name: 'ComfortMat Ranger', label: 'RANGER', kind: 'insulator', texture: 'felt', color: '#87655a', print: '#d9a48f',
     text: 'Звукоизолятор с акустической мембраной. Снижает гул со стороны пола.', note: '625 ₽ за лист'
   },
   {

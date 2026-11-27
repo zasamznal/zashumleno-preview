@@ -33,7 +33,7 @@
     rounding.value = String(v.rounding || 500);
     rounding.addEventListener('change', () => { v.rounding = Number(rounding.value); local.change(); });
     K.wrap(grid, 'Округлять цену вверх до', rounding, { note: 'Цена для клиента никогда не будет ниже прайса.' });
-    K.text(local, grid, v, 'basis', 'Пояснение для клиентов', { lines: 2, wide: true, note: 'Показывается под таблицей «Цены по типу кузова» в прайсе.' });
+    K.text(local, grid, v, 'basis', 'Пояснение для клиентов', { lines: 2, wide: true, note: 'Показывается в прайсе под описанием зоны, пока посетитель не выбрал машину. Пустое поле убирает строку.' });
 
     // Body types.
     const bodiesBox = K.card(host, 'Типы кузова', 'Наценка добавляется к цене из прайса. Для отдельной зоны можно задать свою — например, багажник универсала больше, чем у седана.');
@@ -215,8 +215,8 @@
   function check(data) {
     const v = data.vehicles;
     if (!v) return '';
-    if ((v.bodies || []).some(body => !String(body.title || '').trim())) return 'Цены по автомобилю: укажите название каждого типа кузова.';
-    if ((v.classes || []).some(group => !String(group.title || '').trim())) return 'Цены по автомобилю: назовите каждую группу марок.';
+    if ((v.bodies || []).some(body => !String(body.title || '').trim())) return 'Наценки за машину: укажите название каждого типа кузова.';
+    if ((v.classes || []).some(group => !String(group.title || '').trim())) return 'Наценки за машину: назовите каждую группу марок.';
     return '';
   }
 

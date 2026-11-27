@@ -78,6 +78,9 @@
     list.id = id + '-brands';
     list.setAttribute('role', 'listbox');
     list.setAttribute('aria-label', 'Марки автомобилей');
+    // A long list scrolls, and browsers put scrollable boxes into the Tab order: Tab from the field would land
+    // on the list that closes at that very moment, and focus would be lost. Options are chosen with the arrows.
+    list.tabIndex = -1;
     list.hidden = true;
     brandWrap.append(brand, clear, list);
     brandBox.append(brandLabel, brandWrap);
@@ -208,7 +211,9 @@
       const description = pricing.describe(config, state);
       status.hidden = !description;
       if (description) {
-        statusText.replaceChildren('Цены пересчитаны для: ', element('strong', '', description));
+        // A brand the price list does not know changes nothing by itself: prices follow the body alone.
+        const recalculated = Boolean(state.body || match);
+        statusText.replaceChildren(recalculated ? 'Цены пересчитаны для: ' : 'Ваша машина: ', element('strong', '', description));
         if (state.brand && !match) statusText.append(element('span', 'car-unknown', ' Этой марки нет в списке — мастер уточнит цену.'));
       } else statusText.textContent = '';
       root.dataset.selected = String(Boolean(description));

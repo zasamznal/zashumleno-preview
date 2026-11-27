@@ -172,7 +172,8 @@
 }
 @media (min-width: 36rem) {
   .case-project.case-portrait {
-    --case-preview-height: clamp(27rem, 63svh, 36rem);
+    /* On a short screen (a phone on its side) the upright film still fits the height. */
+    --case-preview-height: clamp(min(27rem, 92svh), 63svh, 36rem);
     display: grid;
     grid-template-columns: minmax(0, min(51%, calc(var(--case-preview-height) * var(--case-proportion, .5625)))) minmax(0, 1fr);
     align-items: stretch;

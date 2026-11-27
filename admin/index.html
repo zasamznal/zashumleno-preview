@@ -10,39 +10,41 @@
   <title>Кабинет студии — Зашумлено</title>
   <link rel="icon" type="image/svg+xml" href="v2/brand.svg">
   <link rel="stylesheet" href="assets/fonts/fonts.css?v=7ec71ff7f553">
-  <link rel="stylesheet" href="admin/admin.css?v=d3a0893c203d">
+  <link rel="stylesheet" href="admin/admin.css?v=f7e2684ac2be">
   <link rel="stylesheet" href="admin/catalog-editors.css?v=de678cb9451d">
   <link rel="stylesheet" href="admin/page-editor.css?v=42281472b719">
-  <link rel="stylesheet" href="admin/redesign.css?v=95a7cf7a9ce5">
-  <link rel="stylesheet" href="v2/car-shapes.css?v=4f30401c902d">
-  <link rel="stylesheet" href="admin/studio.css?v=48ec50472394">
-  <link rel="stylesheet" href="admin/visual.css?v=9005bdcd66c5">
-  <script defer src="admin/shell.js?v=c23396776ae4"></script>
-  <script defer src="page-content.js?v=69e016ac7195"></script>
-  <script defer src="prices.js?v=2122868dc7ab"></script>
-  <script defer src="zones.js?v=358de0336c79"></script>
+  <link rel="stylesheet" href="admin/redesign.css?v=fe9acfc8e453">
+  <link rel="stylesheet" href="v2/car-shapes.css?v=ce831885d782">
+  <link rel="stylesheet" href="admin/studio.css?v=2dd0bdab244c">
+  <link rel="stylesheet" href="admin/visual.css?v=e972567d2800">
+  <link rel="stylesheet" href="admin/readiness.css?v=39624f8baef9">
+  <script defer src="admin/shell.js?v=0091f03359dd"></script>
+  <script defer src="page-content.js?v=189c5fe336fe"></script>
+  <script defer src="prices.js?v=64cb3b6d2f77"></script>
+  <script defer src="zones.js?v=e29591acebc1"></script>
   <script defer src="works.js?v=7c44da7aac3b"></script>
   <script defer src="vehicles.js?v=34caa39d8775"></script>
-  <script defer src="materials.js?v=04bbba6c6182"></script>
-  <script defer src="content-upgrade.js?v=98665823b529"></script>
+  <script defer src="materials.js?v=8aaee05d8ef0"></script>
+  <script defer src="content-upgrade.js?v=ee55c203e560"></script>
   <script defer src="v2/vehicle-pricing.js?v=eea38ef46bed"></script>
   <script defer src="v2/car-shapes.js?v=6e1d3f1662f1"></script>
   <script defer src="v2/estimate-engine.js?v=87ad4bf2f334"></script>
-  <script defer src="v2/layers.js?v=e53a70021b6c"></script>
-  <script defer src="admin/art.js?v=b8b04241f56b"></script>
-  <script defer src="admin/kit.js?v=0e9ada75c73e"></script>
-  <script defer src="admin/price-editor.js?v=714767bd4b8a"></script>
-  <script defer src="admin/catalog-editors.js?v=be594581f1a4"></script>
-  <script defer src="admin/site-content.js?v=3ba136835e85"></script>
-  <script defer src="admin/vehicles-editor.js?v=af0058394453"></script>
-  <script defer src="admin/materials-editor.js?v=a9b71e93e5be"></script>
-  <script defer src="admin/palette-editor.js?v=2ef5075b98b7"></script>
-  <script defer src="admin/media-library.js?v=8f20ac0c6f11"></script>
+  <script defer src="v2/layers.js?v=a89e1d04f6a2"></script>
+  <script defer src="admin/art.js?v=485b9dd694a3"></script>
+  <script defer src="admin/kit.js?v=162374f410d2"></script>
+  <script defer src="admin/price-editor.js?v=aaace159117b"></script>
+  <script defer src="admin/catalog-editors.js?v=26b23f0ed4ef"></script>
+  <script defer src="admin/site-content.js?v=31a6ade4d1e3"></script>
+  <script defer src="admin/vehicles-editor.js?v=55a23b13c0ab"></script>
+  <script defer src="admin/materials-editor.js?v=ead89e11e20d"></script>
+  <script defer src="admin/palette-editor.js?v=1fd30a9cbe0e"></script>
+  <script defer src="admin/media-library.js?v=8d3acadc3305"></script>
+  <script defer src="admin/readiness.js?v=afdea2a48ea5"></script>
 </head>
 <body>
   <a class="a-skip" href="#screen-title">К содержимому</a>
   <header class="a-header">
-    <a href="" class="a-brand" aria-label="Зашумлено — на сайт"><img class="a-brand-mark" src="v2/brand.svg" width="46" height="36" alt=""><strong>ЗАШУМЛЕНО</strong></a>
+    <a href="" class="a-brand" aria-label="Зашумлено — на сайт"><img class="a-brand-mark" src="assets/mark.webp" width="194" height="176" alt=""><strong>ЗАШУМЛЕНО</strong></a>
     <span class="a-header-title">Кабинет студии</span>
     <a class="a-top-link" href="" target="_blank" rel="noopener">Открыть сайт</a>
     <button class="a-logout" id="logout" type="button" hidden>Выйти</button>
@@ -87,8 +89,8 @@
     <iframe id="preview-frame" title="Сайт с изменениями черновика"></iframe>
   </aside>
   <div id="toast" class="a-toast" role="status" hidden></div>
-  <dialog id="publish-dialog" class="a-dialog">
-    <form method="dialog"><p class="a-eyebrow">Публикация</p><h2>Обновить сайт?</h2><p>Клиенты увидят изменения в этих разделах:</p>
+  <dialog id="publish-dialog" class="a-dialog" aria-labelledby="publish-title">
+    <form method="dialog"><p class="a-eyebrow">Публикация</p><h2 id="publish-title">Обновить сайт?</h2><p>Клиенты увидят изменения в этих разделах:</p>
     <ul class="a-publish-list" id="publish-list"></ul>
     <div class="a-dialog-actions"><button class="a-btn a-quiet" type="submit" value="cancel" autofocus>Вернуться</button><button class="a-btn a-action" type="submit" value="publish">Опубликовать сайт</button></div></form>
   </dialog>

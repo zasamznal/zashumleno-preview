@@ -63,6 +63,12 @@
   @keyframes car-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
   @keyframes car-roll { from { transform: rotate(-200deg) scale(.6); opacity: .2; } to { transform: none; opacity: 1; } }
 }
+/* A finger needs about 44 px: on touch screens the brand chips and the small buttons of the picker grow to it. */
+@media (pointer: coarse) {
+  .car-chip, .car-reset { min-height: 2.75rem; }
+  .car-clear { right: .1rem; width: 2.75rem; height: 2.75rem; }
+  .car-combo .car-input { padding-right: 3rem; }
+}
 @media (max-width: 66rem) { .car-bodies { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 44rem) {
   .car-fields { grid-template-columns: minmax(0, 1fr); }

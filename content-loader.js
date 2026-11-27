@@ -54,6 +54,8 @@
     const link = document.createElement('a');
     link.href = 'admin/';
     link.textContent = 'В кабинет';
+    // The cabinet is still open in the tab this preview came from: return there instead of starting a second one.
+    link.addEventListener('click', () => { if (window.top === window && history.length <= 1) window.close(); });
     box.append(text, link);
     document.body.prepend(box);
   }

@@ -33,7 +33,7 @@
   padding: .36rem .85rem .36rem .35rem;
   text-shadow: none;
 }
-.acoustics-caption:not(:has(button:not([hidden]))) { padding-left: .85rem; }
+.acoustics-caption:not(:has(button:not([hidden], .acoustics-sound))) { padding-left: .85rem; }
 .acoustics-caption button {
   display: grid;
   flex: 0 0 auto;
@@ -48,13 +48,20 @@
 }
 .acoustics-caption button:hover { background: color-mix(in srgb, var(--accent) 22%, var(--night)); }
 .acoustics-caption button svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+/* The sound toggle stands beside the caption, which keeps its size, so the rings stay in view. It is held from below, so it stays put when the caption gets a line taller. */
+.acoustics-caption .acoustics-sound { position: absolute; right: calc(100% + .55rem); bottom: .36rem; }
+/* The toggle is lit while the road is heard. */
+.acoustics-sound[aria-pressed="true"] { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.acoustics-sound[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--accent) 84%, #fff); }
 .acoustics-caption > span:not(.acoustics-meter) { display: grid; gap: .1rem; text-align: left; }
 .acoustics-meter { display: flex; flex: 0 0 auto; align-items: flex-end; gap: 2px; height: 1.35rem; }
 .acoustics-meter i { width: 3px; height: 100%; border-radius: 2px; background: linear-gradient(to top, var(--accent), color-mix(in srgb, var(--spark) 70%, var(--accent))); transform: scaleY(var(--level, .2)); transform-origin: bottom; }
 .acoustics-topic { color: var(--muted-on-dark); font: 600 .72rem/1.2 Roboto, Arial, sans-serif; }
 .acoustics-phase { min-width: 10.1em; font: 660 .9rem/1.18 Roboto, Arial, sans-serif; letter-spacing: -.012em; }
+.acoustics-note { color: var(--muted-on-dark); font: 500 .66rem/1.2 Roboto, Arial, sans-serif; }
 @media (max-width: 680px) {
   .acoustics-caption { bottom: .6rem; left: var(--gutter, 5vw); right: auto; gap: .5rem; padding: .2rem .65rem .2rem .2rem; }
+  .acoustics-caption .acoustics-sound { right: auto; left: .2rem; bottom: 3.7rem; }
   .acoustics-topic { font-size: .69rem; }
   .acoustics-phase { font-size: .83rem; }
 }

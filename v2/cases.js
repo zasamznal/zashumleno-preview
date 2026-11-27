@@ -31,10 +31,10 @@
     const plural = new Intl.PluralRules('ru').select(works.length);
     const unit = {one: 'работа', few: 'работы'}[plural] || 'работ';
     const layout = block('div', 'case-gallery');
-    const preview = block('figure', 'case-project');
+    const preview = block('div', 'case-project');
     preview.id = 'case-project-panel';
     const media = block('div', 'case-project-media');
-    const caption = block('figcaption', 'case-project-caption');
+    const caption = block('div', 'case-project-caption');
     const model = block('h3', 'case-project-model');
     const service = block('p', 'case-project-service');
     const description = block('p', 'case-project-description');
@@ -66,8 +66,9 @@
     const page = block('span', 'case-page');
     const next = block('button', 'case-next', 'Далее');
     previous.type = next.type = 'button';
-    previous.setAttribute('aria-label', 'Предыдущая работа');
-    next.setAttribute('aria-label', 'Следующая работа');
+    // The spoken name starts with the words on the button, so «нажми Далее» works for voice control.
+    previous.setAttribute('aria-label', 'Назад: предыдущая работа');
+    next.setAttribute('aria-label', 'Далее: следующая работа');
     paging.append(previous, page, next);
     mobile.append(picker, paging);
     catalogue.append(catalogueHead, tabs);
@@ -256,6 +257,17 @@
         show(selected + (dx < 0 ? 1 : -1));
       }
     });
+    // A film left playing off screen keeps sounding while the visitor reads on: pause it once the player scrolls away.
+    // Full screen and picture-in-picture are the visitor's own choice and stay as they are.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(entries => {
+        const player = activeVideo;
+        if (!player || entries.at(-1).isIntersecting) return;
+        const detached = document.fullscreenElement || document.webkitFullscreenElement || player.webkitDisplayingFullscreen ||
+          document.pictureInPictureElement === player;
+        if (!detached) player.pause();
+      }).observe(media);
+    }
     request.addEventListener('click', () => {
       activeVideo?.pause();
       const work = works[selected];
