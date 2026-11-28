@@ -2,7 +2,7 @@
   'use strict';
 
   const defaults = {
-    designVersion: 4,
+    designVersion: 5,
     brand: {
       name: 'ЗАШУМЛЕНО', logo: 'assets/mark.svg', siteTitle: 'Зашумлено — шумоизоляция и автозвук в Москве',
       description: 'Московская автостудия «Зашумлено». Подробный прайс шумоизоляции по зонам, примеры работ с автомобилями и консультация Никиты.',
@@ -35,7 +35,7 @@
     ],
     contacts: {
       phone: '+7 910 005-77-05', whatsapp: '+7 910 005-77-05', telegram: 'https://t.me/Zashumleno', telegramChannel: 'https://t.me/ZaShumlenoAvto',
-      vk: 'https://vk.com/arkanin', youtube: '', map: 'https://yandex.ru/maps/-/CPvAZGoj', mapEmbed: '',
+      vk: 'https://vk.com/arkanin', youtube: 'https://youtube.com/@zashumku', map: 'https://yandex.ru/maps/-/CPvAZGoj', mapEmbed: '',
       address: 'Москва, Варшавское шоссе, 152А', entrance: 'Подземный паркинг, этаж −1.', shortAddress: 'Варшавское шоссе, 152А',
       metro: 'Рядом метро «Улица Академика Янгеля»',
       // «Сейчас открыто» under the working hours; a snapshot saved before this switch gets it turned on.
@@ -225,6 +225,9 @@
 
   function readPage(value) {
     if (!value || value.designVersion >= defaults.designVersion) return value || {};
+    // Before v5, saved pages had an empty YouTube field until the studio supplied its channel.
+    value = { ...value, contacts: migrateRecord(value.contacts, { youtube: '' }, defaults.contacts) };
+    if (value.designVersion === 4) return value;
     if (value.designVersion === 3) {
       // The teal palette and teal cover were defaults of the previous demo, not choices of the owner.
       return {

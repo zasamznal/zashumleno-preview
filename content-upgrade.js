@@ -27,6 +27,13 @@
       'sheets/trunk-premium.jpg': [['viper', 'cobra', 'Viper и Cobra — в разных частях багажника'],
         ['raptor', 'blockshot', 'Raptor и Blockshot — вторым слоем'], ['softwave', '', 'Soft Wave — на обшивке крышки']]
     },
+    // Defaults of the standard trunk kit just before the studio confirmed Soft Wave on the lid trim.
+    trunkStandardWithAreas: [
+      ['bronze3', 'bronze2', '', ['floor', 'arches'], ['wings', 'lid']],
+      ['ranger', '', '', ['floor', 'arches', 'wings']]
+    ],
+    trunkStandardNote: 'Второй слой — звукоизолятор ComfortMat Ranger с акустической мембраной, 625 ₽ за лист. В примере работ студия также указывает Soft Wave на обшивке крышки.',
+    trunkStandardDetail: 'Стандарт — от 18 000 ₽. К вибродемпферам Bronze 3 и Bronze 2 добавляют звукоизолятор Ranger. Вес — 31 кг.',
     // Colours of the sheets before they were matched to the photos of the studio: [colour, print].
     materials: { bronze2: ['#b79b6c', '#5b3b17'], bronze3: ['#a98a5a', '#4d3214'], blockshot: ['#2f6ed8', '#e7efff'],
       raptor: ['#c8a679', '#43301b'], ranger: ['#55555c', '#c4c4cc'] }
@@ -45,11 +52,12 @@
     return result;
   }
 
-  // A sheet with areas, another material or the owner's own note is no longer the former default.
+  // Compare the data of each sheet, preserving the order and the owner's placement and notes.
   const untouched = (layers, before) => layers.length === before.length && layers.every((layer, index) => {
-    const [material, alt = '', note = ''] = before[index];
-    return record(layer) && Object.keys(layer).every(key => ['material', 'alt', 'note'].includes(key)) &&
-      layer.material === material && (layer.alt || '') === alt && (layer.note || '') === note;
+    const [material, alt = '', note = '', on, altOn] = before[index];
+    return record(layer) && Object.keys(layer).every(key => ['material', 'alt', 'note', 'on', 'altOn'].includes(key)) &&
+      layer.material === material && (layer.alt || '') === alt && (layer.note || '') === note &&
+      JSON.stringify(layer.on) === JSON.stringify(on) && JSON.stringify(layer.altOn) === JSON.stringify(altOn);
   });
 
   // Snapshots saved before car pricing, the materials section and the parts of «Что внутри» get the studio data they lack.
@@ -75,6 +83,9 @@
         if (!record(next.structure)) { if (base.structure) next.structure = copy(base.structure); }
         else if (record(base.structure)) next.structure = renewStructure(next.structure, former(previous.structure, zone.id), base.structure);
         if (!Array.isArray(next.gallery) && base.gallery) next.gallery = copy(base.gallery);
+        if (zone.id === 'trunk' && Array.isArray(next.details) && base.details?.[1]) {
+          next.details = next.details.map(line => line === previous.trunkStandardDetail ? base.details[1] : line);
+        }
         return next;
       });
     }
@@ -84,9 +95,19 @@
         const base = (seed.prices || []).find(item => item.sheet && item.sheet === rate.sheet) ||
           (seed.prices || []).find(item => item.group === rate.group && item.title === rate.title);
         if (!Array.isArray(base?.layers)) return rate;
-        if (!Array.isArray(rate.layers)) return { ...rate, layers: copy(base.layers) };
         const before = former(previous.layers, rate.sheet) || former(previous.layers, base.sheet);
-        return before && untouched(rate.layers, before) ? { ...rate, layers: copy(base.layers) } : rate;
+        const missing = !Array.isArray(rate.layers);
+        const oldLayers = !missing && before && untouched(rate.layers, before);
+        if (base.sheet === 'sheets/trunk-standard.jpg' && base.layerRevision) {
+          if (rate.layerRevision) return missing ? { ...rate, layers: copy(base.layers) } : rate;
+          const next = { ...rate, layerRevision: base.layerRevision };
+          if (missing || oldLayers || untouched(rate.layers, previous.trunkStandardWithAreas)) next.layers = copy(base.layers);
+          if (Array.isArray(rate.notes) && base.notes?.[2]) {
+            next.notes = rate.notes.map(line => line === previous.trunkStandardNote ? base.notes[2] : line);
+          }
+          return next;
+        }
+        return missing || oldLayers ? { ...rate, layers: copy(base.layers) } : rate;
       });
     }
     return result;

@@ -74,15 +74,22 @@
     clear.type = 'button';
     clear.setAttribute('aria-label', 'Очистить марку');
     clear.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>';
+    const toggle = element('button', 'car-list-toggle');
+    toggle.type = 'button';
+    toggle.tabIndex = -1; // Keyboard users open the list with the arrows in the combobox.
+    toggle.setAttribute('aria-label', 'Список марок');
+    toggle.setAttribute('aria-haspopup', 'listbox');
+    toggle.setAttribute('aria-controls', id + '-brands');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
     const list = element('ul', 'car-options');
     list.id = id + '-brands';
     list.setAttribute('role', 'listbox');
     list.setAttribute('aria-label', 'Марки автомобилей');
-    // A long list scrolls, and browsers put scrollable boxes into the Tab order: Tab from the field would land
-    // on the list that closes at that very moment, and focus would be lost. Options are chosen with the arrows.
+    // Keep the text input as the keyboard focus while navigating the list with the arrows.
     list.tabIndex = -1;
     list.hidden = true;
-    brandWrap.append(brand, clear, list);
+    brandWrap.append(brand, clear, toggle, list);
     brandBox.append(brandLabel, brandWrap);
 
     const modelBox = element('div', 'car-field car-model');
@@ -131,6 +138,7 @@
     function closeList() {
       list.hidden = true;
       brand.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-expanded', 'false');
       brand.removeAttribute('aria-activedescendant');
       active = -1;
     }
@@ -142,21 +150,23 @@
         list.children[index].scrollIntoView({ block: 'nearest' });
       } else brand.removeAttribute('aria-activedescendant');
     }
-    function openList() {
-      options = pricing.suggest(config, brand.value, 8);
+    function openList(query = '') {
+      options = pricing.suggest(config, query, Infinity);
       list.replaceChildren(...options.map((option, index) => {
         const item = element('li', 'car-option');
         item.id = id + '-brand-' + index;
         item.setAttribute('role', 'option');
         item.setAttribute('aria-selected', 'false');
         item.append(element('span', '', option.name));
-        item.addEventListener('pointerdown', event => event.preventDefault());
+        // Keep mouse focus in the input but let touch users scroll the options normally.
+        item.addEventListener('mousedown', event => event.preventDefault());
         item.addEventListener('click', () => choose(option.name));
         return item;
       }));
-      const exact = options.length === 1 && options[0].name === brand.value;
-      list.hidden = !options.length || exact;
+      list.hidden = !options.length;
       brand.setAttribute('aria-expanded', String(!list.hidden));
+      toggle.setAttribute('aria-expanded', String(!list.hidden));
+      list.scrollTop = 0;
       highlight(-1);
     }
     function choose(name) {
@@ -164,9 +174,14 @@
       closeList();
       commit();
     }
-    brand.addEventListener('focus', openList);
+    brand.addEventListener('focus', () => openList());
+    brand.addEventListener('click', () => { if (list.hidden) openList(); });
+    toggle.addEventListener('click', () => {
+      if (list.hidden) openList();
+      else closeList();
+    });
     brand.addEventListener('input', () => {
-      openList();
+      openList(brand.value);
       state.brand = brand.value.trim();
       commit(true);
     });
@@ -176,17 +191,24 @@
         if (list.hidden) openList();
         if (!options.length) return;
         const step = event.key === 'ArrowDown' ? 1 : -1;
-        highlight((active + step + options.length) % options.length);
+        highlight(active < 0 ? (step > 0 ? 0 : options.length - 1) : (active + step + options.length) % options.length);
       } else if (event.key === 'Enter' && !list.hidden && active >= 0) {
         event.preventDefault();
         choose(options[active].name);
       } else if (event.key === 'Escape' && !list.hidden) {
         event.preventDefault();
         closeList();
-      }
+      } else if (event.key === 'Tab') closeList();
+    });
+    // A tap can blur the input before the option receives its click. Dismiss on an
+    // outside interaction instead, leaving the list in place during a tap or a swipe.
+    window.addEventListener('pointerdown', event => {
+      if (!list.hidden && !brandWrap.contains(event.target)) closeList();
+    }, true);
+    brandWrap.addEventListener('focusout', event => {
+      if (event.relatedTarget && !brandWrap.contains(event.relatedTarget)) closeList();
     });
     brand.addEventListener('blur', () => {
-      closeList();
       const match = pricing.findBrand(config, brand.value);
       if (match) brand.value = match.name;
       state.brand = brand.value.trim();
@@ -196,6 +218,7 @@
       brand.value = state.brand = '';
       commit();
       brand.focus();
+      openList();
     });
     model.addEventListener('input', () => {
       state.model = model.value.trim();

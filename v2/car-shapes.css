@@ -24,20 +24,23 @@
 .car-field { display: grid; gap: .4rem; min-width: 0; }
 .car-field label { color: var(--on-dark); font-size: .88rem; font-weight: 620; }
 .car-field label small { color: var(--muted-on-dark); font-weight: 450; }
-.car-combo { position: relative; }
+.car-combo { position: relative; --car-control: 2.2rem; }
 .car-input {
   width: 100%; min-height: 2.9rem; padding: .62rem .9rem; border: 1px solid var(--line-dark-strong); border-radius: .3rem;
   color: var(--on-dark); background: var(--night); font: inherit; font-size: 1rem; color-scheme: dark;
 }
-.car-combo .car-input { padding-right: 2.6rem; }
+.car-combo .car-input { padding-right: calc(2 * var(--car-control) + .6rem); }
 .car-input::placeholder { color: color-mix(in srgb, var(--muted-on-dark) 75%, var(--night)); opacity: 1; }
 .car-input:hover { border-color: var(--accent); }
 .car-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.car-clear { position: absolute; top: 50%; right: .35rem; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; padding: 0; transform: translateY(-50%); border: 0; border-radius: 50%; color: var(--muted-on-dark); background: transparent; }
-.car-clear svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
-.car-clear:hover { color: var(--on-dark); background: var(--night-3); }
+.car-clear, .car-list-toggle { position: absolute; top: 50%; display: grid; place-items: center; width: var(--car-control); height: var(--car-control); padding: 0; transform: translateY(-50%); border: 0; border-radius: 50%; color: var(--muted-on-dark); background: transparent; }
+.car-clear { right: calc(var(--car-control) + .15rem); }
+.car-list-toggle { right: .15rem; }
+.car-clear svg, .car-list-toggle svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.car-list-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.car-clear:hover, .car-list-toggle:hover { color: var(--on-dark); background: var(--night-3); }
 .car-options {
-  position: absolute; z-index: 30; inset: calc(100% + .3rem) 0 auto; max-height: 18rem; overflow-y: auto; margin: 0; padding: .3rem;
+  position: absolute; z-index: 30; inset: calc(100% + .3rem) 0 auto; max-height: 18rem; overflow-y: auto; overscroll-behavior-y: contain; margin: 0; padding: .3rem;
   list-style: none; background: var(--night-2); border: 1px solid var(--line-dark-strong); border-radius: .4rem;
   box-shadow: 0 18px 40px -18px color-mix(in srgb, black 70%, transparent);
 }
@@ -66,8 +69,8 @@
 /* A finger needs about 44 px: on touch screens the brand chips and the small buttons of the picker grow to it. */
 @media (pointer: coarse) {
   .car-chip, .car-reset { min-height: 2.75rem; }
-  .car-clear { right: .1rem; width: 2.75rem; height: 2.75rem; }
-  .car-combo .car-input { padding-right: 3rem; }
+  .car-combo { --car-control: 2.75rem; }
+  .car-option { min-height: 2.75rem; align-items: center; }
 }
 @media (max-width: 66rem) { .car-bodies { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 44rem) {

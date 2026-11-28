@@ -399,11 +399,12 @@ window.STUDIO_PRICES = [
     "notes": [
       "В комплект входят багажник, задние арки со стороны салона, задние крылья и крышка багажника.",
       "Первый слой — битумные вибродемпферы ComfortMat Bronze 3 (460 ₽ за лист) и Bronze 2 (350 ₽ за лист). Они гасят резонанс металла.",
-      "Второй слой — звукоизолятор ComfortMat Ranger с акустической мембраной, 625 ₽ за лист. В примере работ студия также указывает Soft Wave на обшивке крышки.",
+      "Второй слой — звукоизолятор ComfortMat Ranger с акустической мембраной, 625 ₽ за лист. На металл крышки багажника клеим Bronze 2, на обратную сторону её обшивки — Soft Wave.",
       "На материалы приходится 70% стоимости. Студия отмечает большой вес комплекта."
     ],
     "source": "https://disk.yandex.ru/d/EoEO0sADUJHF4w",
     "sheet": "sheets/trunk-standard.jpg",
+    "layerRevision": 1,
     "layers": [
       {
         "material": "bronze3",
@@ -414,6 +415,10 @@ window.STUDIO_PRICES = [
       {
         "material": "ranger",
         "on": ["floor", "arches", "wings"]
+      },
+      {
+        "material": "softwave",
+        "on": ["lidTrim"]
       }
     ]
   },
